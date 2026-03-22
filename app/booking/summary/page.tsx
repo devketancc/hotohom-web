@@ -10,7 +10,6 @@ import { cartService } from '@/services/cart.service';
 import { formatBookingTravelWindow } from '@/utils/format';
 import { AddonList } from '@/components/booking/AddonList';
 import { 
-  ArrowLeft, 
   Edit2, 
   Calendar, 
   MapPin, 
@@ -64,7 +63,7 @@ export default function BookingSummaryPage() {
 
   if (cartLoading || addonsLoading || !caravanClass) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stitch-background text-stitch-on-background">
+      <div className="flex flex-1 min-h-[50vh] items-center justify-center text-stitch-on-background">
         <div className="animate-spin size-8 border-4 border-stitch-primary border-t-transparent pt-2 rounded-full"></div>
       </div>
     );
@@ -72,7 +71,7 @@ export default function BookingSummaryPage() {
 
   if (cartError || !cart) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stitch-background text-stitch-on-background">
+      <div className="flex flex-1 min-h-[50vh] items-center justify-center text-stitch-on-background">
         <div className="text-center">
           <p className="text-destructive mb-4">Failed to load booking summary</p>
           <button 
@@ -94,38 +93,8 @@ export default function BookingSummaryPage() {
   const midStops = stops.slice(1, -1);
 
   return (
-    <div className="min-h-screen bg-stitch-background text-stitch-on-background font-body selection:bg-stitch-primary/20">
-      
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-stitch-surface/80 backdrop-blur-md border-b border-border/20">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => router.back()}
-            className="p-2 hover:bg-stitch-surface-highest rounded-full transition-colors text-stitch-primary"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="size-6 text-stitch-primary">
-              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fillRule="evenodd"></path>
-              </svg>
-            </div>
-            <div>
-              <h1 className="font-headline text-lg font-bold leading-none tracking-tight">Motohom {caravanClass.name.split(' ')[0]}</h1>
-              <p className="text-xs text-muted-foreground font-label uppercase tracking-widest mt-1">Booking Summary</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline-block text-xs font-label uppercase tracking-widest text-muted-foreground">Step 3 of 4</span>
-          <div className="w-16 sm:w-24 h-1 bg-stitch-surface-highest rounded-full overflow-hidden">
-            <div className="w-3/4 h-full bg-stitch-primary"></div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+    <div className="text-stitch-on-background font-body selection:bg-stitch-primary/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left Content */}
         <div className="lg:col-span-7 space-y-12">
           
@@ -336,7 +305,7 @@ export default function BookingSummaryPage() {
             </div>
           </div>
         </aside>
-      </main>
+      </div>
 
       <footer className="mt-20 border-t border-border/10 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
