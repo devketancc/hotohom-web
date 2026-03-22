@@ -16,6 +16,21 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Environment Setup
+
+The project uses environment variables for API configuration and third-party integrations.
+
+1.  Copy `.env.example` to `.env.local` or use the provided `.env.development`:
+    ```bash
+    cp .env.example .env.local
+    ```
+2.  Fill in the values in `.env.local`.
+
+Available environment files:
+- `.env.example`: Template for all variables.
+- `.env.development`: Pre-configured for local dev environment.
+- `.env.production`: Configuration for production deployment.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

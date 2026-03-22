@@ -18,6 +18,12 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Debug log for API requests
+    if (env.IS_DEVELOPMENT) {
+      console.log(`📡 [API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    }
+
     return config;
   },
   (error) => {

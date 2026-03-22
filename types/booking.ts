@@ -25,12 +25,14 @@ export interface Addon {
 
 export interface BookingData {
   hub: string | null;
+  hubName: string | null;
   dates: {
     start: Date | null;
     end: Date | null;
+    totalDays: number;
   };
   caravanClass: CaravanClass | null;
-  passengers: Passenger[];
+  passengers: number;
   pets: number;
   journey: Journey | null;
   addons: Addon[];
