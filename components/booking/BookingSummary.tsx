@@ -21,8 +21,12 @@ const PET_CLEANING_NOTE =
 
 interface BookingSummaryProps {
   booking: BookingData;
-  onContinue: () => void;
+  onContinue: () => void | Promise<void>;
   isLoading?: boolean;
+  /** Overrides default "Processing..." on the CTA while loading */
+  continueLoadingLabel?: string;
+  /** Error under CTA (e.g. cart API failure) */
+  continueError?: string | null;
   /** Golden highlighted caravan card (select-caravan). Journey / map use compact row. */
   emphasizeCaravanSelection?: boolean;
   /** Day rate, pets stepper, total estimate (off on journey steps after caravan is chosen). */
@@ -41,6 +45,8 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
   showCaravanPricing = true,
   continueUnlocked,
   continueLockedHint,
+  continueLoadingLabel = 'Processing...',
+  continueError,
 }) => {
   const { hubName, dates, caravanClass, pets } = booking;
   const { setData } = useBookingStore();
@@ -241,7 +247,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
             : 'bg-stitch-surface-highest/30 text-stitch-on-surface-variant/40 cursor-not-allowed'
         )}
       >
-        {isLoading ? 'Processing...' : 'Continue to booking'}
+        {isLoading ? continueLoadingLabel : 'Continue to booking'}
         <ArrowRight
           size={18}
           className={cn(isReady && !continueGated && 'group-hover:translate-x-1 transition-transform')}
@@ -253,6 +259,12 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
           Select a fleet to unlock the next step
         </p>
       )}
+
+      {continueError ? (
+        <p className="text-center text-sm text-destructive mt-3" role="alert">
+          {continueError}
+        </p>
+      ) : null}
 
       {isReady && (
         <p className="text-[10px] text-center text-muted-foreground/60 mt-4 flex items-center justify-center gap-1.5">

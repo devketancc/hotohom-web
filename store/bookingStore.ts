@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { differenceInCalendarDays } from 'date-fns';
 import { BookingData } from '@/types/booking';
+import { useCartStore } from '@/store/cartStore';
 
 export interface BookingState extends BookingData {
   setData: (data: Partial<BookingData>) => void;
@@ -31,7 +32,14 @@ export const useBookingStore = create<BookingState>()(
   persist(
     (set) => ({
       ...initialState,
-      setData: (data) =>
+      setData: (data) => {
+        if (
+          data.journey !== undefined ||
+          data.hub !== undefined ||
+          data.caravanClass !== undefined
+        ) {
+          useCartStore.getState().clearCart();
+        }
         set((state) => {
           const next = { ...state, ...data };
           if (data.hub !== undefined && data.hub !== state.hub) {
@@ -39,8 +47,10 @@ export const useBookingStore = create<BookingState>()(
             next.passengers = 1;
           }
           return next;
-        }),
-      setDates: (start, end) =>
+        });
+      },
+      setDates: (start, end) => {
+        useCartStore.getState().clearCart();
         set((state) => {
           let totalDays = 0;
           if (start && end) {
@@ -57,8 +67,12 @@ export const useBookingStore = create<BookingState>()(
             caravanClass: null,
             passengers: 1,
           };
-        }),
-      reset: () => set(initialState),
+        });
+      },
+      reset: () => {
+        useCartStore.getState().clearCart();
+        set(initialState);
+      },
     }),
     {
       name: 'motohom-booking-storage',

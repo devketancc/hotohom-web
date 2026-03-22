@@ -16,6 +16,7 @@ const BACKEND_TRAILING_SLASH_PATHS = new Set([
   '/api/v1/auth/otp/verify',
   '/api/v1/auth/token/refresh',
   '/api/v1/auth/logout',
+  '/api/v1/carts',
 ]);
 
 function buildBackendUrl(request: NextRequest): string {
