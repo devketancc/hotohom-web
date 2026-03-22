@@ -31,6 +31,18 @@ export type CreateCartPayload = {
 export type CartPricingBreakdown = {
   grand_total: number;
   base_price: number;
+  addons_total: number;
+  insurance_total: number;
+  tax_total: number;
+};
+
+export type CartItem = {
+  id: string;
+  addon_id: string;
+  addon_name: string;
+  quantity: number;
+  price: string;
+  total: string;
 };
 
 /** Snapshot returned from create cart (and future cart reads) */
@@ -40,6 +52,7 @@ export type Cart = {
   pricing_breakdown: CartPricingBreakdown;
   total_days: number;
   estimated_km: number;
+  items: CartItem[];
   stops: unknown[];
   is_ready_for_checkout: boolean;
 };

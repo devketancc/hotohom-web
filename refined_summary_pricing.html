@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#7a5900",
+                        "surface-container-highest": "#31353b",
+                        "surface-tint": "#edc062",
+                        "surface-bright": "#36393f",
+                        "inverse-on-surface": "#2d3136",
+                        "surface-variant": "#31353b",
+                        "secondary-fixed": "#dee2ec",
+                        "on-secondary-container": "#b1b5bf",
+                        "on-primary": "#402d00",
+                        "surface": "#101419",
+                        "secondary-fixed-dim": "#c2c7d0",
+                        "secondary": "#c2c7d0",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed-variant": "#42474f",
+                        "on-error": "#690005",
+                        "outline": "#9a8f7e",
+                        "primary-container": "#e5b95c",
+                        "on-tertiary": "#0a2e65",
+                        "primary-fixed-dim": "#edc062",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffd682",
+                        "surface-dim": "#101419",
+                        "on-secondary": "#2c3138",
+                        "on-tertiary-fixed": "#001a42",
+                        "on-background": "#e0e2ea",
+                        "tertiary-fixed": "#d8e2ff",
+                        "tertiary-container": "#a3bfff",
+                        "surface-container-low": "#181c21",
+                        "on-surface-variant": "#d1c5b2",
+                        "on-primary-fixed-variant": "#5c4300",
+                        "on-tertiary-fixed-variant": "#27457d",
+                        "on-secondary-fixed": "#171c23",
+                        "tertiary-fixed-dim": "#aec6ff",
+                        "primary-fixed": "#ffdea1",
+                        "error-container": "#93000a",
+                        "secondary-container": "#42474f",
+                        "tertiary": "#cedbff",
+                        "outline-variant": "#4e4637",
+                        "on-primary-fixed": "#261900",
+                        "background": "#101419",
+                        "on-primary-container": "#654900",
+                        "surface-container-high": "#262a30",
+                        "inverse-surface": "#e0e2ea",
+                        "surface-container-lowest": "#0a0e13",
+                        "on-surface": "#e0e2ea",
+                        "on-tertiary-container": "#2f4d85",
+                        "surface-container": "#1c2025"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(49, 53, 59, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(154, 143, 126, 0.1);
+        }
+        .cta-gradient {
+            background: linear-gradient(135deg, #e5b95c 0%, #ffd682 100%);
+        }
+        body {
+            background-color: #101419;
+            color: #e0e2ea;
+        }
+    </style>
+</head>
+<body class="font-body">
+<!-- Focused View Header (Per Logic 3) -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex items-center gap-3">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<div>
+<h1 class="font-headline text-lg font-bold leading-none tracking-tight">Motohom Obsidian Gold</h1>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">Booking Summary</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Step 3 of 4</span>
+<div class="w-24 h-1 bg-surface-container-high rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left Content: Journey & Experiences -->
+<div class="lg:col-span-7 space-y-12">
+<!-- Journey Scannability Improvement -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-headline text-2xl font-bold">Journey Summary</h2>
+<button class="flex items-center gap-1.5 text-primary text-sm font-medium hover:underline">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+                        Edit Route
+                    </button>
+</div>
+<div class="bg-surface-container-low rounded-xl p-8 border border-outline-variant/10">
+<div class="relative flex justify-between items-center px-4">
+<!-- Connecting Line -->
+<div class="absolute top-1/2 left-0 w-full h-px bg-outline-variant/30 -translate-y-1/2 -z-0"></div>
+<!-- Stop 1 -->
+<div class="relative z-10 flex flex-col items-center bg-surface-container-low px-2">
+<div class="size-4 rounded-full border-2 border-primary bg-surface mb-3"></div>
+<span class="font-headline font-bold text-white">Pune</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Start</span>
+</div>
+<!-- Stop 2 -->
+<div class="relative z-10 flex flex-col items-center bg-surface-container-low px-2">
+<div class="size-3 rounded-full bg-outline-variant mb-3"></div>
+<span class="font-headline font-bold text-on-surface">Lonavala</span>
+</div>
+<!-- Stop 3 -->
+<div class="relative z-10 flex flex-col items-center bg-surface-container-low px-2">
+<div class="size-3 rounded-full bg-outline-variant mb-3"></div>
+<span class="font-headline font-bold text-on-surface">Goa</span>
+</div>
+<!-- Stop 4 -->
+<div class="relative z-10 flex flex-col items-center bg-surface-container-low px-2">
+<div class="size-4 rounded-full border-2 border-primary bg-primary mb-3"></div>
+<span class="font-headline font-bold text-white">Pune</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Return</span>
+</div>
+</div>
+<div class="mt-8 flex justify-center gap-8 text-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="calendar_today">calendar_today</span>
+                            Oct 12 — Oct 16 (4 Nights)
+                        </div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="distance">distance</span>
+                            850 km Total
+                        </div>
+</div>
+</div>
+</section>
+<!-- Caravan & Passengers Summary -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Caravan Selection</p>
+<button class="text-primary hover:bg-primary/10 p-1 rounded">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="flex gap-4">
+<div class="size-16 rounded bg-surface-container-high overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Luxury black motorhome interior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClB0f8PUaXA8gHBN-g4Cxue-v_zASgclAclS8n4AG53qXOVQj0XOmm1YrUrJ3Q5ocPEcqtjWCuhPIk1vy3stJ4pj6vWO2vBjwGBphk91Mx71p101GCCXwclBJz5OX6UgJnXcblx3wN0I_pRky0B1ZmPMLeXkvgM7pz0ilvVhvNTZoytTHNA8lUJuApVKy73D5Zy8UoC5pk7-H3fcRXXuyffd0f8O7afH8sJMLxeJqUED5ZhJwClNUN2ySiaeu6BXUC-wiAtX0GQPM"/>
+</div>
+<div>
+<h4 class="font-headline font-bold text-white">Obsidian 4-Berth</h4>
+<p class="text-xs text-on-surface-variant mt-1">Automatic • Diesel • AC</p>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Travelers</p>
+<button class="text-primary hover:bg-primary/10 p-1 rounded">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-white">3 Passengers</h4>
+<p class="text-xs text-on-surface-variant mt-1">2 Adults • 1 Child</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Emotional Add-ons -->
+<section>
+<h3 class="font-headline text-xl font-bold mb-6">Enhance Your Experience</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- BBQ Experience -->
+<div class="relative p-5 rounded-xl border border-outline-variant/20 hover:border-primary/50 transition-all cursor-pointer group bg-surface-container-low">
+<div class="flex justify-between items-start mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="outdoor_grill">outdoor_grill</span>
+<div class="flex items-center gap-1.5 text-xs font-bold text-primary">
+                                Add to trip
+                                <span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+<h4 class="font-bold text-white">BBQ Experience</h4>
+<p class="text-xs text-on-surface-variant mt-1">Premium charcoal grill &amp; toolset for starlit dinners.</p>
+<p class="mt-4 font-label font-medium text-sm">₹450 <span class="text-xs text-on-surface-variant font-normal">/ day</span></p>
+</div>
+<!-- Explore Nearby Trails (Popular) -->
+<div class="relative p-5 rounded-xl border-2 border-primary bg-surface-container-high shadow-lg">
+<div class="absolute -top-3 right-4 bg-primary text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                            Most Popular
+                        </div>
+<div class="flex justify-between items-start mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="directions_bike">directions_bike</span>
+<div class="flex items-center gap-1.5 text-xs font-bold text-primary">
+                                Selected
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+</div>
+<h4 class="font-bold text-white">Explore Nearby Trails</h4>
+<p class="text-xs text-on-surface-variant mt-1">Two mountain bikes with helmets and trail maps.</p>
+<div class="flex items-center justify-between mt-4">
+<p class="font-label font-medium text-sm">₹300 <span class="text-xs text-on-surface-variant font-normal">/ day</span></p>
+<span class="text-[10px] font-bold text-primary-container bg-primary-container/10 px-2 py-0.5 rounded">+ ₹300/day added</span>
+</div>
+</div>
+<!-- Relax & Unwind -->
+<div class="relative p-5 rounded-xl border border-outline-variant/20 hover:border-primary/50 transition-all cursor-pointer group bg-surface-container-low">
+<div class="flex justify-between items-start mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="chair_alt">chair_alt</span>
+<div class="flex items-center gap-1.5 text-xs font-bold text-primary">
+                                Add to trip
+                                <span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+<h4 class="font-bold text-white">Relax &amp; Unwind</h4>
+<p class="text-xs text-on-surface-variant mt-1">Double-layer woven hammock with sturdy tree straps.</p>
+<p class="mt-4 font-label font-medium text-sm">₹150 <span class="text-xs text-on-surface-variant font-normal">/ day</span></p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Panel: Summary & Pricing -->
+<aside class="lg:col-span-5">
+<div class="glass-card rounded-2xl p-8 sticky top-28 border border-white/5">
+<h3 class="font-headline text-xl font-bold mb-8">Pricing Breakdown</h3>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Base Rental (4 Days)</span>
+<span class="font-medium">₹18,500</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Premium Caravan Surcharge</span>
+<span class="font-medium">₹1,200</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Add-ons Subtotal</span>
+<span class="font-medium text-primary">₹1,200</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Insurance &amp; Support</span>
+<span class="font-medium">₹600</span>
+</div>
+<div class="h-px bg-outline-variant/10 my-4"></div>
+<div class="flex flex-col gap-1 items-end">
+<span class="text-xs font-label text-on-surface-variant">₹5,075 / day (for 4 days)</span>
+<div class="flex justify-between w-full items-baseline">
+<span class="font-bold text-white text-lg">Total Amount</span>
+<span class="font-headline font-extrabold text-3xl text-primary tracking-tight">₹21,500</span>
+</div>
+</div>
+</div>
+<!-- Optimization Insight -->
+<div class="bg-primary/5 rounded-lg p-4 mb-8 border border-primary/10">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-xl shrink-0" data-icon="lightbulb">lightbulb</span>
+<div>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+<span class="text-primary font-bold">Optimization Insight:</span> 
+                                Book for 2 more days to unlock the "Nomad Weekly" discount of 15% on base rental.
+                            </p>
+<div class="mt-2 flex items-center gap-1.5">
+<span class="text-[10px] text-primary underline cursor-pointer font-bold">How is this calculated?</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant cursor-help" data-icon="info">info</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Trust Badges -->
+<div class="mb-8 grid grid-cols-2 gap-3">
+<div class="flex items-center gap-2 text-[10px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="check">check</span>
+                        Free Cancellation (48h)
+                    </div>
+<div class="flex items-center gap-2 text-[10px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="check">check</span>
+                        Dedicated trip support
+                    </div>
+</div>
+<!-- CTA & Security -->
+<button class="cta-gradient w-full py-4 rounded-xl text-on-primary font-bold text-base shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 mb-4">
+                    Proceed to Secure Payment
+                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<div class="flex items-center justify-center gap-2 opacity-60">
+<span class="material-symbols-outlined text-sm" data-icon="lock" data-weight="fill">lock</span>
+<span class="text-[10px] font-label tracking-wide uppercase">Powered by Razorpay • 100% secure</span>
+</div>
+</div>
+</aside>
+</main>
+<footer class="mt-20 border-t border-outline-variant/10 py-12 px-6">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2 opacity-50">
+<div class="size-5">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<span class="text-sm font-headline font-bold">MOTOHOM</span>
+</div>
+<div class="flex gap-10 text-xs text-on-surface-variant font-label uppercase tracking-widest">
+<a class="hover:text-primary" href="#">Safety Guidelines</a>
+<a class="hover:text-primary" href="#">Rental Agreement</a>
+<a class="hover:text-primary" href="#">Contact Support</a>
+</div>
+<p class="text-xs text-on-surface-variant">© 2024 Motohom. All rights reserved.</p>
+</div>
+</footer>
+</body></html>

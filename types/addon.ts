@@ -1,13 +1,12 @@
-/** Minimal addon shape; extend when API schema is finalized */
 export type Addon = {
   id: string;
-  name?: string;
-  price?: number;
-  [key: string]: unknown;
+  name: string;
+  price: string;
+  max_quantity: number;
+  applicable_classes: string[];
+  description?: string;
 };
 
 export type AddonsListApiResponse = {
-  success: boolean;
-  data?: Addon[];
-  message?: string;
+  results: Addon[];
 };
