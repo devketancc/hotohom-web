@@ -27,6 +27,10 @@ interface BookingSummaryProps {
   emphasizeCaravanSelection?: boolean;
   /** Day rate, pets stepper, total estimate (off on journey steps after caravan is chosen). */
   showCaravanPricing?: boolean;
+  /** Journey: require logged-in + route preview before Continue (use with continueLockedHint). */
+  continueUnlocked?: boolean;
+  /** Shown when isReady but continueUnlocked is false */
+  continueLockedHint?: string;
 }
 
 export const BookingSummary: React.FC<BookingSummaryProps> = ({
@@ -35,10 +39,14 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
   isLoading = false,
   emphasizeCaravanSelection = false,
   showCaravanPricing = true,
+  continueUnlocked,
+  continueLockedHint,
 }) => {
   const { hubName, dates, caravanClass, pets } = booking;
   const { setData } = useBookingStore();
   const isReady = !!caravanClass;
+  const continueGated = continueUnlocked === false;
+  const continueDisabled = !isReady || isLoading || continueGated;
 
   const maxPets =
     caravanClass?.is_pet_friendly && caravanClass.capacity_pets > 0
@@ -225,16 +233,19 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
       <button
         type="button"
         onClick={onContinue}
-        disabled={!isReady || isLoading}
+        disabled={continueDisabled}
         className={cn(
           'w-full py-4 font-bold rounded-xl flex items-center justify-center gap-2 group transition-all',
-          isReady
+          isReady && !continueGated
             ? 'gradient-cta text-stitch-on-primary shadow-lg shadow-stitch-primary/20 active:scale-95'
             : 'bg-stitch-surface-highest/30 text-stitch-on-surface-variant/40 cursor-not-allowed'
         )}
       >
         {isLoading ? 'Processing...' : 'Continue to booking'}
-        <ArrowRight size={18} className={cn(isReady && 'group-hover:translate-x-1 transition-transform')} />
+        <ArrowRight
+          size={18}
+          className={cn(isReady && !continueGated && 'group-hover:translate-x-1 transition-transform')}
+        />
       </button>
 
       {!isReady && (
@@ -246,7 +257,11 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
       {isReady && (
         <p className="text-[10px] text-center text-muted-foreground/60 mt-4 flex items-center justify-center gap-1.5">
           <Info className="size-3 shrink-0" />
-          <span>Free cancellation up to 24 hours before your trip starts.</span>
+          <span>
+            {continueGated && continueLockedHint
+              ? continueLockedHint
+              : 'Free cancellation up to 24 hours before your trip starts.'}
+          </span>
         </p>
       )}
     </div>

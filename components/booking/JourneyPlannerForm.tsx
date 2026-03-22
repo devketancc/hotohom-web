@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -34,8 +34,19 @@ import {
   syncPickupDropStrings,
   stopsToMapRoute,
 } from '@/utils/journeyStops';
+import { isAuthed } from '@/lib/authNavigation';
+import { useUiStore } from '@/store/uiStore';
 
-export const JourneyPlannerForm = () => {
+export type JourneyPlannerFormProps = {
+  routePreviewShown: boolean;
+  onRoutePreviewShownChange: (shown: boolean) => void;
+};
+
+export const JourneyPlannerForm = ({
+  routePreviewShown,
+  onRoutePreviewShownChange,
+}: JourneyPlannerFormProps) => {
+  const openLogin = useUiStore((s) => s.openLogin);
   const journey = useBookingStore((s) => s.journey);
   const setData = useBookingStore((s) => s.setData);
   const hubName = useBookingStore((s) => s.hubName);
@@ -150,17 +161,20 @@ export const JourneyPlannerForm = () => {
 
   const routeReady = stops ? canPreviewJourneyRoute(stops) : false;
   const mapSectionRef = useRef<HTMLDivElement>(null);
-  const [mapRequested, setMapRequested] = useState(false);
 
   useEffect(() => {
-    if (!routeReady) setMapRequested(false);
-  }, [routeReady]);
+    if (!routeReady) onRoutePreviewShownChange(false);
+  }, [routeReady, onRoutePreviewShownChange]);
 
   const handleShowRoute = useCallback(() => {
     if (!routeReady) return;
-    setMapRequested(true);
+    if (!isAuthed()) {
+      openLogin();
+      return;
+    }
+    onRoutePreviewShownChange(true);
     mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [routeReady]);
+  }, [routeReady, onRoutePreviewShownChange, openLogin]);
 
   const handleRouteCalculated = useCallback(
     (distanceKm: number) => {
@@ -295,7 +309,7 @@ export const JourneyPlannerForm = () => {
         ref={mapSectionRef}
         className="w-full aspect-video rounded-3xl bg-stitch-surface overflow-hidden relative group border border-stitch-outline/10 shadow-inner scroll-mt-28"
       >
-        {routeReady && mapRequested ? (
+        {routeReady && routePreviewShown ? (
           <div className="w-full h-full animate-in fade-in duration-500">
             <GoogleMapView
               stops={mapStops}
