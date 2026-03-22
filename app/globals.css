@@ -71,6 +71,30 @@
   border: 1px solid rgba(154, 143, 126, 0.1);
 }
 
+/* Stitch login modal panel (Motohom Login screens) */
+@utility glass-panel-login {
+  background: rgba(49, 53, 59, 0.4);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@utility input-gradient-border-login {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #4e4637;
+    transition: background 0.3s ease;
+  }
+  &:focus-within::after {
+    background: #e5b95c;
+  }
+}
+
 @utility gradient-cta {
   background: linear-gradient(135deg, #e5b95c 0%, #ffd682 100%);
 }

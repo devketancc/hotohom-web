@@ -4,12 +4,17 @@ import { JourneyPlannerForm } from '@/components/booking/JourneyPlannerForm';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { useBookingStore } from '@/store/bookingStore';
 import { useRouter } from 'next/navigation';
+import { isAuthed, requestAuthThenNavigate } from '@/lib/authNavigation';
 
 export default function JourneyDetailsPage() {
   const router = useRouter();
   const bookingState = useBookingStore();
-  
+
   const handleContinue = () => {
+    if (!isAuthed()) {
+      requestAuthThenNavigate('/passenger');
+      return;
+    }
     router.push('/passenger');
   };
 

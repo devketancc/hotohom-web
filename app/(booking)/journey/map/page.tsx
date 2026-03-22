@@ -7,6 +7,7 @@ import { GoogleMapView } from '@/components/booking/GoogleMapView';
 import { ArrowLeft, ChevronRight, Map as MapIcon, Info } from 'lucide-react';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { canPreviewJourneyRoute, stopsToMapRoute, syncPickupDropStrings } from '@/utils/journeyStops';
+import { isAuthed, requestAuthThenNavigate } from '@/lib/authNavigation';
 
 export default function JourneyMapPage() {
   const router = useRouter();
@@ -68,6 +69,10 @@ export default function JourneyMapPage() {
   };
 
   const handleContinue = () => {
+    if (!isAuthed()) {
+      requestAuthThenNavigate('/passenger');
+      return;
+    }
     router.push('/passenger');
   };
 

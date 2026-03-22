@@ -12,7 +12,12 @@ export const useAuth = () => {
       if (data.data.token) {
         localStorage.setItem('token', data.data.token);
       }
+      const path = useUiStore.getState().pendingNavigationPath;
+      useUiStore.getState().setPendingNavigationPath(null);
       setLoginModalOpen(false);
+      if (path && typeof window !== 'undefined') {
+        window.location.assign(path);
+      }
     },
     onMutate: () => setLoading(true),
     onSettled: () => setLoading(false),
