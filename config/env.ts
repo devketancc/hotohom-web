@@ -18,7 +18,8 @@ const useDevApiProxy =
 export const env = {
   API_BASE_URL: useDevApiProxy ? '' : rawApiBase || 'MISSING_API_URL',
   RAZORPAY_KEY: process.env.NEXT_PUBLIC_RAZORPAY_KEY || '',
-  GOOGLE_MAPS_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '',
+  /** Trimmed; full Google Maps browser keys are ~39 chars — shorter values usually mean truncation or .env parse issues. */
+  GOOGLE_MAPS_KEY: (process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '').trim(),
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
 };

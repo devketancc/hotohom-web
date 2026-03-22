@@ -26,10 +26,29 @@ export interface Passenger {
   age: number;
 }
 
+/** Location payload aligned with booking/journey API */
+export interface JourneyStopLocation {
+  name: string;
+  lat: number;
+  lng: number;
+  place_id: string;
+  meta: Record<string, unknown>;
+}
+
+export interface JourneyStop {
+  /** Client-only id for React / drag-drop (omit when sending to API) */
+  id: string;
+  order: number;
+  stop_type: 'pickup' | 'waypoint' | 'dropoff';
+  notes: string;
+  location: JourneyStopLocation | null;
+}
+
 export interface Journey {
   pickupLocation: string;
   dropoffLocation: string;
   distanceKm: number;
+  stops: JourneyStop[];
 }
 
 export interface Addon {
