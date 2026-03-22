@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, Calendar, Caravan, ArrowRight } from 'lucide-react';
 import { BookingData } from '@/types/booking';
-import { format } from 'date-fns';
+import { formatBookingTravelWindow } from '@/utils/format';
 
 interface BookingSummaryProps {
   booking: BookingData;
@@ -33,10 +33,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
         <div className="flex justify-between items-start pb-6 border-b border-border/10">
           <div>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Schedule</span>
-            <p className="font-bold text-lg">
-              {dates.start ? format(new Date(dates.start), 'dd MMM') : 'Start'} - {dates.end ? format(new Date(dates.end), 'dd MMM') : 'End'}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">{dates.totalDays} Full Days Selection</p>
+            <p className="font-bold text-lg">{formatBookingTravelWindow(dates)}</p>
           </div>
           <Calendar size={20} className="text-primary" />
         </div>

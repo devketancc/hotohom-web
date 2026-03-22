@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { differenceInCalendarDays } from 'date-fns';
 import { BookingData } from '@/types/booking';
 
 export interface BookingState extends BookingData {
@@ -29,22 +30,31 @@ export const useBookingStore = create<BookingState>()(
   persist(
     (set) => ({
       ...initialState,
-      setData: (data) => set((state) => ({ ...state, ...data })),
-      setDates: (start, end) => set((state) => {
-        let totalDays = 0;
-        if (start && end) {
-          const s = new Date(start);
-          const e = new Date(end);
-          s.setHours(0, 0, 0, 0);
-          e.setHours(0, 0, 0, 0);
-          const diffTime = Math.abs(e.getTime() - s.getTime());
-          totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-        return {
-          ...state,
-          dates: { start, end, totalDays }
-        };
-      }),
+      setData: (data) =>
+        set((state) => {
+          const next = { ...state, ...data };
+          if (data.hub !== undefined && data.hub !== state.hub) {
+            next.caravanClass = null;
+          }
+          return next;
+        }),
+      setDates: (start, end) =>
+        set((state) => {
+          let totalDays = 0;
+          if (start && end) {
+            const s = new Date(start);
+            const e = new Date(end);
+            s.setHours(0, 0, 0, 0);
+            e.setHours(0, 0, 0, 0);
+            // Inclusive calendar days: same start/end = 1 day; start today + end tomorrow = 2 days
+            totalDays = differenceInCalendarDays(e, s) + 1;
+          }
+          return {
+            ...state,
+            dates: { start, end, totalDays },
+            caravanClass: null,
+          };
+        }),
       reset: () => set(initialState),
     }),
     {

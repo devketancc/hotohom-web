@@ -9,7 +9,7 @@ import { CaravanCard } from '@/components/booking/CaravanCard';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { format } from 'date-fns';
 import { CaravanClass } from '@/types/booking';
-import { Loader2, AlertCircle, RefreshCw, Caravan } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Caravan, Calendar } from 'lucide-react';
 
 export default function SelectCaravanPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function SelectCaravanPage() {
   // Prepare parameters for the API
   const start = dates.start ? format(new Date(dates.start), 'yyyy-MM-dd') : null;
   const end = dates.end ? format(new Date(dates.end), 'yyyy-MM-dd') : null;
+  const hasCompleteDateRange = !!start && !!end;
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['availableCaravans', hub, start, end],
@@ -27,7 +28,7 @@ export default function SelectCaravanPage() {
       start: start!, 
       end: end! 
     }),
-    enabled: !!hub && !!start && !!end,
+    enabled: !!hub && hasCompleteDateRange,
   });
 
   const handleSelect = (caravan: CaravanClass) => {
@@ -40,7 +41,7 @@ export default function SelectCaravanPage() {
     }
   };
 
-  if (!hub || !start || !end) {
+  if (!hub) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 bg-card rounded-3xl border border-dashed border-border/50">
         <AlertCircle size={48} className="text-muted-foreground mb-4" />
@@ -68,7 +69,15 @@ export default function SelectCaravanPage() {
             </p>
           </header>
 
-          {isLoading ? (
+          {!hasCompleteDateRange ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-stitch-surface/30 rounded-3xl border border-border/10 text-center px-6">
+              <Calendar size={40} className="text-stitch-primary/80" />
+              <h3 className="text-xl font-bold mb-2 mt-4 font-headline">Finish your dates</h3>
+              <p className="text-stitch-on-surface-variant max-w-md">
+                Choose a start and end date in the <span className="font-semibold text-stitch-on-background">Dates</span> control above. Availability loads after both dates are selected.
+              </p>
+            </div>
+          ) : isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 bg-stitch-surface/30 rounded-3xl border border-border/10">
               <Loader2 className="animate-spin text-stitch-primary mb-4" size={40} />
               <p className="text-stitch-on-surface-variant font-medium">Scanning the fleet for availability...</p>

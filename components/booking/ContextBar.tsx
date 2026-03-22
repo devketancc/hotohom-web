@@ -1,47 +1,71 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useBooking } from '@/hooks/useBooking';
-import { format } from 'date-fns';
+import { formatBookingTravelWindow } from '@/utils/format';
 import { Edit2, CheckCircle } from 'lucide-react';
+import { useClickOutside } from '@/hooks/useClickOutside';
+import { HubPickerPanel } from '@/components/booking/HubPickerPanel';
+import { DateRangePickerPanel } from '@/components/booking/DateRangePickerPanel';
 
 export const ContextBar: React.FC = () => {
   const { bookingState } = useBooking();
-  const { hubName, dates } = bookingState;
+  const { hub, hubName, dates, setData } = bookingState;
+  const [openPanel, setOpenPanel] = useState<null | 'hub' | 'dates'>(null);
 
-  const dateRange = dates.start && dates.end 
-    ? `${format(new Date(dates.start), 'dd MMM')} - ${format(new Date(dates.end), 'dd MMM')}`
-    : 'Select Dates';
+  const containerRef = useClickOutside<HTMLDivElement>(() => setOpenPanel(null));
+
+  const dateLabel = formatBookingTravelWindow(dates);
 
   return (
     <div className="bg-stitch-surface/50 border-b border-border/10 sticky top-[73px] z-40 backdrop-blur-md">
-      <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-4 flex items-center justify-between text-stitch-on-background">
+      <div
+        ref={containerRef}
+        className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-4 flex items-center justify-between text-stitch-on-background relative"
+      >
         <div className="flex items-center gap-8 md:gap-12">
-          {/* Hub Selection */}
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Hub</span>
-            <div className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors">
+          <div className="relative flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+              Hub
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpenPanel((p) => (p === 'hub' ? null : 'hub'))}
+              className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors text-left"
+            >
               <span className="font-bold text-primary">{hubName || 'Select Hub'}</span>
-              <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform" />
-            </div>
+              <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform shrink-0" />
+            </button>
+            {openPanel === 'hub' && (
+              <div className="absolute top-full left-0 mt-2 z-[200] w-[min(340px,calc(100vw-2rem))] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-top-2 duration-200">
+                <HubPickerPanel
+                  selectedHubId={hub}
+                  onSelect={(item) => {
+                    setData({ hub: item.id, hubName: item.name });
+                    setOpenPanel(null);
+                  }}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Date Selection */}
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Dates</span>
-            <div className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors">
-              <span className="font-bold text-primary">{dateRange}</span>
-              <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform" />
-            </div>
-          </div>
-
-          {/* Duration Selection */}
-          <div className="flex flex-col hidden sm:flex">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Duration</span>
-            <div className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors">
-              <span className="font-bold text-primary">{dates.totalDays} Days</span>
-              <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform" />
-            </div>
+          <div className="relative flex flex-col">
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+              Dates
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpenPanel((p) => (p === 'dates' ? null : 'dates'))}
+              className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors text-left"
+            >
+              <span className="font-bold text-primary">{dateLabel}</span>
+              <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform shrink-0" />
+            </button>
+            {openPanel === 'dates' && (
+              <div className="absolute top-full left-0 mt-2 z-[200] animate-in fade-in slide-in-from-top-2 duration-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
+                <DateRangePickerPanel onRangeComplete={() => setOpenPanel(null)} />
+              </div>
+            )}
           </div>
         </div>
 
