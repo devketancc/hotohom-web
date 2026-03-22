@@ -46,6 +46,40 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Stitch Design Tokens */
+  --color-stitch-outline: #9a8f7e;
+  --color-stitch-background: #0B0F14;
+  --color-stitch-surface-highest: #31353b;
+  --color-stitch-primary: #ffd682;
+  --color-stitch-on-primary: #402d00;
+  --color-stitch-on-background: #e0e2ea;
+  --color-stitch-surface: #1c2025;
+  --color-stitch-on-surface-variant: #d1c5b2;
+  --color-stitch-on-surface: #e0e2ea;
+  --color-stitch-primary-container: #e5b95c;
+  --color-stitch-on-primary-container: #654900;
+  --color-stitch-surface-dim: #101419;
+
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@utility glass-card {
+  background: rgba(28, 32, 37, 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(154, 143, 126, 0.1);
+}
+
+@utility gradient-cta {
+  background: linear-gradient(135deg, #e5b95c 0%, #ffd682 100%);
+}
+
+@utility booking-control-focus {
+  &:focus-within {
+    border-color: #e5b95c;
+    box-shadow: 0 0 15px rgba(229, 185, 92, 0.2);
+  }
 }
 
 :root {

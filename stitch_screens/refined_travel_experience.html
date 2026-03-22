@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Motohom | Premium Caravan Experiences</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline": "#9a8f7e",
+              "background": "#0B0F14",
+              "surface-container-highest": "#31353b",
+              "primary": "#ffd682",
+              "on-primary": "#402d00",
+              "on-background": "#e0e2ea",
+              "surface-container": "#1c2025",
+              "on-surface-variant": "#d1c5b2",
+              "on-surface": "#e0e2ea",
+              "primary-container": "#e5b95c",
+              "on-primary-container": "#654900",
+              "surface-dim": "#101419",
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            animation: {
+                'fade-in-up': 'fadeInUp 1s ease-out forwards',
+            },
+            keyframes: {
+                fadeInUp: {
+                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                }
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Inter', sans-serif; background-color: #0B0F14; color: #e0e2ea; scroll-behavior: smooth; }
+      h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+      .glass-card {
+        background: rgba(28, 32, 37, 0.6);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(154, 143, 126, 0.1);
+      }
+      .gradient-cta {
+        background: linear-gradient(135deg, #e5b95c 0%, #ffd682 100%);
+      }
+      .booking-control-focus:focus-within {
+        border-color: #e5b95c;
+        box-shadow: 0 0 15px rgba(229, 185, 92, 0.2);
+      }
+    </style>
+</head>
+<body class="bg-background selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl transition-all duration-300 ease-in-out">
+<div class="flex justify-between items-center px-8 py-6 max-w-screen-2xl mx-auto">
+<a class="text-2xl font-bold tracking-tighter text-[#E5B95C]" href="#">Motohom</a>
+<div class="hidden md:flex space-x-10 items-center">
+<a class="font-['Manrope'] tracking-tight text-sm font-medium uppercase text-[#E5B95C] border-b-2 border-[#E5B95C] pb-1" href="#">Destinations</a>
+<a class="font-['Manrope'] tracking-tight text-sm font-medium uppercase text-slate-200 hover:text-[#E5B95C] transition-colors" href="#">Fleet</a>
+<a class="font-['Manrope'] tracking-tight text-sm font-medium uppercase text-slate-200 hover:text-[#E5B95C] transition-colors" href="#">Packages</a>
+<a class="font-['Manrope'] tracking-tight text-sm font-medium uppercase text-slate-200 hover:text-[#E5B95C] transition-colors" href="#">About</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-md font-['Manrope'] text-sm font-bold uppercase tracking-wider hover:opacity-80 transition-opacity">
+            Book Your Journey
+        </button>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Cinematic luxury caravan driving through scenic mountains at sunset" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXibFzxuZ03QkcW1_fZb8YjVJNoIXMg_C3O5AeV2QckYgDaEizJEa9Ky95eSAwbpC1NSpfvDpHFeQNPaVidtWzXOVZFBFxpteaDcsqELw9BomMGHTm6Lo6w3CzrS7m2g29i_K-yZc9J5qC_QGMUsZf8YTqnM5vVDTDvce07NGB8fYQUn4XWLdvSo_FLJXZ2vKazfTFCQaHVNEpGssm9eS2N_dw1GAGCYewYCuc5JTPHcwxzvXJjCAee5pbAZTq3EQG-Clizgt3EUM"/>
+<div class="absolute inset-0 bg-gradient-to-b from-black/40 via-background/20 to-background"></div>
+</div>
+<div class="relative z-10 text-center max-w-5xl px-6 animate-fade-in-up">
+<h1 class="text-6xl md:text-9xl font-extrabold tracking-tighter text-on-background mb-8 leading-[1.1]">
+            Plan Your <br/><span class="text-primary-container">Perfect Road Trip</span>
+</h1>
+<p class="text-xl md:text-2xl text-on-surface-variant font-body max-w-3xl mx-auto mb-16 opacity-90">
+            Experience Freedom, Without the Hassle
+        </p>
+</div>
+<!-- Premium Single-Row Booking Control -->
+<div class="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-5xl px-6 z-20">
+<div class="glass-card p-4 md:p-2 rounded-xl flex flex-col md:flex-row items-stretch md:items-center gap-2">
+<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
+<div class="px-6 py-3 flex flex-col justify-center hover:bg-white/5 rounded-lg transition-colors cursor-pointer group">
+<span class="text-[10px] uppercase tracking-widest text-primary-container font-bold mb-1">Pick Up Hub</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="location_on">location_on</span>
+<span class="text-on-surface font-medium">Select Location</span>
+</div>
+</div>
+<div class="px-6 py-3 flex flex-col justify-center hover:bg-white/5 rounded-lg transition-colors cursor-pointer border-y md:border-y-0 md:border-x border-outline-variant/20">
+<span class="text-[10px] uppercase tracking-widest text-primary-container font-bold mb-1">Travel Dates</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="calendar_today">calendar_today</span>
+<span class="text-on-surface font-medium">Add Dates</span>
+</div>
+</div>
+<div class="px-6 py-3 flex flex-col justify-center hover:bg-white/5 rounded-lg transition-colors cursor-pointer">
+<span class="text-[10px] uppercase tracking-widest text-primary-container font-bold mb-1">Travelers</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="group">group</span>
+<span class="text-on-surface font-medium">2 Adults, 1 Child</span>
+</div>
+</div>
+</div>
+<button class="gradient-cta text-on-primary-container px-10 py-5 md:py-4 rounded-lg font-headline font-bold text-sm uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                    Start Planning
+                    <span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Curated Packages -->
+<section class="py-40 bg-background overflow-hidden">
+<div class="max-w-screen-2xl mx-auto px-8">
+<div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+<div class="max-w-2xl">
+<span class="text-primary uppercase tracking-[0.4em] text-xs font-black mb-6 block">Signature Journeys</span>
+<h2 class="text-5xl md:text-6xl font-bold tracking-tight">Handpicked Escapes</h2>
+<p class="mt-6 text-on-surface-variant text-lg">Each package is designed by travel experts to ensure you see the hidden gems of every region.</p>
+</div>
+<div class="flex gap-6">
+<button class="w-14 h-14 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary hover:text-primary transition-all group">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-14 h-14 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary hover:text-primary transition-all group">
+<span class="material-symbols-outlined text-on-surface group-hover:text-primary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<!-- Package Card 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[4/5] overflow-hidden rounded-2xl mb-8">
+<img alt="Goa Coastal Ride Caravan Tour" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-Zz7NSPRFJjPJ7-rf1Bk_NlCZVRtk6v-k9pZwQ2Ygrl3X7I9a_3XibTdGpD_rteUKzeBBLYyHmkoLNPKrsWobHWUaBLQCTAY3rbAxZkW-DKaXjPJgWRMCZfUbdZ82DYMwJ9pOzKhLauvJ2CH3xbkkji-ozZyuB7SNuB1CNtVSogV8BbzQ8iqKik61jQ805Z6ELvr1ZNbfqQKVqJyRCmWj8zObaoaXmxK9gbbc3ZmSkxiOboKWAIVHLSLIPz8-aQ7P7gnEuo3YCog"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-12">
+<span class="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2">View Route <span class="material-symbols-outlined text-lg">arrow_outward</span></span>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<div class="glass-card px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-container">Goa, West Coast</div>
+<div class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white/80 self-start">Best for Weekends</div>
+</div>
+</div>
+<div class="flex justify-between items-start px-2">
+<div>
+<h3 class="text-3xl font-bold mb-3 group-hover:text-primary transition-colors">Goa Coastal Ride</h3>
+<p class="text-on-surface-variant flex items-center gap-3 font-medium">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="schedule">schedule</span>
+                            5 Days / 4 Nights • Scenic coastal drive
+                        </p>
+</div>
+<div class="text-right">
+<span class="text-primary font-black text-2xl">$1,200</span>
+</div>
+</div>
+</div>
+<!-- Package Card 2 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[4/5] overflow-hidden rounded-2xl mb-8">
+<img alt="Himalayan Heights Caravan Tour" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcEwHiTjoZgcAgsMWB8M70Fvjg4xcZ9MS0Xu-qNxA9LKA_38cluECAyzEn4AFwLrLbVbY4X4JQ1YtuU0t-fKMRnRIqlYuMk-ZouttD3-hD2qJ55EbtzrlA9h9Q8MBcdMBcEY6M5M-CbOYm7rd_zRtRgn7XfkyAS6cofNL4o6Ty-rsZzVYb11U_qrePUz72GrvvJjGY0oIO8bDEF1JdVBsuVKIXspkb5A9hMcxZdfx0s2icE_9e4K6zePA28b-u3NI1JQ4Du6M1bec"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-12">
+<span class="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2">View Route <span class="material-symbols-outlined text-lg">arrow_outward</span></span>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<div class="glass-card px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-container">Himalayas, North</div>
+<div class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white/80 self-start">Adventure Tier</div>
+</div>
+</div>
+<div class="flex justify-between items-start px-2">
+<div>
+<h3 class="text-3xl font-bold mb-3 group-hover:text-primary transition-colors">Himalayan Heights</h3>
+<p class="text-on-surface-variant flex items-center gap-3 font-medium">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="schedule">schedule</span>
+                            8 Days / 7 Nights • Mountain pass climb
+                        </p>
+</div>
+<div class="text-right">
+<span class="text-primary font-black text-2xl">$2,450</span>
+</div>
+</div>
+</div>
+<!-- Package Card 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-[4/5] overflow-hidden rounded-2xl mb-8">
+<img alt="Rajasthan Royal Sands Caravan Tour" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa9pLuBMVMuEDiV7onK6XiFat6s_0aZ36ekTKoAjPWfZfswtOYOb8Me1fmzpshOk75_P1fW4SBz2OXMgXkmuG3TMo5Ydj08k3a4_kDTjZ6lYsLA7_aCDyMR3DRT0RZrzsCH4y8KkCW6LXWDbqCuqcizTPOKbYwV12gbwyamq5kwUklGaKRSp2DX_3j84i_QYKdfn2ZDHJt4fF95kmeQD9kGaEIs20r7T5DHsH9iunGYktg5bXwhbXvvenEq3D8fMoxL1qa3N0KFyA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-12">
+<span class="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2">View Route <span class="material-symbols-outlined text-lg">arrow_outward</span></span>
+</div>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<div class="glass-card px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-container">Rajasthan, Desert</div>
+<div class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white/80 self-start">Cultural Immersion</div>
+</div>
+</div>
+<div class="flex justify-between items-start px-2">
+<div>
+<h3 class="text-3xl font-bold mb-3 group-hover:text-primary transition-colors">Royal Sands</h3>
+<p class="text-on-surface-variant flex items-center gap-3 font-medium">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="schedule">schedule</span>
+                            6 Days / 5 Nights • Heritage trail exploration
+                        </p>
+</div>
+<div class="text-right">
+<span class="text-primary font-black text-2xl">$1,800</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works (Timeline Style) -->
+<section class="py-40 bg-[#0F1318] border-y border-white/5 relative overflow-hidden">
+<div class="max-w-screen-2xl mx-auto px-8 relative z-10">
+<div class="text-center mb-32">
+<h2 class="text-5xl md:text-6xl font-bold mb-6 tracking-tight">The Journey Path</h2>
+<p class="text-on-surface-variant text-xl max-w-2xl mx-auto">Three simple steps from your front door to the open road.</p>
+</div>
+<div class="relative">
+<!-- Connecting Line -->
+<div class="hidden lg:block absolute top-[60px] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-24 relative">
+<!-- Step 1 -->
+<div class="flex flex-col items-center text-center group">
+<div class="w-32 h-32 rounded-3xl bg-background border border-primary/20 flex items-center justify-center mb-10 shadow-2xl relative transition-transform duration-500 group-hover:-translate-y-2">
+<div class="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-primary-container text-on-primary-container font-black flex items-center justify-center text-xl">1</div>
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="explore">explore</span>
+</div>
+<h3 class="text-2xl font-extrabold mb-6">Choose When &amp; Where</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-sm">Select your travel window and pick one of our strategically located hubs nationwide.</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center text-center group">
+<div class="w-32 h-32 rounded-3xl bg-background border border-primary/20 flex items-center justify-center mb-10 shadow-2xl relative transition-transform duration-500 group-hover:-translate-y-2">
+<div class="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-primary-container text-on-primary-container font-black flex items-center justify-center text-xl">2</div>
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="map">map</span>
+</div>
+<h3 class="text-2xl font-extrabold mb-6">Plan Your Journey</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-sm">Use our digital concierge to curate stops, campsites, and local activities tailored to your pace.</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center text-center group">
+<div class="w-32 h-32 rounded-3xl bg-background border border-primary/20 flex items-center justify-center mb-10 shadow-2xl relative transition-transform duration-500 group-hover:-translate-y-2">
+<div class="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-primary-container text-on-primary-container font-black flex items-center justify-center text-xl">3</div>
+<span class="material-symbols-outlined text-6xl text-primary" data-icon="star_rate">star_rate</span>
+</div>
+<h3 class="text-2xl font-extrabold mb-6">Travel &amp; Enjoy</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-sm">Pick up your premium caravan and hit the road with 24/7 support and unlimited freedom.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Experiential Feature Grid -->
+<section class="py-40">
+<div class="max-w-screen-2xl mx-auto px-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<div class="p-12 bg-surface-container-high/40 rounded-3xl border border-white/5 hover:border-primary-container/30 transition-all group hover:bg-surface-container-high/60">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="home_work">home_work</span>
+</div>
+<h3 class="text-2xl font-bold mb-6">Stay in Comfort Anywhere</h3>
+<p class="text-on-surface-variant text-base leading-relaxed">Turn any scenic vista into your living room with state-of-the-art kitchens and luxury bedding.</p>
+</div>
+<div class="p-12 bg-surface-container-high/40 rounded-3xl border border-white/5 hover:border-primary-container/30 transition-all group hover:bg-surface-container-high/60">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="alt_route">alt_route</span>
+</div>
+<h3 class="text-2xl font-bold mb-6">Go Wherever the Road Takes You</h3>
+<p class="text-on-surface-variant text-base leading-relaxed">Ditch the rigid itineraries. Change your destination mid-trip with our real-time planning app.</p>
+</div>
+<div class="p-12 bg-surface-container-high/40 rounded-3xl border border-white/5 hover:border-primary-container/30 transition-all group hover:bg-surface-container-high/60">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="volunteer_activism">volunteer_activism</span>
+</div>
+<h3 class="text-2xl font-bold mb-6">Bring the Whole Family</h3>
+<p class="text-on-surface-variant text-base leading-relaxed">No member left behind. Our pet-friendly fleet ensures your furry friends travel in luxury too.</p>
+</div>
+<div class="p-12 bg-surface-container-high/40 rounded-3xl border border-white/5 hover:border-primary-container/30 transition-all group hover:bg-surface-container-high/60">
+<div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h3 class="text-2xl font-bold mb-6">Honest, Clear Pricing</h3>
+<p class="text-on-surface-variant text-base leading-relaxed">No surprises on the road. Insurance, taxes, and premium amenities are always included.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Trust-Boosted Testimonials -->
+<section class="py-40 bg-[#0A0E13]">
+<div class="max-w-screen-2xl mx-auto px-8">
+<div class="text-center mb-24">
+<h2 class="text-5xl font-bold mb-6">Real Traveler Stories</h2>
+<div class="flex justify-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+<span class="material-symbols-outlined fill-1">star</span>
+</div>
+<p class="mt-4 text-on-surface-variant font-bold uppercase tracking-widest text-xs">Rated 4.9/5 by 5,000+ explorers</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+<div class="bg-surface-container-high/30 p-16 rounded-[40px] relative border border-white/5 hover:border-primary/20 transition-all group">
+<span class="material-symbols-outlined text-primary/10 text-8xl absolute top-8 right-12 transition-colors group-hover:text-primary/20" data-icon="format_quote">format_quote</span>
+<div class="flex items-center gap-6 mb-12">
+<img alt="Julian Marc" class="w-20 h-20 rounded-full object-cover border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_kSJthIm3KhnzCDn-Tchbac-1-Rq51mGTCbfgLCVECw1GbHHy-StDnFQZHJeSWVlidXK0ERLuozhnKRfsvwq_OmFXkRMTrw6iTsthWeUhYEK1XFRV5n7xuWvKjfzDJOBDOvRydPpNpg8Ccm5NnypXGxSol0sxJcY1cWrIpacVHxB-wr4SxbbKZZsxMgjIl9sJWCJJfdAUkcEMcFkmqNY1tnJqr0bUh6joUS_Wnf1iKGkJ2UfZ1JYFA8NvJfhYLBg1qR6Q3B79aQw"/>
+<div>
+<h4 class="text-xl font-extrabold mb-1">Julian Marc</h4>
+<div class="flex gap-0.5 text-primary text-sm mb-1">
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+</div>
+<p class="text-xs text-primary/80 tracking-[0.2em] font-black uppercase">Coastal Expedition '23 • Goa</p>
+</div>
+</div>
+<p class="text-on-surface-variant text-xl italic leading-[1.8]">"The booking experience was as premium as the caravan itself. Motohom thought of everything—from the solar-powered coffee machine to the pre-loaded offline maps. Truly a Tesla-level road trip experience."</p>
+</div>
+<div class="bg-surface-container-high/30 p-16 rounded-[40px] relative border border-white/5 hover:border-primary/20 transition-all group">
+<span class="material-symbols-outlined text-primary/10 text-8xl absolute top-8 right-12 transition-colors group-hover:text-primary/20" data-icon="format_quote">format_quote</span>
+<div class="flex items-center gap-6 mb-12">
+<img alt="Elena Rodriguez" class="w-20 h-20 rounded-full object-cover border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiEwQjKnD3ndczUcWxQxmqkgTGDG3spaC6sHD5rzXarubjv-uXVRkeM0cq0QHt3sTZgFlREZZ8elkp_ZXD7ap0mGCpZqVgcKHVAq9_tJ-6n00euxZWFUcEH8W7EhGkEZw3kXJlIQG8RA3XQkaB1rcagodDf0dBLnaNdp06L6xwZ2bZgPx4UsBIgfFCg8uiacvf42f-x9QfNRdjkHAK4b1nZ_CXv1K6nfdnxkMnwXgbCCcrOm-fmElZvEdQBcqsLhQTK4lLxmQEQo"/>
+<div>
+<h4 class="text-xl font-extrabold mb-1">Elena Rodriguez</h4>
+<div class="flex gap-0.5 text-primary text-sm mb-1">
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+<span class="material-symbols-outlined text-xs">star</span>
+</div>
+<p class="text-xs text-primary/80 tracking-[0.2em] font-black uppercase">Mountain Trek '24 • Himachal</p>
+</div>
+</div>
+<p class="text-on-surface-variant text-xl italic leading-[1.8]">"Traveling with our golden retriever used to be a challenge. Motohom's pet-friendly caravan made our Himalayan trip absolutely seamless. The layout was spacious and the heating system was incredible."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA (Re-Designed) -->
+<section class="relative py-60 overflow-hidden">
+<div class="absolute inset-0 z-0 scale-110">
+<img alt="Caravan under a starry night sky" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGvK9qkpcWpYop4hVYNUzOzR3zKGRzVnA17MeyW1YQhmAn5QYEvklWWhVyBoXldDspoU8WUgQf9ICzh3I_x6waP1wS4qjXQ7qeS5ID8FU8DhuKxbEWXI1fmG7YRAif16-mHMUCPXsA_cLjLDyaKJlp1kuSk5OddQW8CWFmN48XiqfSGoVZdi5eNud0QiGY6z6s3uspIZQJUwJSPGCZVuFTSo4jVk0JEbCHKimh6dtfswEibqoUt6qFxjOqMbMrgj1aMpi4ZbKXFs"/>
+<div class="absolute inset-0 bg-background/85 backdrop-blur-md"></div>
+</div>
+<div class="relative z-10 max-w-5xl mx-auto text-center px-8">
+<h2 class="text-6xl md:text-8xl font-black tracking-tight mb-10 leading-none">Your Next Adventure <br/><span class="text-primary-container">Starts Here</span></h2>
+<p class="text-2xl text-on-surface-variant/90 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
+            Join a global community of modern nomads. Rediscover the freedom of the road with Motohom's premium caravan experiences.
+        </p>
+<div class="flex flex-col md:flex-row gap-8 justify-center items-center">
+<button class="gradient-cta text-on-primary-container px-16 py-7 rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:scale-105 hover:brightness-110 transition-all shadow-2xl shadow-primary/20">
+                Start Your Journey
+            </button>
+<button class="bg-transparent border-2 border-primary/40 text-primary px-16 py-7 rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:bg-primary/5 hover:border-primary transition-all">
+                View Fleet
+            </button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-900 w-full pt-20 pb-12 border-t border-white/5">
+<div class="max-w-screen-2xl mx-auto px-8 flex flex-col items-center">
+<span class="text-2xl font-bold text-[#E5B95C] mb-6 block">Motohom</span>
+<div class="flex flex-wrap justify-center gap-12 mb-16">
+<a class="font-['Inter'] text-sm text-slate-400 hover:text-[#E5B95C] transition-all" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-sm text-slate-400 hover:text-[#E5B95C] transition-all" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-sm text-slate-400 hover:text-[#E5B95C] transition-all" href="#">Cookie Policy</a>
+<a class="font-['Inter'] text-sm text-slate-400 hover:text-[#E5B95C] transition-all" href="#">Support</a>
+</div>
+<div class="flex gap-8 mb-16">
+<a class="text-slate-400 hover:text-[#E5B95C] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+</a>
+<a class="text-slate-400 hover:text-[#E5B95C] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</a>
+<a class="text-slate-400 hover:text-[#E5B95C] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+</a>
+</div>
+<p class="font-['Inter'] text-[10px] text-slate-500 tracking-[0.3em] uppercase">
+            © 2024 Motohom. All rights reserved.
+        </p>
+</div>
+</footer>
+<script>
+    // Simple reveal animation on scroll
+    const observerOptions = {
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-in-up');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('section > div').forEach(el => {
+        el.style.opacity = "0";
+        observer.observe(el);
+    });
+</script>
+</body></html>
