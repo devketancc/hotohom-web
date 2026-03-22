@@ -41,7 +41,7 @@ export default function SelectCaravanPage() {
 
   const handleContinue = () => {
     if (bookingState.caravanClass) {
-      router.push('/addons');
+      router.push('/journey');
     }
   };
 
@@ -127,10 +127,11 @@ export default function SelectCaravanPage() {
 
         {/* Journey Summary Sidebar */}
         <aside className="lg:w-[30%]">
-          <BookingSummary 
-            booking={bookingState} 
+          <BookingSummary
+            booking={bookingState}
             onContinue={handleContinue}
             isLoading={false}
+            emphasizeCaravanSelection
           />
         </aside>
       </div>

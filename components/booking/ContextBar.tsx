@@ -10,7 +10,7 @@ import { DateRangePickerPanel } from '@/components/booking/DateRangePickerPanel'
 
 export const ContextBar: React.FC = () => {
   const { bookingState } = useBooking();
-  const { hub, hubName, dates, setData } = bookingState;
+  const { hub, hubName, dates, caravanClass, setData } = bookingState;
   const [openPanel, setOpenPanel] = useState<null | 'hub' | 'dates'>(null);
 
   const containerRef = useClickOutside<HTMLDivElement>(() => setOpenPanel(null));
@@ -67,6 +67,22 @@ export const ContextBar: React.FC = () => {
               </div>
             )}
           </div>
+
+          {caravanClass && (
+            <div className="flex flex-col border-l border-border/10 pl-8 md:pl-12">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                Vehicle
+              </span>
+              <div className="flex items-center gap-2 group cursor-pointer">
+                <span className="font-bold text-primary">{caravanClass.name}</span>
+                <Edit2 
+                  size={12} 
+                  className="text-primary group-hover:scale-110 transition-transform cursor-pointer" 
+                  onClick={() => window.location.href = '/select-caravan'}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="hidden lg:flex items-center gap-4 text-xs text-muted-foreground font-medium">

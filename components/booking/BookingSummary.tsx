@@ -23,12 +23,18 @@ interface BookingSummaryProps {
   booking: BookingData;
   onContinue: () => void;
   isLoading?: boolean;
+  /** Golden highlighted caravan card (select-caravan). Journey / map use compact row. */
+  emphasizeCaravanSelection?: boolean;
+  /** Day rate, pets stepper, total estimate (off on journey steps after caravan is chosen). */
+  showCaravanPricing?: boolean;
 }
 
 export const BookingSummary: React.FC<BookingSummaryProps> = ({
   booking,
   onContinue,
   isLoading = false,
+  emphasizeCaravanSelection = false,
+  showCaravanPricing = true,
 }) => {
   const { hubName, dates, caravanClass, pets } = booking;
   const { setData } = useBookingStore();
@@ -50,11 +56,27 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
     setData({ pets: clamped });
   };
 
-  return (
-    <div className="sticky top-24 glass-card rounded-2xl p-8 border border-border/10 shadow-2xl bg-stitch-surface/50 backdrop-blur-xl text-stitch-on-background">
-      <h2 className="text-2xl font-bold tracking-tight mb-8 font-headline">Your Journey</h2>
+  const fleetSubtitleParts = caravanClass
+    ? [
+        `${caravanClass.full_capacity} ${
+          caravanClass.full_capacity === 1 ? 'Passenger' : 'Passengers'
+        }`,
+        ...(caravanClass.is_pet_friendly
+          ? ['Pet friendly', `${pets} ${pets === 1 ? 'pet' : 'pets'}`]
+          : []),
+      ]
+    : [];
 
-      <div className="space-y-6 mb-10">
+  const showFinancials = showCaravanPricing;
+
+  return (
+    <div className="sticky top-24 glass-card rounded-2xl p-8 border border-border/10 shadow-2xl bg-stitch-surface/50 backdrop-blur-xl text-stitch-on-background overflow-hidden relative">
+      {/* Accent Glow to match Stitch Design */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-stitch-primary/10 blur-[100px] rounded-full"></div>
+
+      <h2 className="text-2xl font-bold tracking-tight mb-8 font-headline relative z-10">Your Journey</h2>
+
+      <div className="space-y-6 mb-10 relative z-10">
         <div className="flex justify-between items-start pb-6 border-b border-border/10">
           <div>
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
@@ -62,7 +84,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
             </span>
             <p className="font-bold text-lg">{hubName || 'Select Hub'}</p>
           </div>
-          <MapPin size={20} className="text-primary" />
+          <MapPin size={20} className="text-stitch-primary-container" />
         </div>
 
         <div className="flex justify-between items-start pb-6 border-b border-border/10">
@@ -72,91 +94,121 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
             </span>
             <p className="font-bold text-lg">{formatBookingTravelWindow(dates)}</p>
           </div>
-          <Calendar size={20} className="text-primary" />
+          <Calendar size={20} className="text-stitch-primary-container" />
         </div>
 
         <div className="flex justify-between items-start pt-2">
           {caravanClass ? (
             <div
               className={cn(
-                'w-full rounded-2xl border-2 p-6 bg-stitch-background/40',
-                'border-stitch-primary shadow-[0_0_0_1px_rgba(212,175,55,0.15)]'
+                'w-full',
+                emphasizeCaravanSelection &&
+                  cn(
+                    'rounded-2xl border-2 p-6 bg-stitch-background/40',
+                    'border-stitch-primary shadow-[0_0_0_1px_rgba(212,175,55,0.15)]'
+                  ),
+                !emphasizeCaravanSelection && 'space-y-0'
               )}
             >
-              <div className="flex items-start justify-between gap-3 mb-4">
+              <div
+                className={cn(
+                  'flex items-start justify-between gap-3',
+                  emphasizeCaravanSelection
+                    ? showFinancials
+                      ? 'mb-4'
+                      : ''
+                    : 'pb-6 border-b border-border/10'
+                )}
+              >
                 <div>
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold block mb-1">
-                    Selected caravan
+                    {emphasizeCaravanSelection ? 'Selected caravan' : 'Fleet'}
                   </span>
-                  <p className="font-bold text-lg text-stitch-primary font-headline">
+                  <p
+                    className={cn(
+                      'font-bold text-lg font-headline',
+                      emphasizeCaravanSelection ? 'text-stitch-primary' : ''
+                    )}
+                  >
                     {caravanClass.name}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {caravanClass.full_capacity}{' '}
-                    {caravanClass.full_capacity === 1 ? 'Passenger' : 'Passengers'}
-                    {caravanClass.is_pet_friendly ? ' • Pet friendly' : ''}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{fleetSubtitleParts.join(' • ')}</p>
                 </div>
-                <Caravan size={22} className="text-stitch-primary shrink-0" />
+                <Caravan
+                  size={emphasizeCaravanSelection ? 22 : 20}
+                  className={cn(
+                    'shrink-0',
+                    emphasizeCaravanSelection ? 'text-stitch-primary' : 'text-stitch-primary-container'
+                  )}
+                />
               </div>
 
-              <div className="flex justify-between text-sm border-t border-border/10 pt-4">
-                <span className="text-muted-foreground">Day rate</span>
-                <span className="font-semibold text-stitch-primary">
-                  ₹{Number(caravanClass.day_rate).toLocaleString('en-IN')}/day
-                </span>
-              </div>
-
-              {caravanClass.is_pet_friendly && maxPets > 0 && (
-                <div className="mt-5 pt-5 border-t border-border/10">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold block mb-3">
-                    Pets
-                  </span>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <PawPrint className="size-4 text-stitch-primary shrink-0" />
-                      <span className="text-sm font-medium text-stitch-on-background truncate">
-                        Add pet companion
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => adjustPets(pets - 1)}
-                        disabled={pets <= 0}
-                        className="size-9 rounded-lg border border-border bg-stitch-surface flex items-center justify-center text-stitch-on-background hover:border-stitch-primary disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Decrease pets"
-                      >
-                        <Minus className="size-4" />
-                      </button>
-                      <span className="text-sm font-bold w-6 text-center tabular-nums">{pets}</span>
-                      <button
-                        type="button"
-                        onClick={() => adjustPets(pets + 1)}
-                        disabled={pets >= maxPets}
-                        className="size-9 rounded-lg border-2 border-stitch-primary bg-stitch-primary/10 flex items-center justify-center text-stitch-primary hover:bg-stitch-primary/20 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Increase pets"
-                      >
-                        <Plus className="size-4" />
-                      </button>
-                    </div>
+              {showFinancials && (
+                <>
+                  <div
+                    className={cn(
+                      'flex justify-between text-sm',
+                      emphasizeCaravanSelection ? 'border-t border-border/10 pt-4' : 'pt-4'
+                    )}
+                  >
+                    <span className="text-muted-foreground">Day rate</span>
+                    <span className="font-semibold text-stitch-primary">
+                      ₹{Number(caravanClass.day_rate).toLocaleString('en-IN')}/day
+                    </span>
                   </div>
-                  <p className="mt-3 flex items-start gap-2 text-[11px] text-muted-foreground leading-snug">
-                    <Info className="size-3.5 shrink-0 mt-0.5 text-stitch-primary/80" />
-                    <span>{PET_CLEANING_NOTE}</span>
-                  </p>
-                </div>
-              )}
 
-              <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/10">
-                <span className="text-sm font-medium text-stitch-on-background">Total estimate</span>
-                <span className="text-2xl font-bold text-stitch-primary tabular-nums">
-                  ₹{totalEstimate.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground/70 mt-2 text-right">
-                Based on day rate × {tripDays} {tripDays === 1 ? 'day' : 'days'} (excl. add-ons &amp; taxes)
-              </p>
+                  {caravanClass.is_pet_friendly && maxPets > 0 && (
+                    <div className="mt-5 pt-5 border-t border-border/10">
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold block mb-3">
+                        Pets
+                      </span>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <PawPrint className="size-4 text-stitch-primary shrink-0" />
+                          <span className="text-sm font-medium text-stitch-on-background truncate">
+                            Add pet companion
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => adjustPets(pets - 1)}
+                            disabled={pets <= 0}
+                            className="size-9 rounded-lg border border-border bg-stitch-surface flex items-center justify-center text-stitch-on-background hover:border-stitch-primary disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Decrease pets"
+                          >
+                            <Minus className="size-4" />
+                          </button>
+                          <span className="text-sm font-bold w-6 text-center tabular-nums">{pets}</span>
+                          <button
+                            type="button"
+                            onClick={() => adjustPets(pets + 1)}
+                            disabled={pets >= maxPets}
+                            className="size-9 rounded-lg border-2 border-stitch-primary bg-stitch-primary/10 flex items-center justify-center text-stitch-primary hover:bg-stitch-primary/20 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Increase pets"
+                          >
+                            <Plus className="size-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="mt-3 flex items-start gap-2 text-[11px] text-muted-foreground leading-snug">
+                        <Info className="size-3.5 shrink-0 mt-0.5 text-stitch-primary/80" />
+                        <span>{PET_CLEANING_NOTE}</span>
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/10">
+                    <span className="text-sm font-medium text-stitch-on-background">Total estimate</span>
+                    <span className="text-2xl font-bold text-stitch-primary tabular-nums">
+                      ₹{totalEstimate.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/70 mt-2 text-right">
+                    Based on day rate × {tripDays} {tripDays === 1 ? 'day' : 'days'} (excl. add-ons &amp; taxes)
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <div className="w-full text-center py-10 px-4 bg-secondary/30 rounded-2xl border border-dashed border-border">
