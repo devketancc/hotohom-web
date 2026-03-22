@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary-fixed-dim": "#edc062",
+                "primary-container": "#e5b95c",
+                "surface-tint": "#edc062",
+                "surface-dim": "#101419",
+                "inverse-primary": "#7a5900",
+                "secondary-container": "#42474f",
+                "on-tertiary-fixed-variant": "#27457d",
+                "surface-container-lowest": "#0a0e13",
+                "on-surface": "#e0e2ea",
+                "surface-variant": "#31353b",
+                "secondary-fixed-dim": "#c2c7d0",
+                "primary-fixed": "#ffdea1",
+                "tertiary": "#cedbff",
+                "outline-variant": "#4e4637",
+                "on-primary-fixed": "#261900",
+                "secondary": "#c2c7d0",
+                "surface-container": "#1c2025",
+                "background": "#101419",
+                "outline": "#9a8f7e",
+                "on-secondary-fixed": "#171c23",
+                "tertiary-fixed-dim": "#aec6ff",
+                "tertiary-container": "#a3bfff",
+                "on-tertiary": "#0a2e65",
+                "secondary-fixed": "#dee2ec",
+                "inverse-surface": "#e0e2ea",
+                "on-tertiary-fixed": "#001a42",
+                "tertiary-fixed": "#d8e2ff",
+                "on-error-container": "#ffdad6",
+                "surface-container-low": "#181c21",
+                "surface-container-highest": "#31353b",
+                "on-secondary": "#2c3138",
+                "error-container": "#93000a",
+                "surface": "#101419",
+                "on-tertiary-container": "#2f4d85",
+                "on-background": "#e0e2ea",
+                "on-surface-variant": "#d1c5b2",
+                "on-secondary-fixed-variant": "#42474f",
+                "on-error": "#690005",
+                "primary": "#ffd682",
+                "surface-container-high": "#262a30",
+                "surface-bright": "#36393f",
+                "on-primary-fixed-variant": "#5c4300",
+                "error": "#ffb4ab",
+                "on-secondary-container": "#b1b5bf",
+                "on-primary-container": "#654900",
+                "on-primary": "#402d00",
+                "inverse-on-surface": "#2d3136"
+              },
+              fontFamily: {
+                "headline": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        body {
+            background-color: #101419;
+            color: #e0e2ea;
+            font-family: 'Inter', sans-serif;
+        }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        .glass-card {
+            background: rgba(49, 53, 59, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(154, 143, 126, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar from JSON -->
+<header class="bg-[#101419] docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#E5B95C] uppercase font-manrope">MOTOHOM</div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-manrope tracking-tight font-bold text-[#FFD682] border-b-2 border-[#E5B95C] pb-1" href="#">Explore</a>
+<a class="font-manrope tracking-tight font-bold text-[#D1C5B2] hover:text-[#E5B95C] transition-colors" href="#">Bookings</a>
+<a class="font-manrope tracking-tight font-bold text-[#D1C5B2] hover:text-[#E5B95C] transition-colors" href="#">Concierge</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="text-[#D1C5B2] hover:bg-[#181C21] rounded-md transition-all p-1">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-[#D1C5B2] hover:bg-[#181C21] rounded-md transition-all p-1">
+<span class="material-symbols-outlined" data-icon="support">support</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant/20">
+<img alt="User profile avatar" data-alt="Close up of a professional male user avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuPTvrpC2W1NqVgRX4t5GXy_LxH2Lqgm-MVG1u_C-5SIZfO6Nl9ZTyyXdCXom94DiEL-pfWTz1NZx3DtrTJObGmn_FPvWgZXzxDM1mQ7RoZYHKkUBpJV7ItVqyTWoGkziOnQsgS76lb60r-iw5qTSsq8eqs7wgRa7cNR3Q9sxegmGc8rwQkjDTQJa_LH_hx23-rRVYvlR5UBfwBI55Ulmw0ewBpP4Dkd1YRmTI4G7z7LaeugDT--VwW2GbOTEpuRD1c9H6yCCHsPU"/>
+</div>
+</div>
+</div>
+<div class="bg-[#181C21] h-[1px] w-full"></div>
+</header>
+<!-- Secondary Navigation (Context Bar) -->
+<div class="bg-surface-container-low border-b border-outline-variant/10 sticky top-[73px] z-40">
+<div class="max-w-screen-2xl mx-auto px-8 py-4 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Hub</span>
+<div class="flex items-center gap-2 group cursor-pointer">
+<span class="font-manrope font-bold text-primary">Pune Hub</span>
+<span class="material-symbols-outlined text-[14px] text-primary group-hover:scale-110 transition-transform" data-icon="edit">edit</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Dates</span>
+<div class="flex items-center gap-2 group cursor-pointer">
+<span class="font-manrope font-bold text-primary">12 - 16 Mar</span>
+<span class="material-symbols-outlined text-[14px] text-primary group-hover:scale-110 transition-transform" data-icon="edit">edit</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Duration</span>
+<div class="flex items-center gap-2 group cursor-pointer">
+<span class="font-manrope font-bold text-primary">4 Days</span>
+<span class="material-symbols-outlined text-[14px] text-primary group-hover:scale-110 transition-transform" data-icon="edit">edit</span>
+</div>
+</div>
+</div>
+<div class="hidden lg:flex items-center gap-4 text-sm text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="verified">verified</span> Elite Tier Concierge Active</span>
+</div>
+</div>
+</div>
+<main class="max-w-screen-2xl mx-auto px-8 py-10 flex gap-12">
+<!-- 70% Left: Selection Grid -->
+<div class="w-full lg:w-[70%]">
+<header class="mb-10">
+<h1 class="text-4xl font-manrope font-extrabold tracking-tight mb-2">Select Your Fleet</h1>
+<p class="text-on-surface-variant max-w-2xl">Tailored for the modern nomad. Each caravan is a masterpiece of engineering and luxury, designed for your ultimate comfort on the open road.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Card 1 (Most Popular) -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50 border border-transparent hover:border-primary/20">
+<div class="relative aspect-[16/10] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Luxurious modern caravan interior with warm lighting and wooden finishes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB87GKR9yZE9Q-UhHlg8XJnDL8sUGZR_-8dlyGlwvkena8WYUEddCdc9m4JRIcJIUN1wF0j5qVv54uNLD_03FM8fwZah1t4eyXka-hnSlaulqjMS7AGJCpXSf_q2Rh0rzKLiSoTnYle6TICi-yrf-KWHp8ygElrGPjvNNL-Iu4ZwK9XDqqVL0MIobS1Sejst2rHsiWDvJQJI54WzFE0kraeTJh6PakCZQKudKO_fgJwCdFhH7JVJvYgjfaKD5H20rWbSbFNj4kIT5c"/>
+<div class="absolute top-4 left-4 bg-primary text-on-primary text-[10px] font-bold uppercase tracking-tighter px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                            Most Popular Choice
+                        </div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-manrope font-bold tracking-tight">Class T - The Traveler</h3>
+<span class="text-primary font-bold">₹12,500<span class="text-xs text-on-surface-variant font-normal">/day</span></span>
+</div>
+<div class="flex flex-wrap gap-3 mb-8">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="groups">groups</span> 4 Passengers
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="pets">pets</span> Pet Friendly
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="king_bed">king_bed</span> Queen Bed
+                            </div>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<button class="w-full py-3 bg-gradient-to-r from-primary-container to-primary text-on-primary font-bold rounded-md transition-all active:scale-95">
+                                Choose This Caravan
+                            </button>
+<button class="w-full py-3 border border-outline-variant/30 text-primary font-bold rounded-md hover:bg-primary/5 transition-all">
+                                Explore Features
+                            </button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50 border border-transparent hover:border-primary/20">
+<div class="relative aspect-[16/10] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist high-tech caravan interior with panoramic windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYCuJZkHlWhlMvNRLGhLP_qZBKiFTArAcJc5lFmzzzsyVb8Blu4BIlrnYuKIvOelx1iztkrZSvUdWOVsyEUVJO3dL-L4XPg_mSwCYZV9UFfecm0Da6OziH00aKVi5xMgvlEkT7cYiB5cipCPRnuyByfL36AICfkpPNSkqPT_JsvbYJEMwtRMDJlGpss1VuwAVX5wSN5yxe1ISvgixOVXKis6wpokYgdnax2NtprI8eqQylyytmc8vbsg9_vLXZvCJlpOTDZs7sajA"/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-manrope font-bold tracking-tight">Class U - Urban Nomad</h3>
+<span class="text-primary font-bold">₹15,200<span class="text-xs text-on-surface-variant font-normal">/day</span></span>
+</div>
+<div class="flex flex-wrap gap-3 mb-8">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="groups">groups</span> 2 Passengers
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="block">block</span> No Pets
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="single_bed">single_bed</span> Twin Beds
+                            </div>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<button class="w-full py-3 bg-gradient-to-r from-primary-container to-primary text-on-primary font-bold rounded-md transition-all active:scale-95">
+                                Choose This Caravan
+                            </button>
+<button class="w-full py-3 border border-outline-variant/30 text-primary font-bold rounded-md hover:bg-primary/5 transition-all">
+                                Explore Features
+                            </button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50 border border-transparent hover:border-primary/20">
+<div class="relative aspect-[16/10] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Spacious family caravan interior with large kitchen area" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwMu52zz73RFhgTsjwVgDfjYccOyLgYqKVxpOYsiHvNQS2Rr8V0rcxdc4cs7XfQcHu_KjJ_LhRQOuitBNp4LgF29cWmDEZ2FDNn3JD_giWeW50m_cZlW_9j8czerT3ESjNXh0FrN8cTYNc_1ooi8KghAt_lqk929Msijk-FSvNyBRv3nuMxuImSAARz3StyzodN0jXyNOCDP646QoK-Hl4FKovkJfd_8AGwmpYmr22sH7919FsLhYh6K1kSzZEzW8I9M9TJt2N-4c"/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-manrope font-bold tracking-tight">Class X - Explorer Max</h3>
+<span class="text-primary font-bold">₹18,900<span class="text-xs text-on-surface-variant font-normal">/day</span></span>
+</div>
+<div class="flex flex-wrap gap-3 mb-8">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="groups">groups</span> 6 Passengers
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="pets">pets</span> Pet Friendly
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="hotel">hotel</span> 3 Bedrooms
+                            </div>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<button class="w-full py-3 bg-gradient-to-r from-primary-container to-primary text-on-primary font-bold rounded-md transition-all active:scale-95">
+                                Choose This Caravan
+                            </button>
+<button class="w-full py-3 border border-outline-variant/30 text-primary font-bold rounded-md hover:bg-primary/5 transition-all">
+                                Explore Features
+                            </button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/50 border border-transparent hover:border-primary/20">
+<div class="relative aspect-[16/10] overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Adventure-ready 4x4 camper interior with rugged utility feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeCJZFBkND2IBfSvwDLPcUfEO52gbs9UK0X0gDHESfox2caUoKzVwc1Q211Z1o4liV0jiZu23ft06vKSJYgG0dOSCgjW3MT4KkdXKpiqw5Dzz0t_wTwRFoDGg7ecvLtvvAWbikUmyXzhXtLP9ZfxpPven1wRprBHaQvCrZyELNdLHO7q_j1CV8QR9p_mFV9woOlzeIM_PECERxSNt5jdDcHMocnI-kLemAk94GP1wD8jAArF6AfK5g-ueo3SV9A1ELrhoeX5Fq0e4"/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-xl font-manrope font-bold tracking-tight">Class A - Alpine Adventurer</h3>
+<span class="text-primary font-bold">₹14,000<span class="text-xs text-on-surface-variant font-normal">/day</span></span>
+</div>
+<div class="flex flex-wrap gap-3 mb-8">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="groups">groups</span> 3 Passengers
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="pets">pets</span> Pet Friendly
+                            </div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]" data-icon="roofing">roofing</span> Roof Tent
+                            </div>
+</div>
+<div class="mt-auto flex flex-col gap-3">
+<button class="w-full py-3 bg-gradient-to-r from-primary-container to-primary text-on-primary font-bold rounded-md transition-all active:scale-95">
+                                Choose This Caravan
+                            </button>
+<button class="w-full py-3 border border-outline-variant/30 text-primary font-bold rounded-md hover:bg-primary/5 transition-all">
+                                Explore Features
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 30% Right: Sticky Summary Panel -->
+<aside class="hidden lg:block w-[30%]">
+<div class="sticky top-[160px] glass-card rounded-2xl p-8 border border-outline-variant/10 shadow-2xl">
+<h2 class="text-2xl font-manrope font-extrabold tracking-tight mb-8">Your Journey</h2>
+<div class="space-y-6 mb-10">
+<div class="flex justify-between items-start pb-6 border-b border-outline-variant/10">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Location</span>
+<p class="font-manrope font-bold text-lg">Pune Hub</p>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="location_on">location_on</span>
+</div>
+<div class="flex justify-between items-start pb-6 border-b border-outline-variant/10">
+<div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Schedule</span>
+<p class="font-manrope font-bold text-lg">12 Mar - 16 Mar</p>
+<p class="text-xs text-on-surface-variant mt-1">4 Full Days Selection</p>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="calendar_month">calendar_month</span>
+</div>
+<div class="flex justify-between items-start pt-2">
+<div class="w-full text-center py-10 px-4 bg-surface-container-lowest/50 rounded-xl border border-dashed border-outline-variant/30">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-4xl mb-3 block" data-icon="rv_hookup">rv_hookup</span>
+<p class="text-on-surface-variant font-medium text-sm">No caravan selected yet</p>
+<p class="text-[10px] text-on-surface-variant/60 mt-2 italic px-4">Price will be shown after journey planning</p>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-surface-container-highest text-on-surface-variant/40 font-bold rounded-md cursor-not-allowed flex items-center justify-center gap-2 group">
+                    Continue 
+                    <span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="text-[10px] text-center text-on-surface-variant/50 mt-4 uppercase tracking-[0.1em]">Select a fleet to unlock the next step</p>
+</div>
+</aside>
+</main>
+<!-- Footer Space -->
+<div class="h-32"></div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101419]/80 backdrop-blur-xl rounded-t-3xl border-t border-white/10 shadow-[0_-8px_30px_rgb(0,0,0,0.5)]">
+<a class="flex flex-col items-center justify-center text-[#D1C5B2] px-5 py-2 hover:text-[#FFD682]" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-manrope text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#E5B95C] text-[#101419] rounded-2xl px-5 py-2 scale-110 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-manrope text-[10px] font-medium">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#D1C5B2] px-5 py-2 hover:text-[#FFD682]" href="#">
+<span class="material-symbols-outlined" data-icon="travel_explore">travel_explore</span>
+<span class="font-manrope text-[10px] font-medium">My Trips</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#D1C5B2] px-5 py-2 hover:text-[#FFD682]" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-manrope text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

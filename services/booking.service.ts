@@ -1,8 +1,13 @@
 import apiClient from './apiClient';
 import { ApiResponse } from '@/types/api';
-import { BookingData } from '@/types/booking';
+import { BookingData, AvailabilityData } from '@/types/booking';
 
 export const bookingService = {
+  async getAvailableCaravans(params: { start: string; end: string; hub: string }): Promise<ApiResponse<AvailabilityData>> {
+    const { data } = await apiClient.get('/caravans/availability/', { params });
+    return data;
+  },
+
   async getCaravans(query?: Record<string, unknown>): Promise<ApiResponse<unknown[]>> {
     const { data } = await apiClient.get('/caravans', { params: query });
     return data;

@@ -1,7 +1,22 @@
 export interface CaravanClass {
   id: string;
   name: string;
-  pricePerDay: number;
+  description: string;
+  full_capacity: number;
+  capacity_pets: number;
+  is_pet_friendly: boolean;
+  amenities: string[];
+  day_rate: string;
+  km_rate: string;
+  deposit_amount: string;
+  available_count: number;
+}
+
+export interface AvailabilityData {
+  start: string;
+  end: string;
+  hub: string;
+  available_classes: CaravanClass[];
 }
 
 export interface Passenger {

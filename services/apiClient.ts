@@ -3,7 +3,7 @@ import { env } from '@/config/env';
 import { handleApiError } from '@/lib/errorHandler';
 
 const apiClient = axios.create({
-  baseURL: env.API_BASE_URL,
+  baseURL: env.API_BASE_URL ? `${env.API_BASE_URL.replace(/\/$/, '')}/api/v1` : '/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -13,9 +13,6 @@ const apiClient = axios.create({
 // Request interceptor to attach token if needed
 apiClient.interceptors.request.use(
   (config) => {
-    if (env.API_BASE_URL === '' && typeof window !== 'undefined') {
-      config.baseURL = window.location.origin;
-    }
     // Determine token logic here,e.g., from local storage or cookies
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (token && config.headers) {

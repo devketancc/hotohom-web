@@ -4,32 +4,18 @@ import { ArrowRight } from 'lucide-react'
 import { HubSelector } from './HubSelector'
 import { DatePicker } from './DatePicker'
 import { PassengerStepper } from './PassengerStepper'
+import { useRouter } from 'next/navigation'
 import { useBookingStore } from '@/store/bookingStore'
 
 export const BookingControl = () => {
+  const router = useRouter()
   const { hub, hubName, dates, passengers } = useBookingStore()
 
   const isValid = hub !== null && dates.start !== null && dates.end !== null && passengers >= 1
   
   const handleStartPlanning = () => {
     if (!isValid) return
-    
-    const selectedData = {
-      hub: {
-        id: hub,
-        name: hubName
-      },
-      dates: {
-        from: dates.start,
-        to: dates.end,
-        totalDays: dates.totalDays
-      },
-      passengers
-    }
-    
-    console.log('🚀 Finalizing Selection:', selectedData)
-    // Trigger any callback here if provided as prop
-    alert(`Success! Selected ${hubName} for ${dates.totalDays} days with ${passengers} traveler(s).`)
+    router.push('/select-caravan')
   }
 
   return (
