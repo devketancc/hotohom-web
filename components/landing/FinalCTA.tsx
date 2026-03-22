@@ -1,7 +1,5 @@
 "use client"
 
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export const FinalCTA = () => {
@@ -27,19 +25,13 @@ export const FinalCTA = () => {
         <div className="flex flex-col md:flex-row gap-8 justify-center items-center animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
           <Link 
             href="/select-caravan"
-            className={cn(
-              "gradient-cta text-stitch-on-primary-container px-16 py-7 h-auto rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:scale-105 hover:brightness-110 transition-all shadow-2xl shadow-stitch-primary/20",
-              buttonVariants({ variant: "default" })
-            )}
+            className="gradient-cta text-stitch-on-primary-container px-16 py-7 h-auto rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:scale-105 hover:brightness-110 transition-all shadow-2xl shadow-stitch-primary/20"
           >
             Start Your Journey
           </Link>
           <Link 
             href="/fleet"
-            className={cn(
-              "bg-transparent border-2 border-stitch-primary/40 text-stitch-primary px-16 py-7 h-auto rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:bg-stitch-primary/5 hover:border-stitch-primary transition-all",
-              buttonVariants({ variant: "outline" })
-            )}
+            className="bg-transparent border-2 border-stitch-primary/40 text-stitch-primary px-16 py-7 h-auto rounded-2xl font-headline font-black text-xl uppercase tracking-[0.15em] hover:bg-stitch-primary/5 hover:border-stitch-primary transition-all"
           >
             View Fleet
           </Link>

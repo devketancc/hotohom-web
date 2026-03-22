@@ -1,8 +1,6 @@
 "use client"
 
 import Link from 'next/link'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 export const Navbar = () => {
   return (
@@ -39,10 +37,7 @@ export const Navbar = () => {
         </div>
         <Link 
           href="/select-caravan"
-          className={cn(
-            "bg-stitch-primary-container text-stitch-on-primary-container px-6 py-2.5 rounded-md font-headline text-sm font-bold uppercase tracking-wider hover:opacity-80 transition-opacity",
-            buttonVariants({ variant: "default" })
-          )}
+          className="bg-stitch-primary-container text-stitch-on-primary-container px-6 py-2.5 rounded-md font-headline text-sm font-bold uppercase tracking-wider hover:opacity-80 transition-opacity"
         >
           Book Your Journey
         </Link>
