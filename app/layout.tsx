@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Manrope, Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/shared/Providers';
+import { LoginModalHost } from '@/components/auth/LoginModalHost';
 import { CONSTANTS } from '@/config/constants';
 
 const geistSans = Geist({
@@ -40,6 +41,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <LoginModalHost />
       </body>
     </html>
   );

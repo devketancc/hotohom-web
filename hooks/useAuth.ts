@@ -1,37 +1,43 @@
-import { useMutation } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
 
-export const useAuth = () => {
-  const { setLoginModalOpen, setLoading } = useUiStore();
+export function useAuth() {
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const logoutStore = useAuthStore((s) => s.logout);
 
-  const loginMutation = useMutation({
-    mutationFn: (credentials: { phone: string; otp: string }) => 
-      authService.login(credentials.phone, credentials.otp),
-    onSuccess: (data) => {
-      if (data.data.token) {
-        localStorage.setItem('token', data.data.token);
-      }
-      const path = useUiStore.getState().pendingNavigationPath;
+  const sendOtp = useCallback(async (phone: string): Promise<boolean> => {
+    return authService.sendOtp(phone);
+  }, []);
+
+  const verifyOtp = useCallback(
+    async (phone: string, otp: string) => {
+      const data = await authService.verifyOtp(phone, otp);
+      setAuth({
+        user: data.user,
+        accessToken: data.access,
+        refreshToken: data.refresh,
+      });
+      console.log('User logged in', data.user);
+      useUiStore.getState().setLoginModalOpen(false);
       useUiStore.getState().setPendingNavigationPath(null);
-      setLoginModalOpen(false);
-      if (path && typeof window !== 'undefined') {
-        window.location.assign(path);
-      }
+      return data;
     },
-    onMutate: () => setLoading(true),
-    onSettled: () => setLoading(false),
-  });
+    [setAuth]
+  );
 
-  const logout = () => {
-    authService.logout();
-    window.location.reload();
-  };
+  const logout = useCallback(() => {
+    logoutStore();
+  }, [logoutStore]);
 
   return {
-    login: loginMutation.mutate,
-    loginAsync: loginMutation.mutateAsync,
-    isLoggingIn: loginMutation.isPending,
+    user,
+    isAuthenticated,
+    sendOtp,
+    verifyOtp,
     logout,
   };
-};
+}

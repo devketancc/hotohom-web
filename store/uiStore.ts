@@ -6,6 +6,8 @@ interface UiState {
   /** After successful login, client navigates here (set before opening the modal). */
   pendingNavigationPath: string | null;
   setLoginModalOpen: (open: boolean) => void;
+  openLogin: () => void;
+  closeLogin: () => void;
   setLoading: (loading: boolean) => void;
   setPendingNavigationPath: (path: string | null) => void;
   reset: () => void;
@@ -20,6 +22,8 @@ const initialState = {
 export const useUiStore = create<UiState>((set) => ({
   ...initialState,
   setLoginModalOpen: (open: boolean) => set({ isLoginModalOpen: open }),
+  openLogin: () => set({ isLoginModalOpen: true }),
+  closeLogin: () => set({ isLoginModalOpen: false, pendingNavigationPath: null }),
   setLoading: (loading: boolean) => set({ isLoading: loading }),
   setPendingNavigationPath: (path: string | null) => set({ pendingNavigationPath: path }),
   reset: () => set(initialState),

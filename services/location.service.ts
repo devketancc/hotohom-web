@@ -1,4 +1,5 @@
 import { env } from '@/config/env';
+import { useAuthStore } from '@/store/authStore';
 import type { HubsResponse, LocationHub } from '@/types/location';
 
 function readCoords(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -63,7 +64,7 @@ function hubsRequestUrl(): string {
 export const locationService = {
   async getHubs(): Promise<LocationHub[]> {
     const url = hubsRequestUrl();
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? useAuthStore.getState().accessToken : null;
     const headers = new Headers({ Accept: 'application/json' });
     if (token) headers.set('Authorization', `Bearer ${token}`);
 

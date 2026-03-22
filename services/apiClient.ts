@@ -1,6 +1,12 @@
-import axios from 'axios';
+import axios, {
+  AxiosHeaders,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import { env } from '@/config/env';
 import { handleApiError } from '@/lib/errorHandler';
+import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/auth.service';
 
 const apiClient = axios.create({
   baseURL: env.API_BASE_URL ? `${env.API_BASE_URL.replace(/\/$/, '')}/api/v1` : '/api/v1',
@@ -10,35 +16,87 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor to attach token if needed
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+let refreshPromise: Promise<string> | null = null;
+
 apiClient.interceptors.request.use(
   (config) => {
-    // Determine token logic here,e.g., from local storage or cookies
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? useAuthStore.getState().accessToken : null;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Debug log for API requests
+
     if (env.IS_DEVELOPMENT) {
       console.log(`📡 [API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
+  (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableConfig | undefined;
+    const status = error.response?.status;
+    const url = originalRequest?.url ?? '';
+
+    if (status !== 401 || !originalRequest || isAuthPublicPath(url)) {
+      const errorMsg = handleApiError(error);
+      return Promise.reject(new Error(errorMsg));
+    }
+
+    if (originalRequest._retry) {
+      useAuthStore.getState().logout();
+      const errorMsg = handleApiError(error);
+      return Promise.reject(new Error(errorMsg));
+    }
+
+    const refresh = useAuthStore.getState().refreshToken;
+    if (!refresh) {
+      useAuthStore.getState().logout();
+      const errorMsg = handleApiError(error);
+      return Promise.reject(new Error(errorMsg));
+    }
+
+    if (!refreshPromise) {
+      refreshPromise = authService
+        .refreshAccessToken(refresh)
+        .then((newAccess) => {
+          useAuthStore.getState().setAccessToken(newAccess);
+          return newAccess;
+        })
+        .catch((e) => {
+          useAuthStore.getState().logout();
+          throw e;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
+    }
+
+    try {
+      const newAccess = await refreshPromise;
+      originalRequest._retry = true;
+      const headers = AxiosHeaders.from(originalRequest.headers ?? {});
+      headers.set('Authorization', `Bearer ${newAccess}`);
+      originalRequest.headers = headers;
+      return apiClient(originalRequest);
+    } catch {
+      const errorMsg = handleApiError(error);
+      return Promise.reject(new Error(errorMsg));
+    }
   }
 );
 
-// Response interceptor to handle errors globally
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const errorMsg = handleApiError(error);
-    // Transform error to generic structure or throw to handle in catch block
-    return Promise.reject(new Error(errorMsg));
-  }
-);
+function isAuthPublicPath(url: string): boolean {
+  return (
+    url.includes('/auth/otp/send/') ||
+    url.includes('/auth/otp/verify/') ||
+    url.includes('/auth/token/refresh/')
+  );
+}
 
 export default apiClient;

@@ -10,8 +10,20 @@ function shouldProxy(): boolean {
   );
 }
 
+/** Django-style routes expect trailing slash; Next/axios may omit it on the incoming request. */
+const BACKEND_TRAILING_SLASH_PATHS = new Set([
+  '/api/v1/auth/otp/send',
+  '/api/v1/auth/otp/verify',
+  '/api/v1/auth/token/refresh',
+]);
+
 function buildBackendUrl(request: NextRequest): string {
-  const pathAndQuery = request.nextUrl.pathname + request.nextUrl.search;
+  let pathname = request.nextUrl.pathname;
+  const basePath = pathname.replace(/\/+$/, '') || '/';
+  if (BACKEND_TRAILING_SLASH_PATHS.has(basePath) && !pathname.endsWith('/')) {
+    pathname = `${basePath}/`;
+  }
+  const pathAndQuery = pathname + request.nextUrl.search;
   return new URL(pathAndQuery, `${backendOrigin()}/`).toString();
 }
 

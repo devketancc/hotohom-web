@@ -18,13 +18,19 @@ const OTP_LEN = 6;
 const emptyOtpCells = () => Array<string>(OTP_LEN).fill('');
 
 export function LoginModal({ open, onClose }: LoginModalProps) {
-  const { loginAsync, isLoggingIn } = useAuth();
+  const { sendOtp, verifyOtp } = useAuth();
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
   /** One character per OTP box (fixed positions, matches Stitch 6-cell UX). */
   const [otpCells, setOtpCells] = useState<string[]>(emptyOtpCells);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [phoneStepError, setPhoneStepError] = useState<string | null>(null);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const otp = otpCells.join('');
+  const otpComplete = otpCells.every((c) => c.length === 1);
+  const verifyingRef = useRef(false);
+  const verifyInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -32,6 +38,9 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     setPhone('');
     setOtpCells(emptyOtpCells());
     setLoginError(null);
+    setPhoneStepError(null);
+    verifyingRef.current = false;
+    verifyInFlightRef.current = false;
   }, [open]);
 
   const panelRef = useClickOutside<HTMLDivElement>(() => {
@@ -46,11 +55,50 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     setPhone(digitsOnly(e.target.value, 10));
   };
 
-  const goToOtp = (e: React.FormEvent) => {
+  const submitPhone = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length < 10) return;
-    setStep('otp');
+    if (phone.length < 10 || sendingOtp) return;
+    setPhoneStepError(null);
+    setSendingOtp(true);
+    try {
+      const ok = await sendOtp(phone);
+      if (!ok) {
+        setPhoneStepError('Could not send OTP. Try again.');
+        return;
+      }
+      setStep('otp');
+    } catch (err) {
+      setPhoneStepError(err instanceof Error ? err.message : 'Could not send OTP.');
+    } finally {
+      setSendingOtp(false);
+    }
   };
+
+  const runVerify = useCallback(async () => {
+    if (otp.length < OTP_LEN || verifyInFlightRef.current) return;
+    verifyInFlightRef.current = true;
+    verifyingRef.current = true;
+    setLoginError(null);
+    setVerifyingOtp(true);
+    try {
+      await verifyOtp(phone, otp);
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : 'Could not verify. Try again.');
+      verifyingRef.current = false;
+    } finally {
+      verifyInFlightRef.current = false;
+      setVerifyingOtp(false);
+    }
+  }, [phone, otp, verifyOtp]);
+
+  useEffect(() => {
+    if (!otpComplete) verifyingRef.current = false;
+  }, [otpComplete]);
+
+  useEffect(() => {
+    if (!open || step !== 'otp' || !otpComplete) return;
+    void runVerify();
+  }, [open, step, otpComplete, runVerify]);
 
   const focusOtpIndex = useCallback((i: number) => {
     const el = otpInputRefs.current[Math.max(0, Math.min(i, OTP_LEN - 1))];
@@ -111,18 +159,10 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     requestAnimationFrame(() => focusOtpIndex(nextIdx));
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length < OTP_LEN) return;
-    setLoginError(null);
-    try {
-      await loginAsync({ phone: `91${phone}`, otp });
-    } catch (err) {
-      setLoginError(err instanceof Error ? err.message : 'Could not verify. Try again.');
-    }
+    void runVerify();
   };
-
-  const otpComplete = otpCells.every((c) => c.length === 1);
 
   if (!open) return null;
 
@@ -172,7 +212,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                 </p>
               </div>
 
-              <form className="space-y-8" onSubmit={goToOtp}>
+              <form className="space-y-8" onSubmit={submitPhone}>
                 <div className="space-y-2">
                   <label className="ml-1 font-body text-xs font-semibold uppercase tracking-[0.1em] text-stitch-on-surface-variant">
                     Mobile Number
@@ -194,14 +234,20 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                   </div>
                 </div>
 
+                {phoneStepError && (
+                  <p className="text-center text-sm text-destructive" role="alert">
+                    {phoneStepError}
+                  </p>
+                )}
+
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={phone.length < 10}
+                    disabled={phone.length < 10 || sendingOtp}
                     className="flex h-14 w-full items-center justify-center gap-3 rounded-md font-headline font-bold shadow-lg transition-all enabled:gradient-cta enabled:text-stitch-on-primary enabled:shadow-lg enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:border disabled:border-stitch-outline/25 disabled:bg-stitch-surface-highest/70 disabled:text-stitch-on-background disabled:opacity-100"
                   >
                     <Send className="size-5 shrink-0" aria-hidden />
-                    Send OTP via WhatsApp
+                    {sendingOtp ? 'Sending OTP…' : 'Send OTP via WhatsApp'}
                   </button>
                 </div>
               </form>
@@ -297,11 +343,11 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={!otpComplete || isLoggingIn}
+                    disabled={!otpComplete || verifyingOtp}
                     className="group flex h-14 w-full items-center justify-center gap-2 rounded-md font-headline font-bold shadow-lg transition-all enabled:gradient-cta enabled:text-stitch-on-primary enabled:shadow-lg enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:border disabled:border-stitch-outline/25 disabled:bg-stitch-surface-highest/70 disabled:text-stitch-on-background disabled:opacity-100"
                   >
                     <span className="tracking-wide">
-                      {isLoggingIn ? 'Verifying…' : 'Verify & Continue'}
+                      {verifyingOtp ? 'Verifying…' : 'Verify & Continue'}
                     </span>
                     <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1" aria-hidden />
                   </button>
