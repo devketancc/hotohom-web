@@ -49,3 +49,6 @@ export type CreateCartApiResponse = {
   data?: Cart;
   message?: string;
 };
+
+/** GET /carts/{id}/ uses the same envelope as create */
+export type CartDetailApiResponse = CreateCartApiResponse;

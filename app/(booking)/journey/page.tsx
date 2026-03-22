@@ -40,7 +40,7 @@ export default function JourneyDetailsPage() {
 
   const handleContinue = async () => {
     if (!isAuthed()) {
-      requestAuthThenNavigate('/summary');
+      requestAuthThenNavigate('/booking/summary');
       return;
     }
     setContinueError(null);
@@ -49,7 +49,7 @@ export default function JourneyDetailsPage() {
       const payload = buildCartPayload(bookingState);
       const cart = await cartService.createCart(payload);
       useCartStore.getState().setCart(cart);
-      router.push('/summary');
+      router.push('/booking/summary');
     } catch {
       setContinueError('Failed to calculate trip cost');
     } finally {

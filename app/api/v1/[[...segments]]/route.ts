@@ -17,12 +17,19 @@ const BACKEND_TRAILING_SLASH_PATHS = new Set([
   '/api/v1/auth/token/refresh',
   '/api/v1/auth/logout',
   '/api/v1/carts',
+  '/api/v1/addons',
 ]);
+
+/** Django: GET /api/v1/carts/{uuid}/ requires trailing slash */
+const CART_DETAIL_PATH = /^\/api\/v1\/carts\/[^/]+$/;
 
 function buildBackendUrl(request: NextRequest): string {
   let pathname = request.nextUrl.pathname;
   const basePath = pathname.replace(/\/+$/, '') || '/';
-  if (BACKEND_TRAILING_SLASH_PATHS.has(basePath) && !pathname.endsWith('/')) {
+  const needsSlash =
+    (BACKEND_TRAILING_SLASH_PATHS.has(basePath) && !pathname.endsWith('/')) ||
+    (CART_DETAIL_PATH.test(basePath) && !pathname.endsWith('/'));
+  if (needsSlash) {
     pathname = `${basePath}/`;
   }
   const pathAndQuery = pathname + request.nextUrl.search;
