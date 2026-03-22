@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight, Home, Route, Heart, Wallet, Star } from 'lucide-react'
-import { Navbar } from '@/components/landing/Navbar'
+import { Navbar } from '@/components/layout/Navbar'
 import { Hero } from '@/components/landing/Hero'
 import { PackageCard } from '@/components/landing/PackageCard'
 import { JourneyTimeline } from '@/components/landing/JourneyTimeline'

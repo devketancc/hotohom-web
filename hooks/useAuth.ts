@@ -29,7 +29,15 @@ export function useAuth() {
     [setAuth]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const { accessToken, refreshToken } = useAuthStore.getState();
+    if (accessToken && refreshToken) {
+      try {
+        await authService.logout(accessToken, refreshToken);
+      } catch {
+        /* always clear local session */
+      }
+    }
     logoutStore();
   }, [logoutStore]);
 

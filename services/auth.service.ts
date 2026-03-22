@@ -77,4 +77,13 @@ export const authService = {
       throw toRequestError(e);
     }
   },
+
+  /** Bearer uses access token; body carries refresh (server invalidation). Use publicAuthClient to avoid apiClient refresh loops. */
+  async logout(accessToken: string, refreshToken: string): Promise<void> {
+    await publicAuthClient.post(
+      '/auth/logout/',
+      { refresh: refreshToken },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+  },
 };

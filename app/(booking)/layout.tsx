@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ContextBar } from '@/components/booking/ContextBar';
 import { HubLocationBackfill } from '@/components/booking/HubLocationBackfill';
 import { Bell, HelpCircle } from 'lucide-react';
-import Image from 'next/image';
+import { NavbarAuthCluster } from '@/components/layout/NavbarAuthCluster';
 
 export default function BookingLayout({ children }: { children: ReactNode }) {
   return (
@@ -29,12 +29,7 @@ export default function BookingLayout({ children }: { children: ReactNode }) {
             <button className="text-muted-foreground hover:bg-secondary rounded-lg transition-all p-2">
               <HelpCircle size={20} />
             </button>
-            <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden border border-border/20">
-              <img 
-                alt="User Profile" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuPTvrpC2W1NqVgRX4t5GXy_LxH2Lqgm-MVG1u_C-5SIZfO6Nl9ZTyyXdCXom94DiEL-pfWTz1NZx3DtrTJObGmn_FPvWgZXzxDM1mQ7RoZYHKkUBpJV7ItVqyTWoGkziOnQsgS76lb60r-iw5qTSsq8eqs7wgRa7cNR3Q9sxegmGc8rwQkjDTQJa_LH_hx23-rRVYvlR5UBfwBI55Ulmw0ewBpP4Dkd1YRmTI4G7z7LaeugDT--VwW2GbOTEpuRD1c9H6yCCHsPU" 
-              />
-            </div>
+            <NavbarAuthCluster loginButtonClassName="font-headline shrink-0 text-sm font-semibold uppercase tracking-tight text-muted-foreground transition-colors hover:text-primary" />
           </div>
         </div>
       </header>
