@@ -57,9 +57,16 @@ export interface Addon {
   price: number;
 }
 
+/** Persisted when user picks a hub (from LocationHub.coordinates) for maps / round-trip routing. */
+export interface HubLocation {
+  lat: number;
+  lng: number;
+}
+
 export interface BookingData {
   hub: string | null;
   hubName: string | null;
+  hubLocation: HubLocation | null;
   dates: {
     start: Date | null;
     end: Date | null;

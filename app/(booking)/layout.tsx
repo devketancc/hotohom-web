@@ -1,12 +1,14 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { ContextBar } from '@/components/booking/ContextBar';
+import { HubLocationBackfill } from '@/components/booking/HubLocationBackfill';
 import { Bell, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function BookingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dark flex flex-col min-h-screen bg-stitch-background text-stitch-on-background">
+      <HubLocationBackfill />
       {/* Premium Header */}
       <header className="bg-stitch-background border-b border-border/10 sticky top-0 z-50">
         <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">

@@ -33,7 +33,14 @@ export const HubSelector = () => {
           <HubPickerPanel
             selectedHubId={hub}
             onSelect={(item) => {
-              setData({ hub: item.id, hubName: item.name })
+              setData({
+                hub: item.id,
+                hubName: item.name,
+                hubLocation: {
+                  lat: item.coordinates.lat,
+                  lng: item.coordinates.lng,
+                },
+              })
               setIsOpen(false)
             }}
           />

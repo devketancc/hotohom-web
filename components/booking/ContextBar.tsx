@@ -57,7 +57,14 @@ export const ContextBar: React.FC = () => {
                     <HubPickerPanel
                       selectedHubId={hub}
                       onSelect={(item) => {
-                        setData({ hub: item.id, hubName: item.name });
+                        setData({
+                          hub: item.id,
+                          hubName: item.name,
+                          hubLocation: {
+                            lat: item.coordinates.lat,
+                            lng: item.coordinates.lng,
+                          },
+                        });
                         setOpenPanel(null);
                       }}
                     />

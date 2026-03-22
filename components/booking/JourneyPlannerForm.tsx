@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -38,6 +38,8 @@ import {
 export const JourneyPlannerForm = () => {
   const journey = useBookingStore((s) => s.journey);
   const setData = useBookingStore((s) => s.setData);
+  const hubName = useBookingStore((s) => s.hubName);
+  const hubLocation = useBookingStore((s) => s.hubLocation);
 
   useEffect(() => {
     if (!journey) {
@@ -148,9 +150,15 @@ export const JourneyPlannerForm = () => {
 
   const routeReady = stops ? canPreviewJourneyRoute(stops) : false;
   const mapSectionRef = useRef<HTMLDivElement>(null);
+  const [mapRequested, setMapRequested] = useState(false);
+
+  useEffect(() => {
+    if (!routeReady) setMapRequested(false);
+  }, [routeReady]);
 
   const handleShowRoute = useCallback(() => {
     if (!routeReady) return;
+    setMapRequested(true);
     mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [routeReady]);
 
@@ -168,6 +176,24 @@ export const JourneyPlannerForm = () => {
     },
     [setData, stops]
   );
+
+  const mapHub = useMemo(
+    () =>
+      hubLocation
+        ? { name: hubName ?? 'Hub', lat: hubLocation.lat, lng: hubLocation.lng }
+        : null,
+    [hubName, hubLocation]
+  );
+
+  const stopTitles = useMemo(() => {
+    if (!stops?.length) return [];
+    return stops.map((s, i) => {
+      const name = s.location?.name ?? 'Location pending';
+      if (i === 0) return `Pickup: ${name}`;
+      if (i === stops.length - 1) return `Drop-off: ${name}`;
+      return `Stop ${i}: ${name}`;
+    });
+  }, [stops]);
 
   if (!pickupStop || !dropoffStop || !stops?.length) {
     return (
@@ -269,9 +295,14 @@ export const JourneyPlannerForm = () => {
         ref={mapSectionRef}
         className="w-full aspect-video rounded-3xl bg-stitch-surface overflow-hidden relative group border border-stitch-outline/10 shadow-inner scroll-mt-28"
       >
-        {routeReady ? (
+        {routeReady && mapRequested ? (
           <div className="w-full h-full animate-in fade-in duration-500">
-            <GoogleMapView stops={mapStops} onRouteCalculated={handleRouteCalculated} />
+            <GoogleMapView
+              stops={mapStops}
+              hub={mapHub}
+              stopTitles={stopTitles}
+              onRouteCalculated={handleRouteCalculated}
+            />
           </div>
         ) : (
           <>
@@ -289,7 +320,9 @@ export const JourneyPlannerForm = () => {
                 <p className="font-headline font-bold text-2xl text-stitch-on-background">Interactive route preview</p>
                 <p className="font-body text-sm text-stitch-on-surface-variant flex items-center gap-2">
                   <Info size={14} />
-                  Complete all stops to preview your route.
+                  {routeReady
+                    ? 'Click Show route above to load the map and see your journey.'
+                    : 'Complete all stops to preview your route.'}
                 </p>
               </div>
             </div>

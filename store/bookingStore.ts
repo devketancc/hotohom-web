@@ -12,6 +12,7 @@ export interface BookingState extends BookingData {
 const initialState: BookingData = {
   hub: null,
   hubName: null,
+  hubLocation: null,
   dates: { start: null, end: null, totalDays: 0 },
   caravanClass: null,
   passengers: 1,

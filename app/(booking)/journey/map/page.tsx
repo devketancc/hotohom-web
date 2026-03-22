@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBookingStore } from '@/store/bookingStore';
 import { GoogleMapView } from '@/components/booking/GoogleMapView';
@@ -11,7 +11,7 @@ import { canPreviewJourneyRoute, stopsToMapRoute, syncPickupDropStrings } from '
 export default function JourneyMapPage() {
   const router = useRouter();
   const bookingState = useBookingStore();
-  const { journey, setData } = bookingState;
+  const { journey, setData, hubName, hubLocation } = bookingState;
 
   const routeOk =
     !!journey?.stops &&
@@ -40,6 +40,23 @@ export default function JourneyMapPage() {
 
   const { pickupLocation, dropoffLocation } = syncPickupDropStrings(journey.stops);
   const mapStops = stopsToMapRoute(journey.stops);
+  const mapHub = useMemo(
+    () =>
+      hubLocation
+        ? { name: hubName ?? 'Hub', lat: hubLocation.lat, lng: hubLocation.lng }
+        : null,
+    [hubName, hubLocation]
+  );
+  const stopTitles = useMemo(
+    () =>
+      journey.stops.map((s, i) => {
+        const name = s.location?.name ?? 'Location pending';
+        if (i === 0) return `Pickup: ${name}`;
+        if (i === journey.stops.length - 1) return `Drop-off: ${name}`;
+        return `Stop ${i}: ${name}`;
+      }),
+    [journey.stops]
+  );
 
   const handleRouteCalculated = (distanceKm: number) => {
     setData({
@@ -81,7 +98,12 @@ export default function JourneyMapPage() {
           </div>
 
           <div className="flex-1 w-full min-h-[500px]">
-            <GoogleMapView stops={mapStops} onRouteCalculated={handleRouteCalculated} />
+            <GoogleMapView
+              stops={mapStops}
+              hub={mapHub}
+              stopTitles={stopTitles}
+              onRouteCalculated={handleRouteCalculated}
+            />
           </div>
 
           <div className="bg-stitch-surface/30 p-4 rounded-2xl border border-stitch-outline/10 flex items-start gap-3">

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 import { Loader2, Navigation, Clock, Ruler } from 'lucide-react';
+import { formatEstimatedKmRange, formatEstimatedMinutesRange } from '@/utils/routeDisplay';
 
 export interface MapRouteStop {
   name: string;
@@ -10,12 +11,26 @@ export interface MapRouteStop {
   lng?: number;
 }
 
+export interface HubMapPoint {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 function stopsRouteKey(stops: MapRouteStop[]) {
   return stops.map((s) => [s.name, s.lat ?? '', s.lng ?? ''].join('|')).join('>');
 }
 
+function fullRouteKey(hub: HubMapPoint | null, stops: MapRouteStop[], stopTitles?: string[]) {
+  const h = hub ? `${hub.lat},${hub.lng},${hub.name}` : '';
+  const titles = stopTitles?.join('\x1e') ?? '';
+  return `${h}>${stopsRouteKey(stops)}>${titles}`;
+}
+
 interface GoogleMapViewProps {
   stops: MapRouteStop[];
+  hub: HubMapPoint | null;
+  stopTitles?: string[];
   onRouteCalculated?: (distanceKm: number) => void;
 }
 
@@ -28,7 +43,9 @@ function toDirectionsLocation(s: MapRouteStop): google.maps.LatLngLiteral | stri
   return s.name;
 }
 
-export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) => {
+const MAX_WAYPOINTS = 25;
+
+export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: GoogleMapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const onRouteCalculatedRef = useRef(onRouteCalculated);
   onRouteCalculatedRef.current = onRouteCalculated;
@@ -70,15 +87,37 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
     };
   }, []);
 
-  const routeKey = stopsRouteKey(stops);
+  const routeKey = fullRouteKey(hub, stops, stopTitles);
 
   useEffect(() => {
-    if (!map || stops.length < 2) return;
+    if (!map) return;
 
-    const origin = toDirectionsLocation(stops[0]);
-    const destination = toDirectionsLocation(stops[stops.length - 1]);
-    const middle = stops.slice(1, -1);
-    const waypoints: google.maps.DirectionsWaypoint[] = middle.map((s) => ({
+    let routeCancelled = false;
+    const markers: google.maps.Marker[] = [];
+    let directionsRenderer: google.maps.DirectionsRenderer | null = null;
+
+    const teardown = () => {
+      routeCancelled = true;
+      markers.forEach((m) => m.setMap(null));
+      markers.length = 0;
+      directionsRenderer?.setMap(null);
+      directionsRenderer = null;
+    };
+
+    if (!hub || stops.length < 2) {
+      setError(null);
+      setRouteInfo(null);
+      return teardown;
+    }
+
+    if (stops.length > MAX_WAYPOINTS) {
+      setError(`Too many stops for one route (max ${MAX_WAYPOINTS}).`);
+      setRouteInfo(null);
+      return teardown;
+    }
+
+    const hubPoint = { lat: hub.lat, lng: hub.lng };
+    const waypoints: google.maps.DirectionsWaypoint[] = stops.map((s) => ({
       location: toDirectionsLocation(s),
       stopover: true,
     }));
@@ -87,9 +126,9 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
     setRouteInfo(null);
 
     const directionsService = new google.maps.DirectionsService();
-    const directionsRenderer = new google.maps.DirectionsRenderer({
+    directionsRenderer = new google.maps.DirectionsRenderer({
       map,
-      suppressMarkers: false,
+      suppressMarkers: true,
       polylineOptions: {
         strokeColor: '#ffd682',
         strokeWeight: 6,
@@ -99,8 +138,8 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
 
     directionsService.route(
       {
-        origin,
-        destination,
+        origin: hubPoint,
+        destination: hubPoint,
         waypoints,
         travelMode: google.maps.TravelMode.DRIVING,
       },
@@ -108,38 +147,82 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
         result: google.maps.DirectionsResult | null,
         status: google.maps.DirectionsStatus
       ) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
-          directionsRenderer.setDirections(result);
-          let meters = 0;
-          let seconds = 0;
-          const legs = result.routes[0]?.legs ?? [];
-          for (const leg of legs) {
-            if (leg.distance?.value) meters += leg.distance.value;
-            if (leg.duration?.value) seconds += leg.duration.value;
-          }
-          setRouteInfo({
-            distance:
-              meters > 0
-                ? `${(meters / 1000).toFixed(1)} km`
-                : legs[0]?.distance?.text ?? 'N/A',
-            duration:
-              seconds > 0
-                ? `${Math.round(seconds / 60)} min`
-                : legs[0]?.duration?.text ?? 'N/A',
-          });
-          if (meters > 0) {
-            onRouteCalculatedRef.current?.(meters / 1000);
-          }
-        } else {
+        if (routeCancelled) return;
+        if (status !== google.maps.DirectionsStatus.OK || !result) {
           setError(`Could not calculate route: ${status}`);
+          return;
+        }
+
+        directionsRenderer?.setDirections(result);
+        const route = result.routes[0];
+        const legs = route?.legs ?? [];
+
+        if (route?.bounds) {
+          map.fitBounds(route.bounds);
+        }
+
+        let meters = 0;
+        let seconds = 0;
+        for (const leg of legs) {
+          if (leg.distance?.value) meters += leg.distance.value;
+          if (leg.duration?.value) seconds += leg.duration.value;
+        }
+
+        const actualKm = meters / 1000;
+        const actualMin = seconds / 60;
+
+        setRouteInfo({
+          distance:
+            meters > 0
+              ? formatEstimatedKmRange(actualKm)
+              : legs[0]?.distance?.text ?? 'N/A',
+          duration:
+            seconds > 0
+              ? formatEstimatedMinutesRange(actualMin)
+              : legs[0]?.duration?.text ?? 'N/A',
+        });
+
+        if (meters > 0) {
+          onRouteCalculatedRef.current?.(actualKm);
+        }
+
+        if (legs.length > 0 && legs[0].start_location) {
+          markers.push(
+            new google.maps.Marker({
+              map,
+              position: legs[0].start_location,
+              title: `Hub: ${hub.name} (depart & return)`,
+            })
+          );
+        }
+
+        for (let i = 0; i < stops.length; i++) {
+          const leg = legs[i];
+          if (!leg?.end_location) continue;
+          const title =
+            stopTitles?.[i] ??
+            (i === 0
+              ? `Pickup: ${stops[i].name}`
+              : i === stops.length - 1
+                ? `Drop-off: ${stops[i].name}`
+                : `Stop: ${stops[i].name}`);
+          markers.push(
+            new google.maps.Marker({
+              map,
+              position: leg.end_location,
+              title,
+            })
+          );
         }
       }
     );
 
     return () => {
-      directionsRenderer.setMap(null);
+      teardown();
     };
   }, [map, routeKey]);
+
+  const missingHub = !hub;
 
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-stitch-outline/20">
@@ -152,24 +235,28 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
         </div>
       )}
 
-      {error && (
+      {(error || missingHub) && (
         <div className="absolute inset-0 z-10 bg-stitch-background/90 flex flex-col items-center justify-center p-8 text-center gap-4">
           <div className="bg-destructive/10 p-4 rounded-full">
             <Navigation className="text-destructive rotate-45" size={40} />
           </div>
           <h3 className="text-xl font-black uppercase text-stitch-on-background">Navigation Error</h3>
-          <p className="text-stitch-on-surface-variant max-w-xs">{error}</p>
+          <p className="text-stitch-on-surface-variant max-w-xs">
+            {missingHub
+              ? 'Hub location is missing. Re-select your hub from the home page or context bar so we can plot the round trip (hub → journey → hub).'
+              : error}
+          </p>
         </div>
       )}
 
       <div ref={mapRef} className="w-full h-full" />
 
-      {routeInfo && !error && (
+      {routeInfo && !error && !missingHub && (
         <div className="absolute bottom-6 left-6 right-6 lg:left-auto lg:right-6 lg:w-80 glass-card rounded-2xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="space-y-4">
             <h4 className="text-xs font-black uppercase tracking-widest text-stitch-primary flex items-center gap-2">
               <Navigation size={12} />
-              Journey Summary
+              Estimated Journey Summary
             </h4>
 
             <div className="grid grid-cols-2 gap-4">
@@ -177,19 +264,13 @@ export const GoogleMapView = ({ stops, onRouteCalculated }: GoogleMapViewProps) 
                 <span className="text-[10px] uppercase font-bold text-stitch-on-surface-variant/60 flex items-center gap-1">
                   <Ruler size={10} /> Distance
                 </span>
-                <p className="text-xl font-black text-stitch-on-background">{routeInfo.distance}</p>
+                <p className="text-lg font-black text-stitch-on-background leading-tight">{routeInfo.distance}</p>
               </div>
               <div className="space-y-1 border-l border-stitch-outline/20 pl-4">
                 <span className="text-[10px] uppercase font-bold text-stitch-on-surface-variant/60 flex items-center gap-1">
-                  <Clock size={10} /> Duration
+                  <Clock size={10} /> On wheel time
                 </span>
-                <p className="text-xl font-black text-stitch-on-background">{routeInfo.duration}</p>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <div className="text-[10px] text-stitch-on-surface-variant/80 italic">
-                Optimizing for premium caravan experiences...
+                <p className="text-lg font-black text-stitch-on-background leading-tight">{routeInfo.duration}</p>
               </div>
             </div>
           </div>
