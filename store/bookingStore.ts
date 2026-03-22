@@ -35,6 +35,7 @@ export const useBookingStore = create<BookingState>()(
           const next = { ...state, ...data };
           if (data.hub !== undefined && data.hub !== state.hub) {
             next.caravanClass = null;
+            next.passengers = 1;
           }
           return next;
         }),
@@ -53,6 +54,7 @@ export const useBookingStore = create<BookingState>()(
             ...state,
             dates: { start, end, totalDays },
             caravanClass: null,
+            passengers: 1,
           };
         }),
       reset: () => set(initialState),

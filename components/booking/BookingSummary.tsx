@@ -30,7 +30,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
   onContinue,
   isLoading = false,
 }) => {
-  const { hubName, dates, caravanClass, passengers, pets } = booking;
+  const { hubName, dates, caravanClass, pets } = booking;
   const { setData } = useBookingStore();
   const isReady = !!caravanClass;
 
@@ -92,7 +92,8 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                     {caravanClass.name}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {passengers} {passengers === 1 ? 'Passenger' : 'Passengers'}
+                    {caravanClass.full_capacity}{' '}
+                    {caravanClass.full_capacity === 1 ? 'Passenger' : 'Passengers'}
                     {caravanClass.is_pet_friendly ? ' • Pet friendly' : ''}
                   </p>
                 </div>

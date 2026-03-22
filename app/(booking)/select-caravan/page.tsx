@@ -32,7 +32,11 @@ export default function SelectCaravanPage() {
   });
 
   const handleSelect = (caravan: CaravanClass) => {
-    setData({ caravanClass: caravan, pets: 0 });
+    setData({
+      caravanClass: caravan,
+      pets: 0,
+      passengers: caravan.full_capacity,
+    });
   };
 
   const handleContinue = () => {
