@@ -13,6 +13,9 @@ const apiClient = axios.create({
 // Request interceptor to attach token if needed
 apiClient.interceptors.request.use(
   (config) => {
+    if (env.API_BASE_URL === '' && typeof window !== 'undefined') {
+      config.baseURL = window.location.origin;
+    }
     // Determine token logic here,e.g., from local storage or cookies
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (token && config.headers) {

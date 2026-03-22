@@ -40,7 +40,17 @@ async function proxy(request: NextRequest): Promise<NextResponse> {
     init.body = await request.arrayBuffer();
   }
 
-  const res = await fetch(url, init);
+  let res: Response;
+  try {
+    res = await fetch(url, init);
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { success: false, error: 'Upstream fetch failed', detail },
+      { status: 502 }
+    );
+  }
+
   const out = new NextResponse(res.body, { status: res.status });
   const ct = res.headers.get('Content-Type');
   if (ct) out.headers.set('Content-Type', ct);
