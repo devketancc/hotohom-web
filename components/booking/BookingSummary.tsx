@@ -29,7 +29,7 @@ interface BookingSummaryProps {
   continueError?: string | null;
   /** Golden highlighted caravan card (select-caravan). Journey / map use compact row. */
   emphasizeCaravanSelection?: boolean;
-  /** Day rate, pets stepper, total estimate (off on journey steps after caravan is chosen). */
+  /** Day rate, km rate, pets stepper (off on journey steps after caravan is chosen). */
   showCaravanPricing?: boolean;
   /** Journey: require logged-in + route preview before Continue (use with continueLockedHint). */
   continueUnlocked?: boolean;
@@ -61,10 +61,6 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
         ? 5
         : 0;
 
-  const dayRate = caravanClass ? Number(caravanClass.day_rate) : 0;
-  const tripDays = Math.max(dates.totalDays || 1, 1);
-  const totalEstimate = caravanClass ? dayRate * tripDays : 0;
-
   const adjustPets = (next: number) => {
     const clamped = Math.max(0, Math.min(next, maxPets));
     setData({ pets: clamped });
@@ -72,13 +68,12 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const fleetSubtitleParts = caravanClass
     ? [
-        `${caravanClass.full_capacity} ${
-          caravanClass.full_capacity === 1 ? 'Passenger' : 'Passengers'
-        }`,
-        ...(caravanClass.is_pet_friendly
-          ? ['Pet friendly', `${pets} ${pets === 1 ? 'pet' : 'pets'}`]
-          : []),
-      ]
+      `${caravanClass.full_capacity} ${caravanClass.full_capacity === 1 ? 'Passenger' : 'Passengers'
+      }`,
+      ...(caravanClass.is_pet_friendly
+        ? ['Pet friendly', `${pets} ${pets === 1 ? 'pet' : 'pets'}`]
+        : []),
+    ]
     : [];
 
   const showFinancials = showCaravanPricing;
@@ -117,10 +112,10 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
               className={cn(
                 'w-full',
                 emphasizeCaravanSelection &&
-                  cn(
-                    'rounded-2xl border-2 p-6 bg-stitch-background/40',
-                    'border-stitch-primary shadow-[0_0_0_1px_rgba(212,175,55,0.15)]'
-                  ),
+                cn(
+                  'rounded-2xl border-2 p-6 bg-stitch-background/40',
+                  'border-stitch-primary shadow-[0_0_0_1px_rgba(212,175,55,0.15)]'
+                ),
                 !emphasizeCaravanSelection && 'space-y-0'
               )}
             >
@@ -161,14 +156,32 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <>
                   <div
                     className={cn(
-                      'flex justify-between text-sm',
+                      'space-y-2',
                       emphasizeCaravanSelection ? 'border-t border-border/10 pt-4' : 'pt-4'
                     )}
                   >
-                    <span className="text-muted-foreground">Day rate</span>
-                    <span className="font-semibold text-stitch-primary">
-                      ₹{Number(caravanClass.day_rate).toLocaleString('en-IN')}/day
-                    </span>
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Price per day</span>
+                      <span className="font-semibold text-stitch-primary tabular-nums text-right">
+                        ₹
+                        {Number.isFinite(Number(caravanClass.day_rate))
+                          ? Number(caravanClass.day_rate).toLocaleString('en-IN')
+                          : '—'}
+                      </span>
+                    </div>
+                    <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground py-0.5">
+                      or
+                    </p>
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Price per km</span>
+                      <span className="font-semibold text-stitch-primary tabular-nums text-right">
+                        ₹
+                        {Number.isFinite(Number(caravanClass.km_rate))
+                          ? Number(caravanClass.km_rate).toLocaleString('en-IN')
+                          : '—'}
+
+                      </span>
+                    </div>
                   </div>
 
                   {caravanClass.is_pet_friendly && maxPets > 0 && (
@@ -211,16 +224,6 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                       </p>
                     </div>
                   )}
-
-                  <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/10">
-                    <span className="text-sm font-medium text-stitch-on-background">Total estimate</span>
-                    <span className="text-2xl font-bold text-stitch-primary tabular-nums">
-                      ₹{totalEstimate.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground/70 mt-2 text-right">
-                    Based on day rate × {tripDays} {tripDays === 1 ? 'day' : 'days'} (excl. add-ons &amp; taxes)
-                  </p>
                 </>
               )}
             </div>

@@ -40,8 +40,13 @@ export const CaravanCard: React.FC<CaravanCardProps> = ({
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-bold tracking-tight font-headline">{caravan.name}</h3>
           <div className="text-right">
-            <span className="text-stitch-primary font-bold text-lg">₹{Number(caravan.day_rate).toLocaleString()}</span>
-            <span className="text-xs text-stitch-on-surface-variant font-normal ml-1">/day</span>
+            <span className="text-stitch-primary font-bold text-lg">
+              ₹
+              {Number.isFinite(Number(caravan.km_rate))
+                ? Number(caravan.km_rate).toLocaleString('en-IN')
+                : '—'}
+            </span>
+            <span className="text-xs text-stitch-on-surface-variant font-normal ml-1">/km</span>
           </div>
         </div>
 
