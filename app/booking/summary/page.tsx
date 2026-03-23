@@ -103,24 +103,27 @@ function PricingRecommendation({ pb }: { pb: CartPricingBreakdown }) {
 export default function BookingSummaryPage() {
   const router = useRouter();
   const cartId = useCartStore((s) => s.cartId);
+  const cartHasHydrated = useCartStore((s) => s.hasHydrated);
+  const clearCart = useCartStore((s) => s.clearCart);
   const { caravanClass, dates, passengers, pets, journey, hubName } = useBookingStore();
   const [loadingAddonId, setLoadingAddonId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!cartHasHydrated) return;
     if (!cartId || !caravanClass) {
-      router.replace('/booking/journey'); 
+      router.replace('/journey');
     }
-  }, [cartId, caravanClass, router]);
+  }, [cartHasHydrated, cartId, caravanClass, router]);
 
   const { data: cart, isLoading: cartLoading, isError: cartError, refetch: refetchCart } = useCart(cartId);
   const { data: addonsContent, isLoading: addonsLoading } = useAddons();
-  
+
   const addons = addonsContent || [];
 
   const handleUpdateQuantity = async (addonId: string, quantity: number) => {
     if (!cartId) return;
-    
+
     setLoadingAddonId(addonId);
     setUpdateError(null);
     try {
@@ -139,7 +142,7 @@ export default function BookingSummaryPage() {
     }
   };
 
-  if (cartLoading || addonsLoading || !caravanClass) {
+  if (!cartHasHydrated || cartLoading || addonsLoading || !caravanClass) {
     return (
       <div className="flex flex-1 min-h-[50vh] items-center justify-center text-stitch-on-background">
         <div className="animate-spin size-8 border-4 border-stitch-primary border-t-transparent pt-2 rounded-full"></div>
@@ -152,12 +155,22 @@ export default function BookingSummaryPage() {
       <div className="flex flex-1 min-h-[50vh] items-center justify-center text-stitch-on-background">
         <div className="text-center">
           <p className="text-destructive mb-4">Failed to load booking summary</p>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => void refetchCart()}
             className="px-4 py-2 bg-stitch-surface rounded-lg hover:bg-stitch-surface-highest transition"
           >
             Retry
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              clearCart();
+              router.replace('/journey');
+            }}
+            className="ml-3 px-4 py-2 text-sm text-muted-foreground hover:text-stitch-on-background transition"
+          >
+            Start over
           </button>
         </div>
       </div>
@@ -183,13 +196,13 @@ export default function BookingSummaryPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left Content */}
         <div className="lg:col-span-7 space-y-12">
-          
+
           {/* Journey Scannability */}
           <section>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-headline text-2xl font-bold">Journey Summary</h2>
-              <button 
-                onClick={() => router.push('/booking/journey')}
+              <button
+                onClick={() => router.push('/journey')}
                 className="flex items-center gap-1.5 text-stitch-primary text-sm font-medium hover:underline"
               >
                 <Edit2 size={16} />
@@ -199,13 +212,13 @@ export default function BookingSummaryPage() {
             <div className="bg-stitch-surface-highest/30 rounded-xl p-8 border border-border/10">
               <div className="relative flex justify-between items-center px-4">
                 <div className="absolute top-1/2 left-0 w-full h-px bg-border/40 -translate-y-1/2 z-0"></div>
-                
+
                 <div className="relative z-10 flex flex-col items-center bg-stitch-surface px-2 rounded-lg">
                   <div className="size-4 rounded-full border-2 border-stitch-primary bg-stitch-surface mb-3"></div>
                   <span className="font-headline font-bold text-stitch-on-background line-clamp-1 max-w-[80px] text-center text-sm">{startStop}</span>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-tighter mt-1">Start</span>
                 </div>
-                
+
                 {midStops.slice(0, 2).map((stop, i) => (
                   <div key={i} className="relative z-10 flex flex-col items-center bg-stitch-surface px-2 rounded-lg">
                     <div className="size-3 rounded-full bg-border mb-3 mt-0.5"></div>
@@ -214,18 +227,18 @@ export default function BookingSummaryPage() {
                     </span>
                   </div>
                 ))}
-                
+
                 <div className="relative z-10 flex flex-col items-center bg-stitch-surface px-2 rounded-lg">
                   <div className="size-4 rounded-full border-2 border-stitch-primary bg-stitch-primary mb-3 shadow-[0_0_10px_rgba(255,214,130,0.5)]"></div>
                   <span className="font-headline font-bold text-stitch-on-background line-clamp-1 max-w-[80px] text-center text-sm">{endStop}</span>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-tighter mt-1">Return</span>
                 </div>
               </div>
-              
+
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="text-stitch-primary" size={18} />
-                  {formatBookingTravelWindow(dates)} ({Math.max(dates.totalDays, 1)} Nights)
+                  {formatBookingTravelWindow(dates)}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="text-stitch-primary" size={18} />
@@ -240,7 +253,7 @@ export default function BookingSummaryPage() {
             <div className="bg-stitch-surface-highest/30 rounded-xl p-6 border border-border/10">
               <div className="flex justify-between items-start mb-4">
                 <p className="text-[10px] font-label uppercase tracking-widest text-muted-foreground">Caravan Selection</p>
-                <button 
+                <button
                   onClick={() => router.push('/select-caravan')}
                   className="text-stitch-primary hover:bg-stitch-primary/10 p-1 rounded transition"
                 >
@@ -249,7 +262,7 @@ export default function BookingSummaryPage() {
               </div>
               <div className="flex gap-4">
                 <div className="size-16 sm:size-20 rounded bg-stitch-surface-highest overflow-hidden flex-shrink-0 relative">
-                  <Image 
+                  <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuClB0f8PUaXA8gHBN-g4Cxue-v_zASgclAclS8n4AG53qXOVQj0XOmm1YrUrJ3Q5ocPEcqtjWCuhPIk1vy3stJ4pj6vWO2vBjwGBphk91Mx71p101GCCXwclBJz5OX6UgJnXcblx3wN0I_pRky0B1ZmPMLeXkvgM7pz0ilvVhvNTZoytTHNA8lUJuApVKy73D5Zy8UoC5pk7-H3fcRXXuyffd0f8O7afH8sJMLxeJqUED5ZhJwClNUN2ySiaeu6BXUC-wiAtX0GQPM"
                     alt={caravanClass.name}
                     fill
@@ -258,7 +271,7 @@ export default function BookingSummaryPage() {
                 </div>
                 <div>
                   <h4 className="font-headline font-bold text-stitch-on-background line-clamp-1">{caravanClass.name}</h4>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{caravanClass.amenities.slice(0,3).join(' • ')}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{caravanClass.amenities.slice(0, 3).join(' • ')}</p>
                 </div>
               </div>
             </div>
@@ -292,8 +305,8 @@ export default function BookingSummaryPage() {
                 </span>
               )}
             </div>
-            
-            <AddonList 
+
+            <AddonList
               addons={addons}
               cartItems={cart.items || []}
               onUpdateQuantity={handleUpdateQuantity}
@@ -305,7 +318,7 @@ export default function BookingSummaryPage() {
         {/* Right Panel: Summary & Pricing */}
         <aside className="lg:col-span-5 relative">
           <div className="absolute top-20 right-0 w-64 h-64 bg-stitch-primary/5 blur-[100px] rounded-full pointer-events-none"></div>
-          
+
           <div className="bg-stitch-surface-highest/30 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 sticky top-28 border border-white/5 shadow-2xl">
             <h3 className="font-headline text-xl font-bold mb-8">Pricing Breakdown</h3>
             <div className="space-y-4 mb-8">
@@ -419,7 +432,7 @@ export default function BookingSummaryPage() {
               </div>
             </div>
 
-            <button 
+            <button
               className="w-full py-4 rounded-xl text-stitch-on-primary font-bold text-base shadow-lg shadow-stitch-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 mb-4 bg-gradient-to-br from-stitch-primary-container to-stitch-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => router.push('/booking/payment')}
               disabled={cartLoading || !!loadingAddonId}
