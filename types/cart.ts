@@ -34,6 +34,18 @@ export type CartPricingBreakdown = {
   addons_total: number;
   insurance_total: number;
   tax_total: number;
+  gst: number;
+  gst_rate: string;
+  razorpay_charges: number;
+  deposit_amount: number;
+  pet_cleaning_charge: number;
+  one_way_surcharge: number;
+  coupon_discount: number;
+  /** Set only when the API sends `subtotal` (used for an extra line before tax). */
+  subtotal?: number;
+  chosen: string;
+  pricing_mode_label: string;
+  reason: string;
 };
 
 export type CartItem = {

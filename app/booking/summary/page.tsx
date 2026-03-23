@@ -9,18 +9,96 @@ import { useAddons } from '@/hooks/useAddons';
 import { cartService } from '@/services/cart.service';
 import { formatBookingTravelWindow } from '@/utils/format';
 import { AddonList } from '@/components/booking/AddonList';
-import { 
-  Edit2, 
-  Calendar, 
-  MapPin, 
-  Users, 
+import {
+  Edit2,
+  Calendar,
+  MapPin,
+  Users,
   Lightbulb,
   Check,
   ArrowRight,
   Lock,
-  Info
 } from 'lucide-react';
 import Image from 'next/image';
+import type { Cart, CartPricingBreakdown } from '@/types/cart';
+
+function formatInr(n: number): string {
+  return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function planLabelFromChosen(chosen: string): string {
+  const c = chosen.trim();
+  if (!c) return '';
+  if (c === 'km_wise') return 'KM-wise';
+  if (c === 'day_wise') return 'day-wise';
+  return c.replace(/_/g, ' ');
+}
+
+/** Bracket after "Base rental" — km-wise shows estimated distance; day-wise shows trip length in days. */
+function baseRentalBracketLabel(cart: Cart, pb: CartPricingBreakdown): string {
+  const chosen = pb.chosen.trim().toLowerCase();
+  const mode = cart.pricing_mode.trim().toLowerCase();
+  const kmWise =
+    chosen === 'km_wise' ||
+    (chosen !== 'day_wise' && (mode === 'km' || mode === 'km_wise'));
+
+  if (kmWise) {
+    const km = Number(cart.estimated_km);
+    if (Number.isFinite(km) && km > 0) {
+      return `${Math.round(km).toLocaleString('en-IN')} km estimated`;
+    }
+    return 'estimated km';
+  }
+
+  return `${cart.total_days} days`;
+}
+
+function PricingRecommendation({ pb }: { pb: CartPricingBreakdown }) {
+  const plan = planLabelFromChosen(pb.chosen);
+  const hasReason = Boolean(pb.reason);
+  const label = pb.pricing_mode_label?.trim() ?? '';
+  const hasLabel = Boolean(label);
+  if (!plan && !hasReason && !hasLabel) return null;
+
+  const labelEchoesPlan =
+    Boolean(plan && label) &&
+    label.toLowerCase().includes(plan === 'KM-wise' ? 'km' : plan === 'day-wise' ? 'day' : plan.toLowerCase());
+
+  const showLabelUnderHeadline = plan && hasLabel && !labelEchoesPlan;
+
+  return (
+    <div className="bg-stitch-primary/5 rounded-lg p-4 mb-8 border border-stitch-primary/10">
+      <div className="flex gap-3">
+        <Lightbulb className="text-stitch-primary shrink-0 mt-0.5" size={20} />
+        <div className="min-w-0 space-y-1.5">
+          {plan ? (
+            <p className="text-sm text-stitch-on-background leading-relaxed">
+              Based on your trip details, we suggest the{' '}
+              <span className="font-bold text-stitch-primary">{plan}</span> plan.
+            </p>
+          ) : (
+            <p className="text-sm text-stitch-on-background leading-relaxed">
+              <span className="font-semibold text-stitch-primary">Pricing for this trip:</span>{' '}
+              <span className="text-muted-foreground">{pb.reason || label}</span>
+            </p>
+          )}
+
+          {showLabelUnderHeadline ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">{label}</p>
+          ) : null}
+
+          {!plan && hasReason && hasLabel && label !== pb.reason ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">{label}</p>
+          ) : null}
+
+          {plan && hasReason ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">{pb.reason}</p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BookingSummaryPage() {
   const router = useRouter();
@@ -86,7 +164,15 @@ export default function BookingSummaryPage() {
     );
   }
 
-  const { pricing_breakdown } = cart;
+  const { pricing_breakdown: pb } = cart;
+  const hasFeeLines =
+    pb.pet_cleaning_charge > 0 ||
+    pb.one_way_surcharge > 0 ||
+    pb.addons_total > 0 ||
+    pb.coupon_discount > 0;
+  const showSubtotalRow =
+    pb.subtotal !== undefined && (pb.subtotal !== pb.base_price || hasFeeLines);
+
   const stops = journey?.stops || [];
   const startStop = stops[0]?.location?.name || hubName || 'Start Location';
   const endStop = stops[stops.length - 1]?.location?.name || hubName || 'Return Location';
@@ -223,62 +309,104 @@ export default function BookingSummaryPage() {
           <div className="bg-stitch-surface-highest/30 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 sticky top-28 border border-white/5 shadow-2xl">
             <h3 className="font-headline text-xl font-bold mb-8">Pricing Breakdown</h3>
             <div className="space-y-4 mb-8">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Base Rental ({cart.total_days} Days)</span>
-                <span className="font-medium">₹{pricing_breakdown.base_price.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between gap-3 text-sm">
+                <span className="text-muted-foreground">
+                  Base rental ({baseRentalBracketLabel(cart, pb)})
+                </span>
+                <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.base_price)}</span>
               </div>
-              
-              {pricing_breakdown.addons_total > 0 && (
-                <div className="flex justify-between text-sm animate-in fade-in slide-in-from-right-2">
-                  <span className="text-muted-foreground">Add-ons Total</span>
-                  <span className="font-medium text-stitch-primary">₹{pricing_breakdown.addons_total.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              
-              {pricing_breakdown.insurance_total > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Insurance & Support</span>
-                  <span className="font-medium">₹{pricing_breakdown.insurance_total.toLocaleString('en-IN')}</span>
+
+              {pb.pet_cleaning_charge > 0 && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">Pet cleaning</span>
+                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.pet_cleaning_charge)}</span>
                 </div>
               )}
 
-              {pricing_breakdown.tax_total > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Taxes</span>
-                  <span className="font-medium">₹{pricing_breakdown.tax_total.toLocaleString('en-IN')}</span>
+              {pb.one_way_surcharge > 0 && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">One-way surcharge</span>
+                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.one_way_surcharge)}</span>
                 </div>
               )}
-              
+
+              {pb.addons_total > 0 && (
+                <div className="flex justify-between gap-3 text-sm animate-in fade-in slide-in-from-right-2">
+                  <span className="text-muted-foreground">Add-ons</span>
+                  <span className="font-medium text-stitch-primary tabular-nums shrink-0">
+                    ₹{formatInr(pb.addons_total)}
+                  </span>
+                </div>
+              )}
+
+              {pb.coupon_discount > 0 && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">Coupon discount</span>
+                  <span className="font-medium text-stitch-primary tabular-nums shrink-0">
+                    −₹{formatInr(pb.coupon_discount)}
+                  </span>
+                </div>
+              )}
+
+              {pb.insurance_total > 0 && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">Insurance &amp; support</span>
+                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.insurance_total)}</span>
+                </div>
+              )}
+
+              {showSubtotalRow && pb.subtotal !== undefined && (
+                <div className="flex justify-between gap-3 text-sm pt-1 border-t border-border/10">
+                  <span className="text-muted-foreground font-medium">Subtotal</span>
+                  <span className="font-semibold tabular-nums shrink-0">₹{formatInr(pb.subtotal)}</span>
+                </div>
+              )}
+
+              {(pb.gst > 0 || pb.tax_total > 0) && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">
+                    {pb.gst > 0
+                      ? pb.gst_rate
+                        ? `GST (${pb.gst_rate})`
+                        : 'GST'
+                      : 'Taxes'}
+                  </span>
+                  <span className="font-medium tabular-nums shrink-0">
+                    ₹{formatInr(pb.gst > 0 ? pb.gst : pb.tax_total)}
+                  </span>
+                </div>
+              )}
+
+              {pb.razorpay_charges > 0 && (
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">Razorpay charges</span>
+                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.razorpay_charges)}</span>
+                </div>
+              )}
+
               <div className="h-px bg-border/20 my-4"></div>
-              
+
               <div className="flex flex-col gap-1 items-end">
-                <span className="text-xs font-label text-muted-foreground">
-                  ₹{Math.round(pricing_breakdown.grand_total / Math.max(cart.total_days, 1)).toLocaleString('en-IN')} / day
+                <span className="text-xs font-label text-muted-foreground tabular-nums">
+                  ₹{formatInr(pb.grand_total / Math.max(cart.total_days, 1))} / day
                 </span>
-                <div className="flex justify-between w-full items-baseline">
-                  <span className="font-bold text-stitch-on-background text-lg">Total Amount</span>
-                  <span className="font-headline font-extrabold text-3xl text-stitch-primary tracking-tight">
-                    ₹{pricing_breakdown.grand_total.toLocaleString('en-IN')}
+                <div className="flex justify-between w-full items-baseline gap-3">
+                  <span className="font-bold text-stitch-on-background text-lg">Grand total</span>
+                  <span className="font-headline font-extrabold text-3xl text-stitch-primary tracking-tight tabular-nums">
+                    ₹{formatInr(pb.grand_total)}
                   </span>
                 </div>
               </div>
+
+              {pb.deposit_amount > 0 && (
+                <div className="flex justify-between gap-3 text-sm pt-2">
+                  <span className="text-muted-foreground">Refundable deposit</span>
+                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.deposit_amount)}</span>
+                </div>
+              )}
             </div>
 
-            {/* Optimization Insight */}
-            <div className="bg-stitch-primary/5 rounded-lg p-4 mb-8 border border-stitch-primary/10">
-              <div className="flex gap-3">
-                <Lightbulb className="text-stitch-primary shrink-0 mt-0.5" size={20} />
-                <div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    <span className="text-stitch-primary font-bold">Optimization Insight:</span> Book for 2 more days to unlock the &quot;Nomad Weekly&quot; discount of 15% on base rental.
-                  </p>
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span className="text-[10px] text-stitch-primary underline cursor-pointer font-bold">How is this calculated?</span>
-                    <Info className="text-muted-foreground cursor-help" size={14} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PricingRecommendation pb={pb} />
 
             <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
