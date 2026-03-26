@@ -60,6 +60,7 @@ export type CartItem = {
 /** Snapshot returned from create cart (and future cart reads) */
 export type Cart = {
   id: string;
+  coupon: string | null;
   pricing_mode: string;
   pricing_breakdown: CartPricingBreakdown;
   total_days: number;

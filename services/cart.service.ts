@@ -1,4 +1,5 @@
 import apiClient from '@/services/apiClient';
+import type { AxiosResponse } from 'axios';
 import type {
   Cart,
   CartItem,
@@ -67,11 +68,34 @@ function normalizeCartItems(raw: unknown): CartItem[] {
 }
 
 function normalizeCart(data: Cart): Cart {
+  const raw = data as unknown as Record<string, unknown>;
   return {
     ...data,
+    coupon: pricingStr(raw.coupon) || null,
     pricing_breakdown: normalizePricingBreakdown(data.pricing_breakdown),
-    items: normalizeCartItems((data as unknown as Record<string, unknown>).items),
+    items: normalizeCartItems(raw.items),
   };
+}
+
+function extractCouponErrorMessage(payload: unknown): string {
+  if (!payload || typeof payload !== 'object') return 'Invalid coupon code. Please try another one.';
+  const root = payload as Record<string, unknown>;
+  const error = root.error;
+  if (error && typeof error === 'object') {
+    const errObj = error as Record<string, unknown>;
+    const message = pricingStr(errObj.message);
+    if (message) return message;
+    const details = errObj.details;
+    if (details && typeof details === 'object') {
+      const errors = (details as Record<string, unknown>).errors;
+      if (Array.isArray(errors) && errors.length > 0) {
+        const first = pricingStr(errors[0]);
+        if (first) return first;
+      }
+    }
+  }
+  const message = pricingStr(root.message);
+  return message || 'Invalid coupon code. Please try another one.';
 }
 
 export const cartService = {
@@ -106,5 +130,47 @@ export const cartService = {
     if (!data.success) {
       throw new Error(data.message || 'Failed to remove item from cart');
     }
+  },
+
+  async applyCoupon(cartId: string, couponCode: string): Promise<Cart> {
+    const code = couponCode.trim();
+    if (!code) throw new Error('Enter a coupon code.');
+
+    const response: AxiosResponse<unknown> = await apiClient.post(
+      `/carts/${cartId}/coupon/`,
+      { coupon_code: code },
+      { validateStatus: () => true }
+    );
+    const payload = response.data as Record<string, unknown>;
+    const isSuccess = payload?.success === true;
+
+    if (!isSuccess) {
+      throw new Error(extractCouponErrorMessage(payload));
+    }
+
+    const data = payload?.data;
+    if (!data || typeof data !== 'object') {
+      throw new Error('Coupon applied, but failed to refresh cart.');
+    }
+    return normalizeCart(data as Cart);
+  },
+
+  async removeCoupon(cartId: string): Promise<Cart> {
+    const response: AxiosResponse<unknown> = await apiClient.delete(
+      `/carts/${cartId}/coupon/`,
+      { validateStatus: () => true }
+    );
+    const payload = response.data as Record<string, unknown>;
+    const isSuccess = payload?.success === true;
+
+    if (!isSuccess) {
+      throw new Error(extractCouponErrorMessage(payload));
+    }
+
+    const data = payload?.data;
+    if (!data || typeof data !== 'object') {
+      throw new Error('Coupon removed, but failed to refresh cart.');
+    }
+    return normalizeCart(data as Cart);
   },
 };

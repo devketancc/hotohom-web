@@ -108,6 +108,10 @@ export default function BookingSummaryPage() {
   const { caravanClass, dates, passengers, pets, journey, hubName } = useBookingStore();
   const [loadingAddonId, setLoadingAddonId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!cartHasHydrated) return;
@@ -139,6 +143,43 @@ export default function BookingSummaryPage() {
       setUpdateError('Failed to update add-on. Please try again.');
     } finally {
       setLoadingAddonId(null);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!cartId || !cart) return;
+    const code = couponCode.trim();
+    if (!code) {
+      setCouponError('Enter a coupon code.');
+      return;
+    }
+    setCouponApplying(true);
+    setCouponError(null);
+    try {
+      await cartService.applyCoupon(cartId, code);
+      setAppliedCouponCode(code.toUpperCase());
+      setCouponCode('');
+      await refetchCart();
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : 'Invalid coupon code. Please try another one.');
+    } finally {
+      setCouponApplying(false);
+    }
+  };
+
+  const handleRemoveCoupon = async () => {
+    if (!cartId || !isCouponApplied) return;
+    setCouponApplying(true);
+    setCouponError(null);
+    try {
+      await cartService.removeCoupon(cartId);
+      setAppliedCouponCode(null);
+      setCouponCode('');
+      await refetchCart();
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : 'Failed to remove coupon. Please try again.');
+    } finally {
+      setCouponApplying(false);
     }
   };
 
@@ -178,6 +219,10 @@ export default function BookingSummaryPage() {
   }
 
   const { pricing_breakdown: pb } = cart;
+  const isCouponApplied = Boolean(cart.coupon) || pb.coupon_discount > 0;
+  const couponDisplayValue = isCouponApplied
+    ? appliedCouponCode || 'Coupon applied'
+    : couponCode;
   const hasFeeLines =
     pb.pet_cleaning_charge > 0 ||
     pb.one_way_surcharge > 0 ||
@@ -321,6 +366,47 @@ export default function BookingSummaryPage() {
 
           <div className="bg-stitch-surface-highest/30 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 sticky top-28 border border-white/5 shadow-2xl">
             <h3 className="font-headline text-xl font-bold mb-8">Pricing Breakdown</h3>
+            <div className="mb-6 rounded-xl border border-border/20 bg-stitch-surface/30 p-4">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">
+                Coupon
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponDisplayValue}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    if (couponError) setCouponError(null);
+                  }}
+                  disabled={isCouponApplied || couponApplying}
+                  placeholder="Enter coupon code"
+                  className="flex-1 rounded-lg border border-border/30 bg-stitch-surface px-3 py-2.5 text-sm text-stitch-on-background placeholder:text-muted-foreground/70 disabled:opacity-60 disabled:cursor-not-allowed outline-none focus:border-stitch-primary"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={isCouponApplied || couponApplying || couponCode.trim().length === 0}
+                  className="rounded-lg px-4 py-2.5 text-sm font-bold transition-all bg-stitch-primary text-stitch-on-primary disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110"
+                >
+                  {isCouponApplied ? 'Applied' : couponApplying ? 'Applying...' : 'Apply'}
+                </button>
+                {isCouponApplied && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    disabled={couponApplying}
+                    className="rounded-lg px-4 py-2.5 text-sm font-bold transition-all border border-border/30 bg-stitch-surface text-stitch-on-background disabled:opacity-50 disabled:cursor-not-allowed hover:border-stitch-primary/60"
+                  >
+                    {couponApplying ? 'Removing...' : 'Remove'}
+                  </button>
+                )}
+              </div>
+              {couponError ? (
+                <p className="mt-2 text-xs text-destructive">{couponError}</p>
+              ) : isCouponApplied ? (
+                <p className="mt-2 text-xs text-stitch-primary">Coupon applied. You can use one coupon per booking.</p>
+              ) : null}
+            </div>
             <div className="space-y-4 mb-8">
               <div className="flex justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">
@@ -435,7 +521,7 @@ export default function BookingSummaryPage() {
             <button
               className="w-full py-4 rounded-xl text-stitch-on-primary font-bold text-base shadow-lg shadow-stitch-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 mb-4 bg-gradient-to-br from-stitch-primary-container to-stitch-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => router.push('/booking/payment')}
-              disabled={cartLoading || !!loadingAddonId}
+              disabled={cartLoading || !!loadingAddonId || couponApplying}
             >
               Proceed to Secure Payment
               <ArrowRight size={20} />
