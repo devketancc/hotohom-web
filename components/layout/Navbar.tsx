@@ -38,12 +38,6 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-3">
           <NavbarAuthCluster />
-          <Link
-            href="/select-caravan"
-            className="rounded-md bg-stitch-primary-container px-6 py-2.5 font-headline text-sm font-bold uppercase tracking-wider text-stitch-on-primary-container transition-opacity hover:opacity-80"
-          >
-            Book Your Journey
-          </Link>
         </div>
       </div>
     </nav>

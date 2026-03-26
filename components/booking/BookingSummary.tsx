@@ -232,7 +232,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
               <Caravan size={40} className="mx-auto text-muted-foreground/30 mb-3" />
               <p className="text-muted-foreground font-medium text-sm">No caravan selected yet</p>
               <p className="text-[10px] text-muted-foreground/60 mt-2 italic px-4">
-                Price will be shown after caravan selection
+                Price will be shown after actual route planning
               </p>
             </div>
           )}
