@@ -22,13 +22,19 @@ const BACKEND_TRAILING_SLASH_PATHS = new Set([
 
 /** Django: GET /api/v1/carts/{uuid}/ requires trailing slash */
 const CART_DETAIL_PATH = /^\/api\/v1\/carts\/[^/]+$/;
+/** Django: POST /api/v1/carts/{uuid}/items/ requires trailing slash */
+const CART_ITEMS_PATH = /^\/api\/v1\/carts\/[^/]+\/items$/;
+/** Django: DELETE /api/v1/carts/{uuid}/items/{addonId}/ requires trailing slash */
+const CART_ITEM_DETAIL_PATH = /^\/api\/v1\/carts\/[^/]+\/items\/[^/]+$/;
 
 function buildBackendUrl(request: NextRequest): string {
   let pathname = request.nextUrl.pathname;
   const basePath = pathname.replace(/\/+$/, '') || '/';
   const needsSlash =
     (BACKEND_TRAILING_SLASH_PATHS.has(basePath) && !pathname.endsWith('/')) ||
-    (CART_DETAIL_PATH.test(basePath) && !pathname.endsWith('/'));
+    (CART_DETAIL_PATH.test(basePath) && !pathname.endsWith('/')) ||
+    (CART_ITEMS_PATH.test(basePath) && !pathname.endsWith('/')) ||
+    (CART_ITEM_DETAIL_PATH.test(basePath) && !pathname.endsWith('/'));
   if (needsSlash) {
     pathname = `${basePath}/`;
   }

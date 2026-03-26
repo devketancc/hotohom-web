@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient';
 import type {
   Cart,
+  CartItem,
   CartDetailApiResponse,
   CartPricingBreakdown,
   CreateCartApiResponse,
@@ -49,10 +50,27 @@ function normalizePricingBreakdown(raw: unknown): CartPricingBreakdown {
   };
 }
 
+function normalizeCartItems(raw: unknown): CartItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, idx) => {
+    const o = item && typeof item === 'object' ? (item as Record<string, unknown>) : {};
+    const addonId = pricingStr(o.addon_id) || pricingStr(o.addon);
+    return {
+      id: pricingStr(o.id) || `${addonId || 'addon'}-${idx}`,
+      addon_id: addonId,
+      addon_name: pricingStr(o.addon_name),
+      quantity: pricingNum(o.quantity),
+      price: pricingStr(o.price) || pricingStr(o.unit_price),
+      total: pricingStr(o.total) || pricingStr(o.total_price),
+    };
+  });
+}
+
 function normalizeCart(data: Cart): Cart {
   return {
     ...data,
     pricing_breakdown: normalizePricingBreakdown(data.pricing_breakdown),
+    items: normalizeCartItems((data as unknown as Record<string, unknown>).items),
   };
 }
 
