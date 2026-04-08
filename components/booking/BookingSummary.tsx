@@ -182,6 +182,17 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
 
                       </span>
                     </div>
+                    <div className="pt-2">
+                      <div className="inline-flex items-start gap-1.5 text-[11px] text-muted-foreground leading-snug">
+                        <span>We automatically choose the lower price based on your trip.</span>
+                        <span className="relative inline-flex group">
+                          <Info className="size-3.5 shrink-0 text-stitch-primary/80 cursor-help mt-0.5" />
+                          <span className="pointer-events-none absolute left-1/2 top-[130%] z-20 hidden w-72 -translate-x-1/2 rounded-md border border-border/30 bg-stitch-surface px-3 py-2 text-[11px] font-normal text-stitch-on-background shadow-xl group-hover:block">
+                            Depending on distance, duration, and itinerary, we calculate both pricing methods and apply whichever is cheaper.
+                          </span>
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {caravanClass.is_pet_friendly && maxPets > 0 && (

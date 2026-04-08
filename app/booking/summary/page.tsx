@@ -18,6 +18,7 @@ import {
   Check,
   ArrowRight,
   Lock,
+  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import type { Cart, CartPricingBreakdown } from '@/types/cart';
@@ -33,6 +34,37 @@ function planLabelFromChosen(chosen: string): string {
   if (c === 'day_wise') return 'day-wise';
   return c.replace(/_/g, ' ');
 }
+
+const KM_PLAN_INCLUDES = [
+  'Rental amount',
+  'driver',
+  'assistant',
+  'Fuel',
+  'Ac charges (2 hours)',
+];
+
+const KM_PLAN_EXCLUDES = [
+  'Tolls',
+  'Add-ons',
+  'GST',
+  'Parking',
+  'Food',
+];
+
+const DAY_PLAN_INCLUDES = [
+  'Rental amount',
+  'driver',
+  'assistant',
+];
+
+const DAY_PLAN_EXCLUDES = [
+  'Tolls',
+  'Add-ons',
+  'GST',
+  'Parking',
+  'Food',
+  'Fuel',
+];
 
 /** Bracket after "Base rental" — km-wise shows estimated distance; day-wise shows trip length in days. */
 function baseRentalBracketLabel(cart: Cart, pb: CartPricingBreakdown): string {
@@ -53,47 +85,46 @@ function baseRentalBracketLabel(cart: Cart, pb: CartPricingBreakdown): string {
   return `${cart.total_days} days`;
 }
 
-function PricingRecommendation({ pb }: { pb: CartPricingBreakdown }) {
+function PricingRecommendation({
+  pb,
+  onOpenPlanDetails,
+  onOpenInclusionDetails,
+}: {
+  pb: CartPricingBreakdown;
+  onOpenPlanDetails: () => void;
+  onOpenInclusionDetails: () => void;
+}) {
   const plan = planLabelFromChosen(pb.chosen);
+  const planDisplay = plan ? `${plan.charAt(0).toUpperCase()}${plan.slice(1)}` : 'Day-wise';
   const hasReason = Boolean(pb.reason);
-  const label = pb.pricing_mode_label?.trim() ?? '';
-  const hasLabel = Boolean(label);
-  if (!plan && !hasReason && !hasLabel) return null;
-
-  const labelEchoesPlan =
-    Boolean(plan && label) &&
-    label.toLowerCase().includes(plan === 'KM-wise' ? 'km' : plan === 'day-wise' ? 'day' : plan.toLowerCase());
-
-  const showLabelUnderHeadline = plan && hasLabel && !labelEchoesPlan;
+  if (!plan && !hasReason) return null;
 
   return (
     <div className="bg-stitch-primary/5 rounded-lg p-4 mb-8 border border-stitch-primary/10">
       <div className="flex gap-3">
         <Lightbulb className="text-stitch-primary shrink-0 mt-0.5" size={20} />
         <div className="min-w-0 space-y-1.5">
-          {plan ? (
-            <p className="text-sm text-stitch-on-background leading-relaxed">
-              Based on your trip details, we suggest the{' '}
-              <span className="font-bold text-stitch-primary">{plan}</span> plan.
-            </p>
-          ) : (
-            <p className="text-sm text-stitch-on-background leading-relaxed">
-              <span className="font-semibold text-stitch-primary">Pricing for this trip:</span>{' '}
-              <span className="text-muted-foreground">{pb.reason || label}</span>
-            </p>
-          )}
-
-          {showLabelUnderHeadline ? (
-            <p className="text-xs text-muted-foreground leading-relaxed">{label}</p>
-          ) : null}
-
-          {!plan && hasReason && hasLabel && label !== pb.reason ? (
-            <p className="text-xs text-muted-foreground leading-relaxed">{label}</p>
-          ) : null}
-
-          {plan && hasReason ? (
-            <p className="text-xs text-muted-foreground leading-relaxed">{pb.reason}</p>
-          ) : null}
+          <p className="text-sm text-stitch-on-background leading-relaxed">
+            <span className="font-semibold text-stitch-primary">Best price applied:</span>{' '}
+            <span className="font-bold text-stitch-primary">{planDisplay} plan</span>
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            This option is cheaper for your trip.
+          </p>
+          <button
+            type="button"
+            onClick={onOpenPlanDetails}
+            className="text-xs font-semibold text-stitch-primary underline underline-offset-2 hover:text-stitch-primary-container transition-colors"
+          >
+            See how we calculated this
+          </button>
+          <button
+            type="button"
+            onClick={onOpenInclusionDetails}
+            className="text-xs font-semibold text-stitch-primary underline underline-offset-2 hover:text-stitch-primary-container transition-colors"
+          >
+            Check plan inclusions &amp; exclusions
+          </button>
         </div>
       </div>
     </div>
@@ -112,6 +143,8 @@ export default function BookingSummaryPage() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponApplying, setCouponApplying] = useState(false);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [isPlanDetailsOpen, setIsPlanDetailsOpen] = useState(false);
+  const [showInclusionDetails, setShowInclusionDetails] = useState(false);
 
   useEffect(() => {
     if (!cartHasHydrated) return;
@@ -183,6 +216,15 @@ export default function BookingSummaryPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isPlanDetailsOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsPlanDetailsOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isPlanDetailsOpen]);
+
   if (!cartHasHydrated || cartLoading || addonsLoading || !caravanClass) {
     return (
       <div className="flex flex-1 min-h-[50vh] items-center justify-center text-stitch-on-background">
@@ -219,6 +261,10 @@ export default function BookingSummaryPage() {
   }
 
   const { pricing_breakdown: pb } = cart;
+  const totalKm = Number.isFinite(Number(cart.estimated_km)) ? Number(cart.estimated_km) : 0;
+  const totalDays = Math.max(Number(cart.total_days || 0), 1);
+  const avgKmPerDay = totalKm / totalDays;
+  const selectedPlanLabel = planLabelFromChosen(pb.chosen) || (cart.pricing_mode === 'km' ? 'KM-wise' : 'day-wise');
   const isCouponApplied = Boolean(cart.coupon) || pb.coupon_discount > 0;
   const couponDisplayValue = isCouponApplied
     ? appliedCouponCode || 'Coupon applied'
@@ -505,7 +551,17 @@ export default function BookingSummaryPage() {
               )}
             </div>
 
-            <PricingRecommendation pb={pb} />
+            <PricingRecommendation
+              pb={pb}
+              onOpenPlanDetails={() => {
+                setShowInclusionDetails(false);
+                setIsPlanDetailsOpen(true);
+              }}
+              onOpenInclusionDetails={() => {
+                setShowInclusionDetails(true);
+                setIsPlanDetailsOpen(true);
+              }}
+            />
 
             <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
@@ -533,6 +589,99 @@ export default function BookingSummaryPage() {
           </div>
         </aside>
       </div>
+
+      {isPlanDetailsOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsPlanDetailsOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-border/20 bg-stitch-surface p-5 sm:p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <h4 className="text-xl font-headline font-bold text-stitch-on-background">Inclusions & Exclusions</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPlanDetailsOpen(false)}
+                className="shrink-0 rounded-lg border border-border/30 p-2 text-muted-foreground hover:text-stitch-on-background hover:border-stitch-primary/50 transition-colors"
+                aria-label="Close plan details"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+
+            {showInclusionDetails && (
+              <div className="space-y-4 mt-4">
+                <div className="rounded-xl border border-border/15 bg-stitch-background/20 p-4">
+                  <h5 className="font-semibold text-stitch-on-background mb-3">Kms wise pricing</h5>
+
+                  <div className="grid grid-cols-2 border border-border/15 rounded-lg overflow-hidden">
+                    <div className="p-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold bg-stitch-surface/30 border-r border-border/15 text-center">
+                      Excluding
+                    </div>
+                    <div className="p-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold bg-stitch-surface/30 text-center">
+                      Including
+                    </div>
+
+                    {Array.from({
+                      length: Math.max(KM_PLAN_EXCLUDES.length, KM_PLAN_INCLUDES.length),
+                    }).map((_, idx) => {
+                      const left = KM_PLAN_EXCLUDES[idx] ?? '';
+                      const right = KM_PLAN_INCLUDES[idx] ?? '';
+                      return (
+                        <React.Fragment key={`km-row-${idx}`}>
+                          <div className="px-3 py-2 border-t border-border/15 border-r text-sm text-muted-foreground min-h-[34px]">
+                            {left}
+                          </div>
+                          <div className="px-3 py-2 border-t border-border/15 text-sm text-stitch-on-background min-h-[34px]">
+                            {right}
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border/15 bg-stitch-background/20 p-4">
+                  <h5 className="font-semibold text-stitch-on-background mb-3">Day wise pricing</h5>
+
+                  <div className="grid grid-cols-2 border border-border/15 rounded-lg overflow-hidden">
+                    <div className="p-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold bg-stitch-surface/30 border-r border-border/15 text-center">
+                      Excluding
+                    </div>
+                    <div className="p-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold bg-stitch-surface/30 text-center">
+                      Including
+                    </div>
+
+                    {Array.from({
+                      length: Math.max(DAY_PLAN_EXCLUDES.length, DAY_PLAN_INCLUDES.length),
+                    }).map((_, idx) => {
+                      const left = DAY_PLAN_EXCLUDES[idx] ?? '';
+                      const right = DAY_PLAN_INCLUDES[idx] ?? '';
+                      return (
+                        <React.Fragment key={`day-row-${idx}`}>
+                          <div className="px-3 py-2 border-t border-border/15 border-r text-sm text-muted-foreground min-h-[34px]">
+                            {left}
+                          </div>
+                          <div className="px-3 py-2 border-t border-border/15 text-sm text-stitch-on-background min-h-[34px]">
+                            {right}
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <footer className="mt-20 border-t border-border/10 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
