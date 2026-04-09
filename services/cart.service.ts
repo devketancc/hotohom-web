@@ -115,6 +115,16 @@ export const cartService = {
     return normalizeCart(data.data);
   },
 
+  /** Temporary admin bypass to convert cart into booking from summary page. */
+  async convertCart(cartId: string): Promise<void> {
+    const { data } = await apiClient.post<{ success?: boolean; message?: string }>(
+      `/admin/carts/${cartId}/convert/`
+    );
+    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+      throw new Error(data.message || 'Failed to convert cart');
+    }
+  },
+
   async addItem(cartId: string, addonId: string, quantity: number): Promise<void> {
     const { data } = await apiClient.post<CartDetailApiResponse>(`/carts/${cartId}/items/`, {
       addon_id: addonId,

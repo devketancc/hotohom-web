@@ -49,6 +49,7 @@ apiClient.interceptors.response.use(
     }
 
     if (originalRequest._retry) {
+      // Keep 401 fallback auth-only; explicit logout handles full booking/cart trace cleanup.
       useAuthStore.getState().logout();
       const errorMsg = handleApiError(error);
       return Promise.reject(new Error(errorMsg));

@@ -142,6 +142,9 @@ export default function BookingSummaryPage() {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponApplying, setCouponApplying] = useState(false);
+  const [bypassLoading, setBypassLoading] = useState(false);
+  const [bypassError, setBypassError] = useState<string | null>(null);
+  const [bypassSuccess, setBypassSuccess] = useState<string | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [isPlanDetailsOpen, setIsPlanDetailsOpen] = useState(false);
   const [showInclusionDetails, setShowInclusionDetails] = useState(false);
@@ -213,6 +216,21 @@ export default function BookingSummaryPage() {
       setCouponError(err instanceof Error ? err.message : 'Failed to remove coupon. Please try again.');
     } finally {
       setCouponApplying(false);
+    }
+  };
+
+  const handleBypassBooking = async () => {
+    if (!cartId) return;
+    setBypassLoading(true);
+    setBypassError(null);
+    setBypassSuccess(null);
+    try {
+      await cartService.convertCart(cartId);
+      setBypassSuccess('Temporary bypass triggered successfully.');
+    } catch (err) {
+      setBypassError(err instanceof Error ? err.message : 'Temporary bypass failed.');
+    } finally {
+      setBypassLoading(false);
     }
   };
 
@@ -582,6 +600,26 @@ export default function BookingSummaryPage() {
               Proceed to Secure Payment
               <ArrowRight size={20} />
             </button>
+            <button
+              type="button"
+              onClick={handleBypassBooking}
+              disabled={bypassLoading || !cartId}
+              className="relative w-full py-3 rounded-xl border border-border/30 bg-stitch-surface text-stitch-on-background text-sm font-semibold hover:border-stitch-primary/60 hover:text-stitch-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span
+                className="pointer-events-none absolute -right-1 -top-2 rounded-md border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 font-headline text-[9px] font-black uppercase tracking-widest text-amber-400"
+                aria-hidden
+              >
+                TEMP
+              </span>
+              {bypassLoading ? 'Bypassing...' : 'Temporary Bypass Booking'}
+            </button>
+            {bypassError ? (
+              <p className="mt-2 text-xs text-destructive">{bypassError}</p>
+            ) : null}
+            {bypassSuccess ? (
+              <p className="mt-2 text-xs text-stitch-primary">{bypassSuccess}</p>
+            ) : null}
             <div className="flex items-center justify-center gap-2 opacity-60">
               <Lock className="fill-current" size={12} />
               <span className="text-[10px] font-label tracking-wide uppercase">Powered by Razorpay • 100% secure</span>

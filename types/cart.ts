@@ -1,5 +1,10 @@
 /** POST /carts/ body — must match backend contract */
-export type CreateCartStopType = 'pickup' | 'waypoint' | 'dropoff';
+export type CreateCartStopType =
+  | 'pickup'
+  | 'waypoint'
+  | 'dropoff'
+  | 'hub_start'
+  | 'hub_end';
 
 export type CreateCartLocation = {
   name: string;
@@ -9,12 +14,21 @@ export type CreateCartLocation = {
   meta: Record<string, unknown>;
 };
 
-export type CreateCartStopPayload = {
+export type CreateCartRouteStopPayload = {
   order: number;
-  stop_type: CreateCartStopType;
+  stop_type: 'pickup' | 'waypoint' | 'dropoff';
   notes: string;
   location: CreateCartLocation;
 };
+
+export type CreateCartHubStopPayload = {
+  order: number;
+  stop_type: 'hub_start' | 'hub_end';
+  notes: string;
+  location_id: string;
+};
+
+export type CreateCartStopPayload = CreateCartRouteStopPayload | CreateCartHubStopPayload;
 
 export type CreateCartPayload = {
   caravan_class_id: string;

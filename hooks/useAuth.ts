@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { authService } from '@/services/auth.service';
+import { clearClientSession } from '@/lib/clearClientSession';
 
 export function useAuth() {
   const user = useAuthStore((s) => s.user);
@@ -39,6 +40,10 @@ export function useAuth() {
       }
     }
     logoutStore();
+    clearClientSession();
+    if (typeof window !== 'undefined') {
+      window.location.assign('/');
+    }
   }, [logoutStore]);
 
   return {
