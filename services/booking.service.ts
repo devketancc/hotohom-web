@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { ApiResponse } from '@/types/api';
+import type { PaginatedBookings } from '@/types/customerBooking';
 import { BookingData, AvailabilityData } from '@/types/booking';
 
 export const bookingService = {
@@ -21,5 +22,10 @@ export const bookingService = {
   async getBooking(id: string): Promise<ApiResponse<BookingData>> {
     const { data } = await apiClient.get(`/bookings/${id}`);
     return data;
-  }
+  },
+
+  async listBookings(params?: { page?: number }): Promise<ApiResponse<PaginatedBookings>> {
+    const { data } = await apiClient.get('/bookings/', { params });
+    return data;
+  },
 };
