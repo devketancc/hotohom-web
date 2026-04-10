@@ -5,7 +5,13 @@ import { HubLocationBackfill } from '@/components/booking/HubLocationBackfill';
 import { Bell, HelpCircle } from 'lucide-react';
 import { NavbarAuthCluster } from '@/components/layout/NavbarAuthCluster';
 
-export function BookingFlowShell({ children }: { children: ReactNode }) {
+export type BookingFlowShellProps = {
+  children: ReactNode;
+  /** Booking hub/dates bar; hide on customer dashboard routes. @default true */
+  showContextBar?: boolean;
+};
+
+export function BookingFlowShell({ children, showContextBar = true }: BookingFlowShellProps) {
   return (
     <div className="dark flex flex-col min-h-screen bg-stitch-background text-stitch-on-background">
       <HubLocationBackfill />
@@ -47,7 +53,7 @@ export function BookingFlowShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <ContextBar />
+      {showContextBar ? <ContextBar /> : null}
 
       {children}
 

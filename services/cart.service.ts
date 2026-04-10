@@ -116,9 +116,22 @@ export const cartService = {
   },
 
   /** Temporary admin bypass to convert cart into booking from summary page. */
-  async convertCart(cartId: string): Promise<void> {
+  async convertCart(cartId: string, bearerToken: string): Promise<void> {
+    let trimmed = bearerToken.trim();
+    if (/^bearer\s+/i.test(trimmed)) {
+      trimmed = trimmed.replace(/^bearer\s+/i, '').trim();
+    }
+    if (!trimmed) {
+      throw new Error('Enter the bypass token before continuing.');
+    }
     const { data } = await apiClient.post<{ success?: boolean; message?: string }>(
-      `/admin/carts/${cartId}/convert/`
+      `/admin/carts/${cartId}/convert/`,
+      undefined,
+      {
+        headers: {
+          Authorization: `Bearer ${trimmed}`,
+        },
+      }
     );
     if (data && typeof data === 'object' && 'success' in data && data.success === false) {
       throw new Error(data.message || 'Failed to convert cart');

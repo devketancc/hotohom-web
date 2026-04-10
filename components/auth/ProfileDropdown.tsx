@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import type { AuthUser } from '@/store/authStore';
 
@@ -64,17 +65,14 @@ export function ProfileDropdown({
           role="menu"
           aria-label="Account"
         >
-          <button
-            type="button"
+          <Link
+            href="/account"
             role="menuitem"
-            className="w-full px-4 py-2.5 text-left font-body text-sm text-slate-200 transition-colors hover:bg-white/5 hover:text-stitch-primary-container"
-            onClick={() => {
-              console.log('Navigate to account');
-              onOpenChange(false);
-            }}
+            className="block w-full px-4 py-2.5 text-left font-body text-sm text-slate-200 transition-colors hover:bg-white/5 hover:text-stitch-primary-container"
+            onClick={() => onOpenChange(false)}
           >
             My Account
-          </button>
+          </Link>
           <button
             type="button"
             role="menuitem"

@@ -24,7 +24,11 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = typeof window !== 'undefined' ? useAuthStore.getState().accessToken : null;
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+      const headers = AxiosHeaders.from(config.headers);
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+        config.headers = headers;
+      }
     }
 
     if (env.IS_DEVELOPMENT) {

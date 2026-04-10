@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-// Use Promise to access the params correctly in app router
 export default async function BookingDetailsPage({
   params,
 }: {
@@ -9,31 +8,49 @@ export default async function BookingDetailsPage({
   const { id } = await params;
 
   return (
-    <div className="container mx-auto py-10 px-4 md:px-8 space-y-8">
+    <div className="space-y-8">
       <div>
-        <Link href="/journeys" className="text-sm text-muted-foreground hover:text-foreground mb-4 inline-block">
-          &larr; Back to journeys
+        <Link
+          href="/journeys"
+          className="mb-4 inline-flex font-body text-sm text-stitch-on-surface-variant transition-colors hover:text-stitch-primary-container"
+        >
+          ← Back to journeys
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight border-b pb-4">Booking Details #{id}</h1>
+        <p className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stitch-primary-container">
+          Booking
+        </p>
+        <h1 className="mt-1 border-b border-white/10 pb-4 font-headline text-3xl font-black uppercase tracking-tight text-stitch-on-background">
+          Details #{id}
+        </h1>
       </div>
-      
+
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
-          <h3 className="font-semibold text-lg">Trip Information</h3>
-          <div className="text-sm text-muted-foreground space-y-2">
-            <p><strong>Route:</strong> Mumbai to Pune</p>
-            <p><strong>Dates:</strong> Oct 10 - Oct 12, 2026</p>
-            <p><strong>Caravan:</strong> Luxury Class Alpha</p>
+        <div className="glass-card space-y-4 rounded-xl p-6">
+          <h3 className="font-headline text-lg font-bold text-stitch-on-background">Trip information</h3>
+          <div className="space-y-2 font-body text-sm text-stitch-on-surface-variant">
+            <p>
+              <span className="font-semibold text-stitch-on-background">Route:</span> Mumbai to Pune
+            </p>
+            <p>
+              <span className="font-semibold text-stitch-on-background">Dates:</span> Oct 10 - Oct 12, 2026
+            </p>
+            <p>
+              <span className="font-semibold text-stitch-on-background">Caravan:</span> Luxury Class Alpha
+            </p>
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
-          <h3 className="font-semibold text-lg">Payment Summary</h3>
-          <div className="text-sm text-muted-foreground space-y-2">
-            <p className="flex justify-between"><span>Base Price:</span> <span>₹12,000</span></p>
-            <p className="flex justify-between"><span>Taxes:</span> <span>₹2,160</span></p>
-            <div className="border-t pt-2 font-medium flex justify-between text-foreground">
-              <span>Total:</span> <span>₹14,160</span>
+        <div className="glass-card space-y-4 rounded-xl p-6">
+          <h3 className="font-headline text-lg font-bold text-stitch-on-background">Payment summary</h3>
+          <div className="space-y-2 font-body text-sm text-stitch-on-surface-variant">
+            <p className="flex justify-between">
+              <span>Base price</span> <span className="text-stitch-on-background">₹12,000</span>
+            </p>
+            <p className="flex justify-between">
+              <span>Taxes</span> <span className="text-stitch-on-background">₹2,160</span>
+            </p>
+            <div className="flex justify-between border-t border-white/10 pt-2 font-headline font-bold text-stitch-on-background">
+              <span>Total</span> <span>₹14,160</span>
             </div>
           </div>
         </div>
