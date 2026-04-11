@@ -99,6 +99,9 @@ export interface CustomerBookingListItem {
   updated_at: string;
 }
 
+/** Single booking from GET /bookings/{id}/ (same shape as list rows). */
+export type CustomerBookingDetail = CustomerBookingListItem;
+
 export interface PaginatedBookings {
   count: number;
   next: string | null;
