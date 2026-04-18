@@ -41,7 +41,7 @@ export function PlacesAutocompleteInput({
         const google = window.google;
         const input = inputRef.current;
         const ac = new google.maps.places.Autocomplete(input, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'types'],
           componentRestrictions: { country: 'in' },
         });
         ac.setBounds(
@@ -56,12 +56,14 @@ export function PlacesAutocompleteInput({
           const geom = place.geometry?.location;
           if (!geom || !place.place_id) return;
           const name = place.formatted_address || place.name || input.value;
+          const formatted_address = place.formatted_address ?? name;
+          const types = Array.isArray(place.types) ? [...place.types] : [];
           onResolvedRef.current({
             name,
             lat: geom.lat(),
             lng: geom.lng(),
             place_id: place.place_id,
-            meta: {},
+            meta: { formatted_address, types },
           });
         });
         removeListener = () => listener.remove();

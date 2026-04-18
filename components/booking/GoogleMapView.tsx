@@ -64,7 +64,7 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
           const newMap = new google.maps.Map(mapRef.current, {
             center: { lat: 20.5937, lng: 78.9629 },
             zoom: 5,
-            styles: darkThemeStyles,
+            styles: googleMapDarkStyles,
             disableDefaultUI: true,
             zoomControl: true,
           });
@@ -280,7 +280,7 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
   );
 };
 
-const darkThemeStyles: google.maps.MapTypeStyle[] = [
+export const googleMapDarkStyles: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },

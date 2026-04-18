@@ -30,6 +30,7 @@ export type CreateCartHubStopPayload = {
 
 export type CreateCartStopPayload = CreateCartRouteStopPayload | CreateCartHubStopPayload;
 
+/** Round-trip custom route cart (hub_start / route / hub_end). */
 export type CreateCartPayload = {
   caravan_class_id: string;
   hub_id: string;
@@ -41,6 +42,24 @@ export type CreateCartPayload = {
   estimated_km: number;
   stops: CreateCartStopPayload[];
 };
+
+/** Package cart: pickup + dropoff only, plus `package_id` (POST /carts/). */
+export type CreatePackageCartPayload = {
+  package_id: string;
+  caravan_class_id: string;
+  hub_id: string;
+  start_datetime: string;
+  num_humans: number;
+  num_pets: number;
+  name: string;
+  phone: string;
+  stops: CreateCartRouteStopPayload[];
+  end_datetime?: string;
+  is_one_way?: boolean;
+  estimated_km?: number;
+};
+
+export type CreateCartBody = CreateCartPayload | CreatePackageCartPayload;
 
 export type CartPricingBreakdown = {
   grand_total: number;

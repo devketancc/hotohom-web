@@ -150,6 +150,14 @@ export function canPreviewJourneyRoute(stops: JourneyStop[]): boolean {
   });
 }
 
+/** Package flow: exactly pickup + dropoff with resolved Places (or coords). */
+export function canCompletePackagePickupDrop(stops: JourneyStop[]): boolean {
+  if (stops.length !== 2) return false;
+  const [a, b] = stops;
+  if (a.stop_type !== 'pickup' || b.stop_type !== 'dropoff') return false;
+  return allStopsHavePlaces(stops);
+}
+
 export function stopsToMapRoute(stops: JourneyStop[]) {
   return stops.map((s) => ({
     name: s.location?.name ?? '',

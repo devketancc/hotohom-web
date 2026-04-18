@@ -136,7 +136,9 @@ export default function BookingSummaryPage() {
   const cartId = useCartStore((s) => s.cartId);
   const cartHasHydrated = useCartStore((s) => s.hasHydrated);
   const clearCart = useCartStore((s) => s.clearCart);
-  const { caravanClass, dates, passengers, pets, journey, hubName } = useBookingStore();
+  const { caravanClass, dates, passengers, pets, journey, hubName, bookingFlow, activePackage } =
+    useBookingStore();
+  const flow = bookingFlow ?? 'standard';
   const [loadingAddonId, setLoadingAddonId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState('');
@@ -154,9 +156,9 @@ export default function BookingSummaryPage() {
   useEffect(() => {
     if (!cartHasHydrated) return;
     if (!cartId || !caravanClass) {
-      router.replace('/journey');
+      router.replace(flow === 'package' ? '/packages' : '/journey');
     }
-  }, [cartHasHydrated, cartId, caravanClass, router]);
+  }, [cartHasHydrated, cartId, caravanClass, flow, router]);
 
   const { data: cart, isLoading: cartLoading, isError: cartError, refetch: refetchCart } = useCart(cartId);
   const { data: addonsContent, isLoading: addonsLoading } = useAddons();
@@ -285,7 +287,7 @@ export default function BookingSummaryPage() {
             type="button"
             onClick={() => {
               clearCart();
-              router.replace('/journey');
+              router.replace(flow === 'package' ? '/packages' : '/journey');
             }}
             className="ml-3 px-4 py-2 text-sm text-muted-foreground hover:text-stitch-on-background transition"
           >
@@ -329,11 +331,17 @@ export default function BookingSummaryPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-headline text-2xl font-bold">Journey Summary</h2>
               <button
-                onClick={() => router.push('/journey')}
+                onClick={() =>
+                  router.push(
+                    flow === 'package' && activePackage?.id
+                      ? `/package/${activePackage.id}/stops`
+                      : '/journey'
+                  )
+                }
                 className="flex items-center gap-1.5 text-stitch-primary text-sm font-medium hover:underline"
               >
                 <Edit2 size={16} />
-                Edit Route
+                {flow === 'package' ? 'Edit pickup & drop' : 'Edit Route'}
               </button>
             </div>
             <div className="bg-stitch-surface-highest/30 rounded-xl p-8 border border-border/10">

@@ -6,7 +6,7 @@ import type {
   CartDetailApiResponse,
   CartPricingBreakdown,
   CreateCartApiResponse,
-  CreateCartPayload,
+  CreateCartBody,
 } from '@/types/cart';
 
 function pricingNum(value: unknown): number {
@@ -99,7 +99,7 @@ function extractCouponErrorMessage(payload: unknown): string {
 }
 
 export const cartService = {
-  async createCart(payload: CreateCartPayload): Promise<Cart> {
+  async createCart(payload: CreateCartBody): Promise<Cart> {
     const { data } = await apiClient.post<CreateCartApiResponse>('/carts/', payload);
     if (!data.success || !data.data) {
       throw new Error(data.message || 'Failed to create cart');

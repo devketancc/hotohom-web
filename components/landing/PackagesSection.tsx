@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { PackageCard } from '@/components/landing/PackageCard';
@@ -34,10 +34,6 @@ export function PackagesSection() {
   const hubIds = useMemo(() => hubs?.map((h) => h.id) ?? [], [hubs]);
   const allHubsMode = selectedHubId === ALL_HUBS;
   const packagesEnabled = !allHubsMode ? !!selectedHubId : hubIds.length > 0;
-
-  useEffect(() => {
-    setSelectedClassCode('');
-  }, [selectedHubId]);
 
   const allHubsQueryKey = ['packages', 'all', 'list', hubIds.join(',')] as const;
 
@@ -106,7 +102,10 @@ export function PackagesSection() {
               <select
                 className={selectClass}
                 value={selectedHubId}
-                onChange={(e) => setSelectedHubId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedHubId(e.target.value);
+                  setSelectedClassCode('');
+                }}
                 disabled={hubsLoading || !!hubsError || !hubs?.length}
               >
                 <option value={ALL_HUBS}>All hubs</option>
@@ -188,6 +187,7 @@ export function PackagesSection() {
             {displayPackages.map((pkg) => (
               <PackageCard
                 key={pkg.id}
+                href={`/packages/${pkg.id}`}
                 title={pkg.name}
                 duration={`${pkg.duration_days} ${pkg.duration_days === 1 ? 'day' : 'days'}`}
                 location={pkg.home_hub_name}

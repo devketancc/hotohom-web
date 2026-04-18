@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import { Clock, ArrowUpRight } from 'lucide-react'
 
 interface PackageCardProps {
@@ -9,11 +10,13 @@ interface PackageCardProps {
   tag: string
   price: string
   image: string
+  /** When set, the whole card navigates to package detail. */
+  href?: string
 }
 
-export const PackageCard = ({ title, duration, location, tag, price, image }: PackageCardProps) => {
-  return (
-    <div className="group cursor-pointer">
+export const PackageCard = ({ title, duration, location, tag, price, image, href }: PackageCardProps) => {
+  const inner = (
+    <>
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl mb-8">
         <img 
           alt={title} 
@@ -22,7 +25,7 @@ export const PackageCard = ({ title, duration, location, tag, price, image }: Pa
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-12">
           <span className="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2 font-headline">
-            View Route <ArrowUpRight className="size-5" />
+            View details <ArrowUpRight className="size-5" />
           </span>
         </div>
         <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -48,6 +51,16 @@ export const PackageCard = ({ title, duration, location, tag, price, image }: Pa
           <span className="text-stitch-primary font-black text-2xl font-headline">{price}</span>
         </div>
       </div>
-    </div>
+    </>
   )
+
+  if (href) {
+    return (
+      <Link href={href} className="group block cursor-pointer">
+        {inner}
+      </Link>
+    )
+  }
+
+  return <div className="group cursor-pointer">{inner}</div>
 }
