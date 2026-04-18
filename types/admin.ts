@@ -1,0 +1,80 @@
+import type { ApiResponse } from '@/types/api';
+
+export type AdminPaginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export type AdminPaginatedResponse<T> = ApiResponse<AdminPaginated<T>>;
+
+export interface AdminHub {
+  id: string;
+  name: string;
+  city: string;
+  state: string;
+  formatted_address: string;
+  is_active: boolean;
+  google_maps_url: string | null;
+  coordinates: { lat: number; lng: number };
+  location_type: string;
+}
+
+export interface AdminCaravanClassMedia {
+  id: string;
+  url: string;
+  media_type: string;
+  order: number;
+}
+
+export interface AdminCaravanClass {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  full_capacity: number;
+  capacity_pets: number;
+  human_capacity_decreased_by_each_pet: number;
+  amenities: string[];
+  is_pet_friendly: boolean;
+  is_active: boolean;
+  media: AdminCaravanClassMedia[];
+}
+
+/** Individual caravan (fleet unit) from `GET /admin/caravans/`. */
+export interface AdminFleetCaravan {
+  id: string;
+  name: string;
+  registration_no: string;
+  year: number;
+  home_hub_name: string;
+  thumbnail: string | null;
+  is_active: boolean;
+  is_available: boolean;
+  caravan_class: AdminCaravanClass;
+}
+
+/** Home hub object on caravan detail (`GET /admin/caravans/:id/`). */
+export interface AdminFleetCaravanHomeHub {
+  id: string;
+  name: string;
+  city: string;
+}
+
+/** Full caravan from `GET /admin/caravans/:id/`. */
+export interface AdminFleetCaravanDetail {
+  id: string;
+  name: string;
+  registration_no: string;
+  year: number;
+  caravan_class: AdminCaravanClass;
+  home_hub: AdminFleetCaravanHomeHub | null;
+  extra_amenities: string[];
+  all_amenities: string[];
+  media: AdminCaravanClassMedia[];
+  is_active: boolean;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+}

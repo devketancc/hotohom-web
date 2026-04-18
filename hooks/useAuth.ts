@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
-import { authService, type ResendOtpResult, type SendOtpResult } from '@/services/auth.service';
+import { authService, type ResendOtpResult, type SendOtpResult, type VerifyOtpResult } from '@/services/auth.service';
 import { clearClientSession } from '@/lib/clearClientSession';
+import { isStaffRole } from '@/lib/staffRoles';
 
 export function useAuth() {
   const user = useAuthStore((s) => s.user);
@@ -21,13 +22,20 @@ export function useAuth() {
     []
   );
 
-  const completeSession = useCallback(
-    (data: Awaited<ReturnType<typeof authService.verifyOtp>>) => {
+  const establishSession = useCallback(
+    (data: VerifyOtpResult) => {
       setAuth({
         user: data.user,
         accessToken: data.access,
         refreshToken: data.refresh,
       });
+    },
+    [setAuth]
+  );
+
+  const completeSession = useCallback(
+    (data: VerifyOtpResult) => {
+      establishSession(data);
       console.log('User logged in', data.user);
       const pending = useUiStore.getState().pendingNavigationPath;
       useUiStore.getState().setLoginModalOpen(false);
@@ -36,7 +44,19 @@ export function useAuth() {
         window.location.assign(pending);
       }
     },
-    [setAuth]
+    [establishSession]
+  );
+
+  const verifyStaffOtp = useCallback(
+    async (phone: string, otp: string) => {
+      const data = await authService.verifyOtp(phone, otp);
+      if (!isStaffRole(data.user.role)) {
+        throw new Error('This sign-in is for staff only.');
+      }
+      establishSession(data);
+      return data;
+    },
+    [establishSession]
   );
 
   const verifyOtp = useCallback(
@@ -86,6 +106,8 @@ export function useAuth() {
     sendOtp,
     resendOtp,
     verifyOtp,
+    verifyStaffOtp,
+    establishSession,
     register,
     verifyRegistrationOtp,
     logout,
