@@ -23,6 +23,9 @@ import type {
   AdminStaffBlockout,
   AdminStaffManualBlockoutReason,
   AdminStaffRole,
+  AdminRosterBooking,
+  AdminRosterCaravan,
+  AdminRosterPartyMember,
   AdminUpdateStaffPayload,
 } from '@/types/admin';
 
@@ -37,6 +40,8 @@ export const adminQueryKeys = {
     ['admin', 'caravans', 'calendar', params.caravanId, params.start, params.end, params.hub ?? ''] as const,
   staffCalendar: (params: { staffId: string; start: string; end: string; role?: string; hub?: string }) =>
     ['admin', 'staff', 'calendar', params.staffId, params.start, params.end, params.role ?? '', params.hub ?? ''] as const,
+  roster: (params: { date?: string; start?: string; end?: string; hub?: string; hasAlerts?: boolean }) =>
+    ['admin', 'calendar', 'roster', params.date ?? '', params.start ?? '', params.end ?? '', params.hub ?? '', params.hasAlerts ?? false] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -469,6 +474,95 @@ export async function getAdminStaffCalendar(params: {
   if (!Array.isArray(inner)) return null;
   const resource = inner.map(normalizeStaffCalendarResource).find((row): row is AdminStaffCalendarResource => Boolean(row));
   return resource ?? null;
+}
+
+function normalizeRosterPartyMember(raw: unknown): AdminRosterPartyMember | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  const name = r.name != null ? String(r.name) : '';
+  if (!name) return null;
+  return {
+    id,
+    name,
+    phone: r.phone != null ? String(r.phone) : '',
+  };
+}
+
+function normalizeRosterCaravan(raw: unknown): AdminRosterCaravan | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  const registration = r.registration != null ? String(r.registration) : '';
+  const class_code = r.class_code != null ? String(r.class_code) : '';
+  if (!id || !registration) return null;
+  return {
+    id,
+    registration,
+    class_code,
+    hub: r.hub != null && typeof r.hub === 'string' ? r.hub : null,
+  };
+}
+
+function normalizeAdminRosterBooking(raw: unknown): AdminRosterBooking | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const booking_id = r.booking_id != null ? String(r.booking_id) : '';
+  const customer_name = r.customer_name != null ? String(r.customer_name) : '';
+  const start = r.start != null ? String(r.start) : '';
+  const end = r.end != null ? String(r.end) : '';
+  const status = r.status != null ? String(r.status) : '';
+  const caravan = normalizeRosterCaravan(r.caravan);
+  if (!booking_id || !start || !end || !caravan) return null;
+
+  const alertsRaw = r.open_alerts;
+  const open_alerts = Array.isArray(alertsRaw)
+    ? alertsRaw.filter((a): a is string => typeof a === 'string')
+    : [];
+
+  return {
+    booking_id,
+    customer_name,
+    start,
+    end,
+    status,
+    caravan,
+    driver: normalizeRosterPartyMember(r.driver),
+    helper: normalizeRosterPartyMember(r.helper),
+    open_alerts,
+  };
+}
+
+export type AdminCalendarRosterQueryParams = {
+  /** When set, API uses single-day mode (`date` only). */
+  date?: string;
+  /** Inclusive YYYY-MM-DD range start (omit when `date` is set). */
+  start?: string;
+  /** Inclusive YYYY-MM-DD range end (omit when `date` is set). */
+  end?: string;
+  hub?: string;
+  hasAlerts?: boolean;
+};
+
+/**
+ * GET /admin/calendar/roster/
+ * Caller is responsible for validation (e.g. max 90-day span); backend still enforces.
+ */
+export async function listAdminCalendarRoster(params: AdminCalendarRosterQueryParams): Promise<AdminRosterBooking[]> {
+  const query: Record<string, string> = {};
+  if (params.date) {
+    query.date = params.date;
+  } else {
+    if (params.start) query.start = params.start;
+    if (params.end) query.end = params.end;
+  }
+  if (params.hub) query.hub = params.hub;
+  if (params.hasAlerts) query.has_alerts = 'true';
+
+  const { data } = await apiClient.get<ApiResponse<unknown>>('/admin/calendar/roster/', { params: query });
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return [];
+  return inner.map(normalizeAdminRosterBooking).filter((row): row is AdminRosterBooking => row !== null);
 }
 
 export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {

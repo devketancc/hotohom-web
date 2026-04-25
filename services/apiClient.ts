@@ -4,7 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 import { env } from '@/config/env';
-import { handleApiError } from '@/lib/errorHandler';
+import { toRejectionError } from '@/lib/errorHandler';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
 
@@ -48,22 +48,19 @@ apiClient.interceptors.response.use(
     const url = originalRequest?.url ?? '';
 
     if (status !== 401 || !originalRequest || isAuthPublicPath(url)) {
-      const errorMsg = handleApiError(error);
-      return Promise.reject(new Error(errorMsg));
+      return Promise.reject(toRejectionError(error));
     }
 
     if (originalRequest._retry) {
       // Keep 401 fallback auth-only; explicit logout handles full booking/cart trace cleanup.
       useAuthStore.getState().logout();
-      const errorMsg = handleApiError(error);
-      return Promise.reject(new Error(errorMsg));
+      return Promise.reject(toRejectionError(error));
     }
 
     const refresh = useAuthStore.getState().refreshToken;
     if (!refresh) {
       useAuthStore.getState().logout();
-      const errorMsg = handleApiError(error);
-      return Promise.reject(new Error(errorMsg));
+      return Promise.reject(toRejectionError(error));
     }
 
     if (!refreshPromise) {
@@ -90,8 +87,7 @@ apiClient.interceptors.response.use(
       originalRequest.headers = headers;
       return apiClient(originalRequest);
     } catch {
-      const errorMsg = handleApiError(error);
-      return Promise.reject(new Error(errorMsg));
+      return Promise.reject(toRejectionError(error));
     }
   }
 );

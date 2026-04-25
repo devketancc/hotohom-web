@@ -15,6 +15,7 @@ export type AdminNavItem = {
 
 export const ADMIN_NAV: AdminNavItem[] = [
   { id: 'overview', label: 'Overview', href: '/admin', icon: LayoutDashboard },
+  { id: 'roster', label: 'Roster', href: '/admin/roster', icon: CalendarRange },
   { id: 'hubs', label: 'Hubs', href: '/admin/hubs', icon: MapPin },
   { id: 'caravan-classes', label: 'Classes', href: '/admin/caravan-classes', icon: Layers },
   { id: 'caravans', label: 'Caravans', href: '/admin/caravans', icon: Truck },

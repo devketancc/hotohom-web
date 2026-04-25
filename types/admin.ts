@@ -200,3 +200,30 @@ export interface AdminUpdateStaffPayload {
   last_name?: string;
   email?: string;
 }
+
+/** `GET /admin/calendar/roster/` — party on assignment (id from backend when present). */
+export interface AdminRosterPartyMember {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+export interface AdminRosterCaravan {
+  id: string;
+  registration: string;
+  class_code: string;
+  hub: string | null;
+}
+
+/** Normalized row from admin calendar roster API. */
+export interface AdminRosterBooking {
+  booking_id: string;
+  customer_name: string;
+  start: string;
+  end: string;
+  status: string;
+  caravan: AdminRosterCaravan;
+  driver: AdminRosterPartyMember | null;
+  helper: AdminRosterPartyMember | null;
+  open_alerts: string[];
+}
