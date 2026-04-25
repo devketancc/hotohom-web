@@ -3,18 +3,24 @@
 import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { EventClickArg, EventContentArg, EventHoveringArg } from '@fullcalendar/core';
 import { addDays, addMonths, differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns';
-import { AlertCircle, AlertTriangle, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, RefreshCw } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock3, RefreshCw, Trash2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { adminQueryKeys, getAdminStaffById, getAdminStaffCalendar } from '@/services/admin.service';
-import type { AdminStaffCalendarReason } from '@/types/admin';
+import {
+  adminQueryKeys,
+  createAdminStaffBlockout,
+  deleteAdminStaffBlockout,
+  getAdminStaffById,
+  getAdminStaffCalendar,
+} from '@/services/admin.service';
+import type { AdminStaffCalendarReason, AdminStaffManualBlockoutReason } from '@/types/admin';
 
 type EventDetails = {
   id: string;
@@ -28,7 +34,17 @@ type EventDetails = {
   driverName?: string;
   helperName?: string;
   showAssignmentWarning?: boolean;
+  isBookingManaged?: boolean;
 };
+
+type BlockoutFormState = {
+  start_date: string;
+  end_date: string;
+  reason: AdminStaffManualBlockoutReason;
+  notes: string;
+};
+
+type BlockoutFormErrors = Partial<Record<keyof BlockoutFormState, string>> & { form?: string };
 
 type HoverTooltip = {
   x: number;
@@ -84,6 +100,16 @@ function formatDateRangeText(startIso: string, endIso: string): string {
   return `${format(new Date(startIso), 'dd MMM yyyy')} - ${format(new Date(endIso), 'dd MMM yyyy')}`;
 }
 
+function validateBlockoutForm(values: BlockoutFormState): BlockoutFormErrors {
+  const errors: BlockoutFormErrors = {};
+  if (!values.start_date) errors.start_date = 'Start date is required.';
+  if (!values.end_date) errors.end_date = 'End date is required.';
+  if (values.start_date && values.end_date && values.end_date < values.start_date) {
+    errors.end_date = 'End date must be on or after start date.';
+  }
+  return errors;
+}
+
 function collectDaysInWindow(events: EventDetails[], predicate: (event: EventDetails) => boolean, windowStart: Date, windowEnd: Date): Set<string> {
   const days = new Set<string>();
   for (const event of events) {
@@ -101,6 +127,7 @@ function collectDaysInWindow(events: EventDetails[], predicate: (event: EventDet
 function AdminStaffDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const staffId = typeof params.id === 'string' ? params.id : Array.isArray(params.id) ? params.id[0] : '';
   const role = searchParams.get('role') || undefined;
   const hub = searchParams.get('hub') || undefined;
@@ -108,6 +135,16 @@ function AdminStaffDetailContent() {
   const [activeMonthStart, setActiveMonthStart] = useState<Date>(todayMonthStart);
   const [selectedEvent, setSelectedEvent] = useState<EventDetails | null>(null);
   const [hoverTooltip, setHoverTooltip] = useState<HoverTooltip | null>(null);
+  const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [blockoutForm, setBlockoutForm] = useState<BlockoutFormState>({
+    start_date: '',
+    end_date: '',
+    reason: 'other',
+    notes: '',
+  });
+  const [blockoutFormErrors, setBlockoutFormErrors] = useState<BlockoutFormErrors>({});
 
   const monthStart = useMemo(() => startOfMonth(activeMonthStart), [activeMonthStart]);
   const monthEnd = useMemo(() => endOfMonth(activeMonthStart), [activeMonthStart]);
@@ -153,6 +190,46 @@ function AdminStaffDetailContent() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const createBlockoutMutation = useMutation({
+    mutationFn: (payload: BlockoutFormState) =>
+      createAdminStaffBlockout(staffId, {
+        start_date: payload.start_date,
+        end_date: payload.end_date,
+        reason: payload.reason,
+        notes: payload.notes.trim(),
+      }),
+    onSuccess: async () => {
+      setBanner({ type: 'success', message: 'Blockout added successfully.' });
+      setAddModalOpen(false);
+      setBlockoutForm({ start_date: '', end_date: '', reason: 'other', notes: '' });
+      setBlockoutFormErrors({});
+      await queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.staffCalendar({ staffId, start: rangeStart, end: rangeEnd, ...(role ? { role } : {}), ...(hub ? { hub } : {}) }),
+      });
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Failed to create blockout.';
+      setBlockoutFormErrors((prev) => ({ ...prev, form: message }));
+    },
+  });
+
+  const deleteBlockoutMutation = useMutation({
+    mutationFn: (blockoutId: string) => deleteAdminStaffBlockout(staffId, blockoutId),
+    onSuccess: async () => {
+      setBanner({ type: 'success', message: 'Blockout removed.' });
+      setDeleteConfirmOpen(false);
+      setSelectedEvent(null);
+      await queryClient.invalidateQueries({
+        queryKey: adminQueryKeys.staffCalendar({ staffId, start: rangeStart, end: rangeEnd, ...(role ? { role } : {}), ...(hub ? { hub } : {}) }),
+      });
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Failed to remove blockout.';
+      setBanner({ type: 'error', message });
+      setDeleteConfirmOpen(false);
+    },
+  });
+
   const calendarEvents = useMemo(() => {
     const events = calendar?.events ?? [];
     return events.map((event) => {
@@ -172,11 +249,13 @@ function AdminStaffDetailContent() {
           notes: event.notes || '',
           originalStart: event.start,
           originalEnd: event.end,
+          blockoutId: event.blockout_id,
           customerName: event.booking_info?.customer_name,
           bookingStatus: event.booking_info?.status,
           driverName: event.booking_info?.driver?.name,
           helperName: event.booking_info?.helper?.name,
           showAssignmentWarning: reason === 'booking' && (!event.booking_info?.driver || !event.booking_info?.helper),
+          isBookingManaged: reason === 'booking',
         },
       };
     });
@@ -196,6 +275,7 @@ function AdminStaffDetailContent() {
         driverName: e.extendedProps.driverName ? String(e.extendedProps.driverName) : undefined,
         helperName: e.extendedProps.helperName ? String(e.extendedProps.helperName) : undefined,
         showAssignmentWarning: Boolean(e.extendedProps.showAssignmentWarning),
+        isBookingManaged: Boolean(e.extendedProps.isBookingManaged),
       })),
     [calendarEvents]
   );
@@ -218,6 +298,7 @@ function AdminStaffDetailContent() {
       driverName: arg.event.extendedProps.driverName ? String(arg.event.extendedProps.driverName) : undefined,
       helperName: arg.event.extendedProps.helperName ? String(arg.event.extendedProps.helperName) : undefined,
       showAssignmentWarning: Boolean(arg.event.extendedProps.showAssignmentWarning),
+      isBookingManaged: Boolean(arg.event.extendedProps.isBookingManaged),
     });
   };
 
@@ -240,7 +321,9 @@ function AdminStaffDetailContent() {
     const customer = arg.event.extendedProps.customerName ? String(arg.event.extendedProps.customerName) : undefined;
     const title = reason === 'booking' ? customer || arg.event.title : arg.event.title;
     const notes = String(arg.event.extendedProps.notes || '');
-    const durationDays = Math.max(differenceInCalendarDays(new Date(arg.event.end ?? arg.event.start), new Date(arg.event.start)) || 1, 1);
+    const eventStart = arg.event.start ?? new Date();
+    const eventEnd = arg.event.end ?? eventStart;
+    const durationDays = Math.max(differenceInCalendarDays(eventEnd, eventStart) || 1, 1);
     const styles = reasonStyles(reason);
     return (
       <div
@@ -275,6 +358,24 @@ function AdminStaffDetailContent() {
     );
   };
 
+  const openAddBlockoutModal = () => {
+    setBlockoutForm({
+      start_date: format(monthStart, 'yyyy-MM-dd'),
+      end_date: format(monthStart, 'yyyy-MM-dd'),
+      reason: 'other',
+      notes: '',
+    });
+    setBlockoutFormErrors({});
+    setAddModalOpen(true);
+  };
+
+  const submitAddBlockout = () => {
+    const errors = validateBlockoutForm(blockoutForm);
+    setBlockoutFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    createBlockoutMutation.mutate(blockoutForm);
+  };
+
   return (
     <div className="space-y-6">
       <Link href={backHref} className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground">
@@ -286,6 +387,9 @@ function AdminStaffDetailContent() {
         description={staff ? [staff.user.phone, staff.hub_name, format(activeMonthStart, 'MMMM yyyy')].filter(Boolean).join(' · ') : format(activeMonthStart, 'MMMM yyyy')}
         actions={
           <div className="flex items-center gap-2">
+            <Button type="button" size="sm" onClick={openAddBlockoutModal}>
+              + Add Blockout
+            </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => setActiveMonthStart(addMonths(activeMonthStart, -1))} disabled={!canGoPrev}>
               <ChevronLeft className="size-4" /> Prev
             </Button>
@@ -298,6 +402,17 @@ function AdminStaffDetailContent() {
           </div>
         }
       />
+
+      {banner ? (
+        <div
+          className={cn(
+            'rounded-xl border px-4 py-3 text-sm',
+            banner.type === 'success' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' : 'border-destructive/30 bg-destructive/10 text-destructive'
+          )}
+        >
+          {banner.message}
+        </div>
+      ) : null}
 
       <section className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
         <div className="mb-4 grid gap-3 md:grid-cols-3">
@@ -386,6 +501,11 @@ function AdminStaffDetailContent() {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{reasonToLabel(selectedEvent.reason)}</p>
                 <h3 className="mt-1 text-lg font-semibold">{selectedEvent.title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{formatDateRangeText(selectedEvent.start, selectedEvent.end)}</p>
+                {selectedEvent.isBookingManaged ? (
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Managed by booking; cannot delete here.</p>
+                ) : (
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">Manual blockout; deletion allowed.</p>
+                )}
               </div>
               <button type="button" onClick={() => setSelectedEvent(null)} className={cn(buttonVariants({ variant: 'ghost', size: 'xs' }))}>Close</button>
             </div>
@@ -408,6 +528,116 @@ function AdminStaffDetailContent() {
               </div>
               <div><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</dt><dd className="text-muted-foreground">{selectedEvent.notes || 'No notes provided'}</dd></div>
             </dl>
+            <div className="mt-4 flex justify-end">
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setDeleteConfirmOpen(true)}
+                disabled={selectedEvent.isBookingManaged || deleteBlockoutMutation.isPending}
+                className="gap-1.5"
+              >
+                <Trash2 className="size-3.5" />
+                Delete blockout
+              </Button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {addModalOpen ? (
+        <div className="fixed inset-0 z-[135] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/60" onClick={() => setAddModalOpen(false)} aria-label="Close add blockout modal" />
+          <section className="relative z-[136] w-full max-w-lg rounded-xl border border-border bg-card p-5 text-card-foreground shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Staff blockout</p>
+                <h3 className="mt-1 text-lg font-semibold">Add Blockout</h3>
+              </div>
+              <Button type="button" variant="ghost" size="xs" onClick={() => setAddModalOpen(false)}>
+                Close
+              </Button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Start date</label>
+                <input
+                  type="date"
+                  value={blockoutForm.start_date}
+                  onChange={(e) => setBlockoutForm((prev) => ({ ...prev, start_date: e.target.value }))}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none ring-primary/20 focus:ring"
+                />
+                {blockoutFormErrors.start_date ? <p className="mt-1 text-xs text-destructive">{blockoutFormErrors.start_date}</p> : null}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">End date</label>
+                <input
+                  type="date"
+                  value={blockoutForm.end_date}
+                  onChange={(e) => setBlockoutForm((prev) => ({ ...prev, end_date: e.target.value }))}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none ring-primary/20 focus:ring"
+                />
+                {blockoutFormErrors.end_date ? <p className="mt-1 text-xs text-destructive">{blockoutFormErrors.end_date}</p> : null}
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reason</label>
+                <select
+                  value={blockoutForm.reason}
+                  onChange={(e) => setBlockoutForm((prev) => ({ ...prev, reason: (e.target.value as AdminStaffManualBlockoutReason) || 'other' }))}
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none ring-primary/20 focus:ring"
+                >
+                  <option value="leave">Leave</option>
+                  <option value="training">Training</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notes (optional)</label>
+                <textarea
+                  value={blockoutForm.notes}
+                  onChange={(e) => setBlockoutForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none ring-primary/20 focus:ring"
+                  placeholder="Add context for this blockout"
+                />
+              </div>
+            </div>
+
+            {blockoutFormErrors.form ? <p className="mt-3 text-sm text-destructive">{blockoutFormErrors.form}</p> : null}
+
+            <div className="mt-5 flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setAddModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={submitAddBlockout} disabled={createBlockoutMutation.isPending}>
+                {createBlockoutMutation.isPending ? 'Saving...' : 'Add Blockout'}
+              </Button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {deleteConfirmOpen && selectedEvent ? (
+        <div className="fixed inset-0 z-[140] flex items-center justify-center p-4">
+          <button type="button" className="absolute inset-0 bg-black/60" onClick={() => setDeleteConfirmOpen(false)} aria-label="Close delete confirmation" />
+          <section className="relative z-[141] w-full max-w-md rounded-xl border border-border bg-card p-5 text-card-foreground shadow-2xl">
+            <h3 className="text-base font-semibold">Delete blockout?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              This will remove this manual blockout from the calendar.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setDeleteConfirmOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => deleteBlockoutMutation.mutate(selectedEvent.id)}
+                disabled={deleteBlockoutMutation.isPending}
+              >
+                {deleteBlockoutMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
           </section>
         </div>
       ) : null}

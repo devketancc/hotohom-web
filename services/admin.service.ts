@@ -18,6 +18,8 @@ import type {
   AdminStaffCalendarEvent,
   AdminStaffCalendarReason,
   AdminStaffCalendarResource,
+  AdminStaffBlockout,
+  AdminStaffManualBlockoutReason,
   AdminStaffRole,
   AdminUpdateStaffPayload,
 } from '@/types/admin';
@@ -385,6 +387,24 @@ function normalizeStaffCalendarResource(raw: unknown): AdminStaffCalendarResourc
   };
 }
 
+function normalizeStaffBlockout(raw: unknown): AdminStaffBlockout | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  const start_date = r.start_date != null ? String(r.start_date) : '';
+  const end_date = r.end_date != null ? String(r.end_date) : '';
+  if (!id || !start_date || !end_date) return null;
+  return {
+    id,
+    start_date,
+    end_date,
+    reason: normalizeStaffCalendarReason(r.reason),
+    notes: r.notes != null ? String(r.notes) : '',
+    is_active: Boolean(r.is_active),
+    created_at: r.created_at != null ? String(r.created_at) : '',
+  };
+}
+
 export async function getAdminCaravanCalendar(params: {
   start: string;
   end: string;
@@ -449,6 +469,20 @@ export async function getAdminStaffById(id: string): Promise<AdminStaffProfile> 
   const row = normalizeAdminStaffProfile(data?.data);
   if (!row) throw new Error('Failed to load staff profile');
   return row;
+}
+
+export async function createAdminStaffBlockout(
+  staffId: string,
+  payload: { start_date: string; end_date: string; reason: AdminStaffManualBlockoutReason; notes?: string }
+): Promise<AdminStaffBlockout> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(`/admin/staff/${encodeURIComponent(staffId)}/blockouts/`, payload);
+  const row = normalizeStaffBlockout(data?.data);
+  if (!row) throw new Error('Failed to create staff blockout');
+  return row;
+}
+
+export async function deleteAdminStaffBlockout(staffId: string, blockoutId: string): Promise<void> {
+  await apiClient.delete(`/admin/staff/${encodeURIComponent(staffId)}/blockouts/${encodeURIComponent(blockoutId)}/`);
 }
 
 export async function createAdminStaff(payload: AdminCreateStaffPayload): Promise<AdminStaffProfile> {

@@ -133,6 +133,18 @@ export interface AdminStaffCalendarResource {
   events: AdminStaffCalendarEvent[];
 }
 
+export type AdminStaffManualBlockoutReason = 'leave' | 'training' | 'other';
+
+export interface AdminStaffBlockout {
+  id: string;
+  start_date: string;
+  end_date: string;
+  reason: AdminStaffCalendarReason;
+  notes: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export type AdminStaffRole = 'driver' | 'helper';
 
 export interface AdminStaffUser {

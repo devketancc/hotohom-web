@@ -279,7 +279,9 @@ function CaravanCalendarContent() {
     const customer = arg.event.extendedProps.customerName ? String(arg.event.extendedProps.customerName) : undefined;
     const showAssignmentWarning = Boolean(arg.event.extendedProps.showAssignmentWarning);
     const title = reason === 'booking' ? customer || arg.event.title : arg.event.title;
-    const durationDays = Math.max(differenceInCalendarDays(new Date(arg.event.end ?? arg.event.start), new Date(arg.event.start)) || 1, 1);
+    const eventStart = arg.event.start ?? new Date();
+    const eventEnd = arg.event.end ?? eventStart;
+    const durationDays = Math.max(differenceInCalendarDays(eventEnd, eventStart) || 1, 1);
     const styles = reasonStyles(reason);
     return (
       <div

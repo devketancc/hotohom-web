@@ -21,8 +21,8 @@ import {
   updateAdminStaff,
 } from '@/services/admin.service';
 import type {
-  AdminCalendarEventReason,
   AdminCreateStaffPayload,
+  AdminStaffCalendarReason,
   AdminStaffProfile,
   AdminStaffRole,
   AdminUpdateStaffPayload,
@@ -116,7 +116,7 @@ function staffMatchesSearch(staff: AdminStaffProfile, term: string): boolean {
 type StaffCalendarEventDetails = {
   id: string;
   title: string;
-  reason: AdminCalendarEventReason;
+  reason: AdminStaffCalendarReason;
   notes: string;
   start: string;
   end: string;
@@ -132,53 +132,47 @@ type StaffHoverTooltip = {
   x: number;
   y: number;
   title: string;
-  reason: AdminCalendarEventReason;
+  reason: AdminStaffCalendarReason;
   notes: string;
   start: string;
   end: string;
   customerName?: string;
 };
 
-function reasonToLabel(reason: AdminCalendarEventReason): string {
+function reasonToLabel(reason: AdminStaffCalendarReason): string {
   switch (reason) {
     case 'booking':
       return 'Booking';
-    case 'maintenance':
-      return 'Maintenance';
-    case 'private_event':
-      return 'Private Event';
-    case 'breakdown':
-      return 'Breakdown';
+    case 'leave':
+      return 'Leave';
+    case 'training':
+      return 'Training';
     default:
       return 'Other';
   }
 }
 
-function reasonToCalendarColor(reason: AdminCalendarEventReason): string {
+function reasonToCalendarColor(reason: AdminStaffCalendarReason): string {
   switch (reason) {
     case 'booking':
       return '#3b82f6';
-    case 'maintenance':
+    case 'leave':
       return '#d97706';
-    case 'private_event':
+    case 'training':
       return '#8b5cf6';
-    case 'breakdown':
-      return '#ef4444';
     default:
       return '#6b7280';
   }
 }
 
-function reasonStyles(reason: AdminCalendarEventReason): { tintClass: string; badgeClass: string } {
+function reasonStyles(reason: AdminStaffCalendarReason): { tintClass: string; badgeClass: string } {
   switch (reason) {
     case 'booking':
       return { tintClass: 'bg-blue-500/12 border-l-blue-500 text-blue-100', badgeClass: 'bg-blue-500/20 text-blue-200' };
-    case 'maintenance':
+    case 'leave':
       return { tintClass: 'bg-amber-500/12 border-l-amber-500 text-amber-100', badgeClass: 'bg-amber-500/20 text-amber-200' };
-    case 'private_event':
+    case 'training':
       return { tintClass: 'bg-violet-500/12 border-l-violet-500 text-violet-100', badgeClass: 'bg-violet-500/20 text-violet-200' };
-    case 'breakdown':
-      return { tintClass: 'bg-rose-500/12 border-l-rose-500 text-rose-100', badgeClass: 'bg-rose-500/20 text-rose-200' };
     default:
       return { tintClass: 'bg-zinc-400/10 border-l-zinc-400 text-zinc-200', badgeClass: 'bg-zinc-500/20 text-zinc-200' };
   }
@@ -242,7 +236,7 @@ export default function AdminStaffPage() {
   const [hubFilter, setHubFilter] = useState(initialHub);
   const [roleFilter, setRoleFilter] = useState<'' | AdminStaffRole>(initialRole);
   const [page, setPage] = useState(Math.max(1, initialPage));
-  const [selectedStaffId] = useState('');
+  const [selectedStaffId, setSelectedStaffId] = useState('');
 
   useEffect(() => {
     setSearchTerm(initialSearch);
@@ -443,9 +437,7 @@ export default function AdminStaffPage() {
       const title =
         reason === 'booking'
           ? event.booking_info?.customer_name || 'Booking'
-          : reason === 'maintenance'
-            ? 'Maintenance'
-            : reasonToLabel(reason);
+          : reasonToLabel(reason);
       return {
         id: event.blockout_id,
         title,
@@ -476,7 +468,7 @@ export default function AdminStaffPage() {
       calendarEvents.map((e) => ({
         id: e.id,
         title: e.title,
-        reason: e.extendedProps.reason as AdminCalendarEventReason,
+        reason: e.extendedProps.reason as AdminStaffCalendarReason,
         notes: String(e.extendedProps.notes ?? ''),
         start: String(e.extendedProps.originalStart ?? e.start),
         end: String(e.extendedProps.originalEnd ?? e.start),
@@ -501,12 +493,14 @@ export default function AdminStaffPage() {
   const availableDays = Math.max(daysInMonth - bookedDays, 0);
 
   const renderEventContent = (arg: EventContentArg) => {
-    const reason = String(arg.event.extendedProps.reason || 'other') as AdminCalendarEventReason;
+    const reason = String(arg.event.extendedProps.reason || 'other') as AdminStaffCalendarReason;
     const notes = String(arg.event.extendedProps.notes || '');
     const customer = arg.event.extendedProps.customerName ? String(arg.event.extendedProps.customerName) : undefined;
     const showAssignmentWarning = Boolean(arg.event.extendedProps.showAssignmentWarning);
     const title = reason === 'booking' ? customer || arg.event.title : arg.event.title;
-    const durationDays = Math.max(differenceInCalendarDays(new Date(arg.event.end ?? arg.event.start), new Date(arg.event.start)) || 1, 1);
+    const eventStart = arg.event.start ?? new Date();
+    const eventEnd = arg.event.end ?? eventStart;
+    const durationDays = Math.max(differenceInCalendarDays(eventEnd, eventStart) || 1, 1);
     const styles = reasonStyles(reason);
     return (
       <div
@@ -542,7 +536,7 @@ export default function AdminStaffPage() {
   };
 
   const onEventClick = (arg: EventClickArg) => {
-    const reason = String(arg.event.extendedProps.reason || 'other') as AdminCalendarEventReason;
+    const reason = String(arg.event.extendedProps.reason || 'other') as AdminStaffCalendarReason;
     const bookingId = arg.event.extendedProps.bookingId ? String(arg.event.extendedProps.bookingId) : undefined;
     setSelectedCalendarEvent({
       id: arg.event.id,
@@ -561,7 +555,7 @@ export default function AdminStaffPage() {
   };
 
   const onEventMouseEnter = (arg: EventHoveringArg) => {
-    const reason = String(arg.event.extendedProps.reason || 'other') as AdminCalendarEventReason;
+    const reason = String(arg.event.extendedProps.reason || 'other') as AdminStaffCalendarReason;
     setHoverTooltip({
       x: arg.jsEvent.clientX + 12,
       y: arg.jsEvent.clientY + 12,
@@ -919,7 +913,7 @@ export default function AdminStaffPage() {
                   <span className="text-base font-bold text-foreground">{format(activeMonthStart, 'MMMM yyyy')}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {(['booking', 'maintenance', 'private_event', 'breakdown', 'other'] as AdminCalendarEventReason[]).map((reason) => {
+                  {(['booking', 'leave', 'training', 'other'] as AdminStaffCalendarReason[]).map((reason) => {
                     const styles = reasonStyles(reason);
                     return (
                       <span key={reason} className={cn('rounded-md border border-border/60 px-2 py-1 font-semibold', styles.tintClass)}>
