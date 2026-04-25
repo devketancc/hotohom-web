@@ -112,3 +112,48 @@ export interface AdminCaravanCalendarResource {
   hub: string | null;
   events: AdminCaravanCalendarEvent[];
 }
+
+export type AdminStaffRole = 'driver' | 'helper';
+
+export interface AdminStaffUser {
+  id: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  role: AdminStaffRole;
+  is_active: boolean;
+}
+
+export interface AdminStaffProfile {
+  id: string;
+  user: AdminStaffUser;
+  hub: string;
+  hub_name: string;
+  role: AdminStaffRole;
+  is_active: boolean;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminCreateStaffPayload {
+  phone: string;
+  first_name: string;
+  last_name?: string;
+  email?: string;
+  hub: string;
+  role: AdminStaffRole;
+  notes?: string;
+}
+
+export interface AdminUpdateStaffPayload {
+  hub?: string;
+  role?: AdminStaffRole;
+  is_active?: boolean;
+  notes?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+}

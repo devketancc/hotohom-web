@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, MapPin, Layers, Truck, ClipboardList, CalendarRange, Wallet, LifeBuoy } from 'lucide-react';
+import { LayoutDashboard, MapPin, Layers, Truck, Users, ClipboardList, CalendarRange, Wallet, LifeBuoy } from 'lucide-react';
 
 export type AdminNavBadge = 'soon';
 
@@ -18,6 +18,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { id: 'hubs', label: 'Hubs', href: '/admin/hubs', icon: MapPin },
   { id: 'caravan-classes', label: 'Classes', href: '/admin/caravan-classes', icon: Layers },
   { id: 'caravans', label: 'Caravans', href: '/admin/caravans', icon: Truck },
+  { id: 'staff', label: 'Staff', href: '/admin/staff', icon: Users },
   {
     id: 'operations',
     label: 'Operations',

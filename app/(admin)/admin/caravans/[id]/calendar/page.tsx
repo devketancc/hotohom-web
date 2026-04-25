@@ -223,9 +223,14 @@ function CaravanCalendarContent() {
   const monthStart = useMemo(() => startOfMonth(activeMonthStart), [activeMonthStart]);
   const monthEnd = useMemo(() => endOfMonth(activeMonthStart), [activeMonthStart]);
   const bookingCount = useMemo(() => detailEvents.filter((e) => e.reason === 'booking').length, [detailEvents]);
-  const maintenanceDays = useMemo(
-    () => collectDaysInWindow(detailEvents, (e) => e.reason === 'maintenance', monthStart, monthEnd).size,
-    [detailEvents, monthStart, monthEnd]
+  const warningBookingCount = useMemo(
+    () => detailEvents.filter((e) => e.reason === 'booking' && e.showAssignmentWarning).length,
+    [detailEvents]
+  );
+  const nonBookingEventCount = useMemo(() => detailEvents.filter((e) => e.reason !== 'booking').length, [detailEvents]);
+  const confirmedBookingCount = useMemo(
+    () => detailEvents.filter((e) => e.reason === 'booking' && (e.bookingStatus ?? '').toLowerCase() === 'confirmed').length,
+    [detailEvents]
   );
   const bookedDays = useMemo(
     () => collectDaysInWindow(detailEvents, (e) => e.reason === 'booking', monthStart, monthEnd).size,
@@ -369,9 +374,18 @@ function CaravanCalendarContent() {
             </div>
           </div>
           <div className="grid gap-2 border-t border-border/70 pt-3 text-sm sm:grid-cols-3">
-            <p className="text-muted-foreground">Booked days: <span className="font-semibold text-blue-300">{bookedDays}</span></p>
-            <p className="text-muted-foreground">Available days: <span className="font-semibold text-emerald-300">{availableDays}</span></p>
-            <p className="text-muted-foreground">Maintenance: <span className="font-semibold text-amber-300">{maintenanceDays}</span></p>
+            <p className="text-muted-foreground">
+              Assignment alerts:{' '}
+              <span className={cn('font-semibold', warningBookingCount > 0 ? 'text-amber-300' : 'text-emerald-300')}>
+                {warningBookingCount}
+              </span>
+            </p>
+            <p className="text-muted-foreground">
+              Confirmed bookings: <span className="font-semibold text-blue-300">{confirmedBookingCount}</span>
+            </p>
+            <p className="text-muted-foreground">
+              Other blockouts: <span className="font-semibold text-violet-300">{nonBookingEventCount}</span>
+            </p>
           </div>
         </section>
       ) : null}

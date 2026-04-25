@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient';
 import type { ApiResponse } from '@/types/api';
 import type {
+  AdminCreateStaffPayload,
   AdminCalendarBookingInfo,
   AdminCalendarBookingPartyMember,
   AdminCalendarEventReason,
@@ -13,12 +14,16 @@ import type {
   AdminFleetCaravanHomeHub,
   AdminHub,
   AdminPaginated,
+  AdminStaffProfile,
+  AdminStaffRole,
+  AdminUpdateStaffPayload,
 } from '@/types/admin';
 
 export const adminQueryKeys = {
   hubs: ['admin', 'hubs'] as const,
   caravanClasses: ['admin', 'caravan-classes'] as const,
   caravans: ['admin', 'caravans', 'fleet'] as const,
+  staff: (params?: { role?: string; hub?: string }) => ['admin', 'staff', params?.role ?? '', params?.hub ?? ''] as const,
   caravanDetail: (id: string) => ['admin', 'caravans', 'detail', id] as const,
   caravanCalendar: (params: { caravanId: string; start: string; end: string; hub?: string }) =>
     ['admin', 'caravans', 'calendar', params.caravanId, params.start, params.end, params.hub ?? ''] as const,
@@ -36,6 +41,44 @@ function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: numb
   const lng = Number(raw.lng);
   if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
   return null;
+}
+
+function normalizeStaffRole(raw: unknown): AdminStaffRole {
+  return raw === 'helper' ? 'helper' : 'driver';
+}
+
+function normalizeAdminStaffProfile(raw: unknown): AdminStaffProfile | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+
+  const userRaw = r.user;
+  if (!userRaw || typeof userRaw !== 'object') return null;
+  const u = userRaw as Record<string, unknown>;
+  const userId = u.id != null ? String(u.id) : '';
+  if (!userId) return null;
+
+  return {
+    id,
+    user: {
+      id: userId,
+      name: u.name != null ? String(u.name) : '',
+      first_name: u.first_name != null ? String(u.first_name) : '',
+      last_name: u.last_name != null ? String(u.last_name) : '',
+      phone: u.phone != null ? String(u.phone) : '',
+      email: u.email != null ? String(u.email) : '',
+      role: normalizeStaffRole(u.role),
+      is_active: Boolean(u.is_active),
+    },
+    hub: r.hub != null ? String(r.hub) : '',
+    hub_name: r.hub_name != null ? String(r.hub_name) : '',
+    role: normalizeStaffRole(r.role),
+    is_active: Boolean(r.is_active),
+    notes: r.notes != null ? String(r.notes) : '',
+    created_at: r.created_at != null ? String(r.created_at) : '',
+    updated_at: r.updated_at != null ? String(r.updated_at) : '',
+  };
 }
 
 function normalizeAdminHub(raw: unknown): AdminHub | null {
@@ -313,4 +356,30 @@ export async function getAdminCaravanCalendar(params: {
     .map(normalizeCaravanCalendarResource)
     .find((row): row is AdminCaravanCalendarResource => Boolean(row));
   return resource ?? null;
+}
+
+export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>('/admin/staff/', {
+    params: {
+      ...(params?.role ? { role: params.role } : {}),
+      ...(params?.hub ? { hub: params.hub } : {}),
+    },
+  });
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return [];
+  return inner.map(normalizeAdminStaffProfile).filter((row): row is AdminStaffProfile => row !== null);
+}
+
+export async function createAdminStaff(payload: AdminCreateStaffPayload): Promise<AdminStaffProfile> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>('/admin/staff/', payload);
+  const row = normalizeAdminStaffProfile(data?.data);
+  if (!row) throw new Error('Failed to create staff');
+  return row;
+}
+
+export async function updateAdminStaff(id: string, payload: AdminUpdateStaffPayload): Promise<AdminStaffProfile> {
+  const { data } = await apiClient.patch<ApiResponse<unknown>>(`/admin/staff/${encodeURIComponent(id)}/`, payload);
+  const row = normalizeAdminStaffProfile(data?.data);
+  if (!row) throw new Error('Failed to update staff');
+  return row;
 }
