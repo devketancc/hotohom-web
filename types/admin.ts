@@ -113,6 +113,26 @@ export interface AdminCaravanCalendarResource {
   events: AdminCaravanCalendarEvent[];
 }
 
+export type AdminStaffCalendarReason = 'booking' | 'leave' | 'training' | 'other';
+
+export interface AdminStaffCalendarEvent {
+  blockout_id: string;
+  start: string;
+  end: string;
+  reason: AdminStaffCalendarReason;
+  notes: string;
+  booking_info?: AdminCalendarBookingInfo;
+}
+
+export interface AdminStaffCalendarResource {
+  staff_id: string;
+  name: string;
+  phone: string;
+  role: AdminStaffRole;
+  hub: string | null;
+  events: AdminStaffCalendarEvent[];
+}
+
 export type AdminStaffRole = 'driver' | 'helper';
 
 export interface AdminStaffUser {

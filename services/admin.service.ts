@@ -15,6 +15,9 @@ import type {
   AdminHub,
   AdminPaginated,
   AdminStaffProfile,
+  AdminStaffCalendarEvent,
+  AdminStaffCalendarReason,
+  AdminStaffCalendarResource,
   AdminStaffRole,
   AdminUpdateStaffPayload,
 } from '@/types/admin';
@@ -24,9 +27,12 @@ export const adminQueryKeys = {
   caravanClasses: ['admin', 'caravan-classes'] as const,
   caravans: ['admin', 'caravans', 'fleet'] as const,
   staff: (params?: { role?: string; hub?: string }) => ['admin', 'staff', params?.role ?? '', params?.hub ?? ''] as const,
+  staffDetail: (id: string) => ['admin', 'staff', 'detail', id] as const,
   caravanDetail: (id: string) => ['admin', 'caravans', 'detail', id] as const,
   caravanCalendar: (params: { caravanId: string; start: string; end: string; hub?: string }) =>
     ['admin', 'caravans', 'calendar', params.caravanId, params.start, params.end, params.hub ?? ''] as const,
+  staffCalendar: (params: { staffId: string; start: string; end: string; role?: string; hub?: string }) =>
+    ['admin', 'staff', 'calendar', params.staffId, params.start, params.end, params.role ?? '', params.hub ?? ''] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -270,6 +276,14 @@ function normalizeCalendarEventReason(raw: unknown): AdminCalendarEventReason {
   return 'other';
 }
 
+function normalizeStaffCalendarReason(raw: unknown): AdminStaffCalendarReason {
+  const reason = typeof raw === 'string' ? raw.toLowerCase() : '';
+  if (reason === 'booking' || reason === 'leave' || reason === 'training' || reason === 'other') {
+    return reason;
+  }
+  return 'other';
+}
+
 function normalizeCalendarPartyMember(raw: unknown): AdminCalendarBookingPartyMember | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
@@ -316,6 +330,24 @@ function normalizeCaravanCalendarEvent(raw: unknown): AdminCaravanCalendarEvent 
   };
 }
 
+function normalizeStaffCalendarEvent(raw: unknown): AdminStaffCalendarEvent | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const blockout_id = r.blockout_id != null ? String(r.blockout_id) : '';
+  const start = r.start != null ? String(r.start) : '';
+  const end = r.end != null ? String(r.end) : '';
+  if (!blockout_id || !start || !end) return null;
+  const booking = normalizeCalendarBookingInfo(r.booking_info);
+  return {
+    blockout_id,
+    start,
+    end,
+    reason: normalizeStaffCalendarReason(r.reason),
+    notes: r.notes != null ? String(r.notes) : '',
+    ...(booking ? { booking_info: booking } : {}),
+  };
+}
+
 function normalizeCaravanCalendarResource(raw: unknown): AdminCaravanCalendarResource | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
@@ -329,6 +361,25 @@ function normalizeCaravanCalendarResource(raw: unknown): AdminCaravanCalendarRes
     caravan_id,
     registration: r.registration != null ? String(r.registration) : '',
     class_code: r.class_code != null ? String(r.class_code) : '',
+    hub: r.hub != null ? String(r.hub) : null,
+    events,
+  };
+}
+
+function normalizeStaffCalendarResource(raw: unknown): AdminStaffCalendarResource | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const staff_id = r.staff_id != null ? String(r.staff_id) : '';
+  if (!staff_id) return null;
+
+  const eventsRaw = Array.isArray(r.events) ? r.events : [];
+  const events = eventsRaw.map(normalizeStaffCalendarEvent).filter((e): e is AdminStaffCalendarEvent => e !== null);
+
+  return {
+    staff_id,
+    name: r.name != null ? String(r.name) : '',
+    phone: r.phone != null ? String(r.phone) : '',
+    role: normalizeStaffRole(r.role),
     hub: r.hub != null ? String(r.hub) : null,
     events,
   };
@@ -358,6 +409,29 @@ export async function getAdminCaravanCalendar(params: {
   return resource ?? null;
 }
 
+export async function getAdminStaffCalendar(params: {
+  start: string;
+  end: string;
+  staffId: string;
+  role?: string;
+  hub?: string;
+}): Promise<AdminStaffCalendarResource | null> {
+  const { start, end, staffId, role, hub } = params;
+  const { data } = await apiClient.get<ApiResponse<unknown>>('/admin/calendar/staff/', {
+    params: {
+      start,
+      end,
+      staff_id: staffId,
+      ...(role ? { role } : {}),
+      ...(hub ? { hub } : {}),
+    },
+  });
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return null;
+  const resource = inner.map(normalizeStaffCalendarResource).find((row): row is AdminStaffCalendarResource => Boolean(row));
+  return resource ?? null;
+}
+
 export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {
   const { data } = await apiClient.get<ApiResponse<unknown>>('/admin/staff/', {
     params: {
@@ -368,6 +442,13 @@ export async function listAdminStaff(params?: { role?: string; hub?: string }): 
   const inner = data?.data;
   if (!Array.isArray(inner)) return [];
   return inner.map(normalizeAdminStaffProfile).filter((row): row is AdminStaffProfile => row !== null);
+}
+
+export async function getAdminStaffById(id: string): Promise<AdminStaffProfile> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(`/admin/staff/${encodeURIComponent(id)}/`);
+  const row = normalizeAdminStaffProfile(data?.data);
+  if (!row) throw new Error('Failed to load staff profile');
+  return row;
 }
 
 export async function createAdminStaff(payload: AdminCreateStaffPayload): Promise<AdminStaffProfile> {
