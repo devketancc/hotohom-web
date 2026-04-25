@@ -113,6 +113,17 @@ export interface AdminCaravanCalendarResource {
   events: AdminCaravanCalendarEvent[];
 }
 
+export type AdminCaravanManualBlockoutReason = 'maintenance' | 'private_event' | 'breakdown' | 'other';
+
+export interface AdminCaravanBlockout {
+  id: string;
+  start_date: string;
+  end_date: string;
+  reason: AdminCalendarEventReason;
+  notes: string;
+  created_at: string;
+}
+
 export type AdminStaffCalendarReason = 'booking' | 'leave' | 'training' | 'other';
 
 export interface AdminStaffCalendarEvent {

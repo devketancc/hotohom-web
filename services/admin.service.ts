@@ -7,8 +7,10 @@ import type {
   AdminCalendarEventReason,
   AdminCaravanCalendarEvent,
   AdminCaravanCalendarResource,
+  AdminCaravanBlockout,
   AdminCaravanClass,
   AdminCaravanClassMedia,
+  AdminCaravanManualBlockoutReason,
   AdminFleetCaravan,
   AdminFleetCaravanDetail,
   AdminFleetCaravanHomeHub,
@@ -405,6 +407,23 @@ function normalizeStaffBlockout(raw: unknown): AdminStaffBlockout | null {
   };
 }
 
+function normalizeCaravanBlockout(raw: unknown): AdminCaravanBlockout | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  const start_date = r.start_date != null ? String(r.start_date) : '';
+  const end_date = r.end_date != null ? String(r.end_date) : '';
+  if (!id || !start_date || !end_date) return null;
+  return {
+    id,
+    start_date,
+    end_date,
+    reason: normalizeCalendarEventReason(r.reason),
+    notes: r.notes != null ? String(r.notes) : '',
+    created_at: r.created_at != null ? String(r.created_at) : '',
+  };
+}
+
 export async function getAdminCaravanCalendar(params: {
   start: string;
   end: string;
@@ -483,6 +502,20 @@ export async function createAdminStaffBlockout(
 
 export async function deleteAdminStaffBlockout(staffId: string, blockoutId: string): Promise<void> {
   await apiClient.delete(`/admin/staff/${encodeURIComponent(staffId)}/blockouts/${encodeURIComponent(blockoutId)}/`);
+}
+
+export async function createAdminCaravanBlockout(
+  caravanId: string,
+  payload: { start_date: string; end_date: string; reason: AdminCaravanManualBlockoutReason; notes?: string }
+): Promise<AdminCaravanBlockout> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(`/admin/caravans/${encodeURIComponent(caravanId)}/block/`, payload);
+  const row = normalizeCaravanBlockout(data?.data ?? data);
+  if (!row) throw new Error('Failed to create caravan blockout');
+  return row;
+}
+
+export async function deleteAdminCaravanBlockout(caravanId: string, blockoutId: string): Promise<void> {
+  await apiClient.delete(`/admin/caravans/${encodeURIComponent(caravanId)}/blockouts/${encodeURIComponent(blockoutId)}/`);
 }
 
 export async function createAdminStaff(payload: AdminCreateStaffPayload): Promise<AdminStaffProfile> {
