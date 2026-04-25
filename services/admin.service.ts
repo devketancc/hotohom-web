@@ -1,6 +1,11 @@
 import apiClient from '@/services/apiClient';
 import type { ApiResponse } from '@/types/api';
 import type {
+  AdminCalendarBookingInfo,
+  AdminCalendarBookingPartyMember,
+  AdminCalendarEventReason,
+  AdminCaravanCalendarEvent,
+  AdminCaravanCalendarResource,
   AdminCaravanClass,
   AdminCaravanClassMedia,
   AdminFleetCaravan,
@@ -15,6 +20,8 @@ export const adminQueryKeys = {
   caravanClasses: ['admin', 'caravan-classes'] as const,
   caravans: ['admin', 'caravans', 'fleet'] as const,
   caravanDetail: (id: string) => ['admin', 'caravans', 'detail', id] as const,
+  caravanCalendar: (params: { caravanId: string; start: string; end: string; hub?: string }) =>
+    ['admin', 'caravans', 'calendar', params.caravanId, params.start, params.end, params.hub ?? ''] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -204,4 +211,106 @@ export async function getAdminFleetCaravanById(id: string): Promise<AdminFleetCa
     throw new Error('Caravan not found or invalid response');
   }
   return row;
+}
+
+function normalizeCalendarEventReason(raw: unknown): AdminCalendarEventReason {
+  const reason = typeof raw === 'string' ? raw.toLowerCase() : '';
+  if (
+    reason === 'booking' ||
+    reason === 'maintenance' ||
+    reason === 'private_event' ||
+    reason === 'breakdown' ||
+    reason === 'other'
+  ) {
+    return reason;
+  }
+  return 'other';
+}
+
+function normalizeCalendarPartyMember(raw: unknown): AdminCalendarBookingPartyMember | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  return {
+    id,
+    name: r.name != null ? String(r.name) : '',
+    phone: r.phone != null ? String(r.phone) : '',
+  };
+}
+
+function normalizeCalendarBookingInfo(raw: unknown): AdminCalendarBookingInfo | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  return {
+    id,
+    customer_id: r.customer_id != null ? String(r.customer_id) : '',
+    customer_name: r.customer_name != null ? String(r.customer_name) : '',
+    status: r.status != null ? String(r.status) : '',
+    driver: normalizeCalendarPartyMember(r.driver),
+    helper: normalizeCalendarPartyMember(r.helper),
+  };
+}
+
+function normalizeCaravanCalendarEvent(raw: unknown): AdminCaravanCalendarEvent | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const blockout_id = r.blockout_id != null ? String(r.blockout_id) : '';
+  const start = r.start != null ? String(r.start) : '';
+  const end = r.end != null ? String(r.end) : '';
+  if (!blockout_id || !start || !end) return null;
+
+  const booking = normalizeCalendarBookingInfo(r.booking_info);
+  return {
+    blockout_id,
+    start,
+    end,
+    reason: normalizeCalendarEventReason(r.reason),
+    notes: r.notes != null ? String(r.notes) : '',
+    ...(booking ? { booking_info: booking } : {}),
+  };
+}
+
+function normalizeCaravanCalendarResource(raw: unknown): AdminCaravanCalendarResource | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const caravan_id = r.caravan_id != null ? String(r.caravan_id) : '';
+  if (!caravan_id) return null;
+
+  const eventsRaw = Array.isArray(r.events) ? r.events : [];
+  const events = eventsRaw.map(normalizeCaravanCalendarEvent).filter((e): e is AdminCaravanCalendarEvent => e !== null);
+
+  return {
+    caravan_id,
+    registration: r.registration != null ? String(r.registration) : '',
+    class_code: r.class_code != null ? String(r.class_code) : '',
+    hub: r.hub != null ? String(r.hub) : null,
+    events,
+  };
+}
+
+export async function getAdminCaravanCalendar(params: {
+  start: string;
+  end: string;
+  caravanId: string;
+  hub?: string;
+}): Promise<AdminCaravanCalendarResource | null> {
+  const { start, end, caravanId, hub } = params;
+  const { data } = await apiClient.get<ApiResponse<unknown>>('/admin/calendar/caravans/', {
+    params: {
+      start,
+      end,
+      caravan_id: caravanId,
+      ...(hub ? { hub } : {}),
+    },
+  });
+
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return null;
+  const resource = inner
+    .map(normalizeCaravanCalendarResource)
+    .find((row): row is AdminCaravanCalendarResource => Boolean(row));
+  return resource ?? null;
 }

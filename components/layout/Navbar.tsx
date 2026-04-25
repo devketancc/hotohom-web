@@ -37,6 +37,12 @@ export function Navbar() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/staff-login"
+            className="font-headline shrink-0 rounded-md border border-stitch-primary-container/40 px-3 py-1.5 text-xs font-semibold uppercase tracking-tight text-stitch-primary-container transition-colors hover:border-stitch-primary-container hover:bg-stitch-primary-container/10"
+          >
+            Staff Login
+          </Link>
           <NavbarAuthCluster />
         </div>
       </div>

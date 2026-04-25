@@ -153,7 +153,13 @@ function AdminCaravanDetailInner() {
             title={detail.name}
             description={`${detail.registration_no} · ${detail.year}`}
             actions={
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/admin/caravans/${detail.id}/calendar${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                >
+                  View Calendar
+                </Link>
                 <Badge className={detail.is_active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}>
                   {detail.is_active ? 'Active' : 'Inactive'}
                 </Badge>

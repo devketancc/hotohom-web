@@ -78,3 +78,37 @@ export interface AdminFleetCaravanDetail {
   created_at: string;
   updated_at: string;
 }
+
+export type AdminCalendarEventReason = 'booking' | 'maintenance' | 'private_event' | 'breakdown' | 'other';
+
+export interface AdminCalendarBookingPartyMember {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+export interface AdminCalendarBookingInfo {
+  id: string;
+  customer_id: string;
+  customer_name: string;
+  status: string;
+  driver: AdminCalendarBookingPartyMember | null;
+  helper: AdminCalendarBookingPartyMember | null;
+}
+
+export interface AdminCaravanCalendarEvent {
+  blockout_id: string;
+  start: string;
+  end: string;
+  reason: AdminCalendarEventReason;
+  notes: string;
+  booking_info?: AdminCalendarBookingInfo;
+}
+
+export interface AdminCaravanCalendarResource {
+  caravan_id: string;
+  registration: string;
+  class_code: string;
+  hub: string | null;
+  events: AdminCaravanCalendarEvent[];
+}

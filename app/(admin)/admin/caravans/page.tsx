@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Filter, RefreshCw, Truck } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   adminQueryKeys,
@@ -57,41 +57,45 @@ function applyFleetFilters(
 function FleetCard({ row, listQuery }: { row: AdminFleetCaravan; listQuery: string }) {
   const thumb = row.thumbnail || row.caravan_class.media[0]?.url;
   const href = `/admin/caravans/${row.id}${listQuery}`;
+  const calendarHref = `/admin/caravans/${row.id}/calendar${listQuery}`;
   return (
-    <Link
-      href={href}
-      scroll={false}
-      className="block rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:border-primary/40"
-    >
-      <div className="flex gap-4">
-        <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
-          {thumb ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={thumb} alt="" className="h-full w-full object-cover" width={96} height={80} loading="lazy" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-              <Truck className="size-8 opacity-40" aria-hidden />
+    <div className="rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:border-primary/40">
+      <Link href={href} scroll={false} className="block">
+        <div className="flex gap-4">
+          <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+            {thumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={thumb} alt="" className="h-full w-full object-cover" width={96} height={80} loading="lazy" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                <Truck className="size-8 opacity-40" aria-hidden />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-heading text-base font-semibold tracking-tight">{row.name}</p>
+            <p className="mt-0.5 font-mono text-xs text-muted-foreground">{row.registration_no}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              <span className="font-semibold text-primary">{row.caravan_class.code}</span> {row.caravan_class.name} · {row.year}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{row.home_hub_name || '—'}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Badge className={row.is_active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}>
+                {row.is_active ? 'Active' : 'Inactive'}
+              </Badge>
+              <Badge className={row.is_available ? 'bg-sky-500/15 text-sky-300' : 'bg-muted text-muted-foreground'}>
+                {row.is_available ? 'Available' : 'Unavailable'}
+              </Badge>
             </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-heading text-base font-semibold tracking-tight">{row.name}</p>
-          <p className="mt-0.5 font-mono text-xs text-muted-foreground">{row.registration_no}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            <span className="font-semibold text-primary">{row.caravan_class.code}</span> {row.caravan_class.name} · {row.year}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">{row.home_hub_name || '—'}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Badge className={row.is_active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground'}>
-              {row.is_active ? 'Active' : 'Inactive'}
-            </Badge>
-            <Badge className={row.is_available ? 'bg-sky-500/15 text-sky-300' : 'bg-muted text-muted-foreground'}>
-              {row.is_available ? 'Available' : 'Unavailable'}
-            </Badge>
           </div>
         </div>
+      </Link>
+      <div className="mt-3 flex justify-end">
+        <Link href={calendarHref} scroll={false} className={cn(buttonVariants({ variant: 'outline', size: 'xs' }))}>
+          View Calendar
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -326,12 +330,14 @@ function AdminFleetCaravansContent() {
                   <th className="px-3 py-3 font-semibold text-foreground">Class</th>
                   <th className="px-3 py-3 font-semibold text-foreground">Home hub</th>
                   <th className="px-3 py-3 font-semibold text-foreground">Status</th>
+                  <th className="px-3 py-3 font-semibold text-foreground">Calendar</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((row) => {
                   const thumb = row.thumbnail || row.caravan_class.media[0]?.url;
                   const detailHref = `/admin/caravans/${row.id}${listQuery}`;
+                  const calendarHref = `/admin/caravans/${row.id}/calendar${listQuery}`;
                   return (
                     <tr
                       key={row.id}
@@ -393,6 +399,16 @@ function AdminFleetCaravansContent() {
                             {row.is_available ? 'Avail.' : 'Busy'}
                           </Badge>
                         </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <Link
+                          href={calendarHref}
+                          scroll={false}
+                          className={cn(buttonVariants({ variant: 'outline', size: 'xs' }))}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View Calendar
+                        </Link>
                       </td>
                     </tr>
                   );

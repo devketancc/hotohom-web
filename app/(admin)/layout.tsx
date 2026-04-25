@@ -10,11 +10,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [hydrated, setHydrated] = useState(() => useAuthStore.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(() => {
+    const persistApi = (useAuthStore as typeof useAuthStore & { persist?: { hasHydrated: () => boolean } }).persist;
+    return persistApi ? persistApi.hasHydrated() : true;
+  });
 
   useEffect(() => {
-    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
-    if (useAuthStore.persist.hasHydrated()) {
+    const persistApi = (
+      useAuthStore as typeof useAuthStore & {
+        persist?: {
+          onFinishHydration: (listener: () => void) => () => void;
+          hasHydrated: () => boolean;
+        };
+      }
+    ).persist;
+
+    if (!persistApi) return;
+
+    const unsub = persistApi.onFinishHydration(() => setHydrated(true));
+    if (persistApi.hasHydrated()) {
       queueMicrotask(() => setHydrated(true));
     }
     return unsub;
