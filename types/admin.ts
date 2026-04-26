@@ -286,6 +286,15 @@ export interface AdminBookingPricingSnapshot {
   deposit_amount: number;
 }
 
+export interface AdminBookingAssignment {
+  driver_id: string | null;
+  driver_name: string | null;
+  driver_phone: string | null;
+  helper_id: string | null;
+  helper_name: string | null;
+  helper_phone: string | null;
+}
+
 export interface AdminBookingDetail {
   id: string;
   source: string;
@@ -297,8 +306,10 @@ export interface AdminBookingDetail {
   caravan: string;
   caravan_name: string;
   caravan_class: string;
-  driver: string | null;
-  driver_name: string;
+  /** Legacy fields retained as optional for backward compatibility during rollout. */
+  driver?: string | null;
+  driver_name?: string;
+  assignment: AdminBookingAssignment | null;
   is_b2b: boolean;
   b2b_partner: string | null;
   package: string | null;

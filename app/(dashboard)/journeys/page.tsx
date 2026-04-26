@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { parseISO } from 'date-fns';
 import { Calendar, Loader2, Map, MapPin, PawPrint, Users } from 'lucide-react';
 import { requestAuthThenNavigate } from '@/lib/authNavigation';
+import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { useAuth } from '@/hooks/useAuth';
 import { bookingService } from '@/services/booking.service';
 import type { CustomerBookingListItem } from '@/types/customerBooking';
@@ -33,6 +34,7 @@ function partitionBookings(results: CustomerBookingListItem[], now: Date) {
 function JourneyBookingCard({ booking }: { booking: CustomerBookingListItem }) {
   const { pickup, dropoff, waypointCount } = routeSummary(booking.stops);
   const tripStatus = booking.trip?.status ?? '';
+  const assignment = getBookingAssignmentDisplay(booking);
 
   return (
     <article className="glass-card flex flex-col gap-4 rounded-xl p-6 transition-shadow hover:shadow-xl">
@@ -60,6 +62,11 @@ function JourneyBookingCard({ booking }: { booking: CustomerBookingListItem }) {
             {tripStatus ? (
               <span className="inline-flex rounded-full bg-white/5 px-2.5 py-0.5 font-body text-xs font-medium capitalize text-stitch-on-surface-variant ring-1 ring-white/10">
                 Trip: {tripStatus.replace(/_/g, ' ')}
+              </span>
+            ) : null}
+            {(assignment.missingDriver || assignment.missingHelper) ? (
+              <span className="inline-flex rounded-full bg-amber-500/20 px-2.5 py-0.5 font-body text-xs font-medium text-amber-200 ring-1 ring-amber-300/35">
+                Assignment pending
               </span>
             ) : null}
           </div>

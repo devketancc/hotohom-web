@@ -25,6 +25,7 @@ import type {
   AdminStaffRole,
   AdminRosterBooking,
   AdminBookingDetail,
+  AdminBookingAssignment,
   AdminBookingPricingSnapshot,
   AdminBookingStop,
   AdminBookingTrip,
@@ -619,12 +620,27 @@ function normalizeAdminBookingPricingSnapshot(raw: unknown): AdminBookingPricing
   };
 }
 
+function normalizeAdminBookingAssignment(raw: unknown): AdminBookingAssignment | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  return {
+    driver_id: r.driver_id != null ? String(r.driver_id) : null,
+    driver_name: r.driver_name != null ? String(r.driver_name) : null,
+    driver_phone: r.driver_phone != null ? String(r.driver_phone) : null,
+    helper_id: r.helper_id != null ? String(r.helper_id) : null,
+    helper_name: r.helper_name != null ? String(r.helper_name) : null,
+    helper_phone: r.helper_phone != null ? String(r.helper_phone) : null,
+  };
+}
+
 function normalizeAdminBookingDetail(raw: unknown): AdminBookingDetail | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
   const id = r.id != null ? String(r.id) : '';
   if (!id) return null;
   const stopsRaw = Array.isArray(r.stops) ? r.stops : [];
+  const assignment = normalizeAdminBookingAssignment(r.assignment);
+  const legacyDriverName = r.driver_name != null ? String(r.driver_name) : '';
   return {
     id,
     source: r.source != null ? String(r.source) : '',
@@ -637,7 +653,19 @@ function normalizeAdminBookingDetail(raw: unknown): AdminBookingDetail | null {
     caravan_name: r.caravan_name != null ? String(r.caravan_name) : '',
     caravan_class: r.caravan_class != null ? String(r.caravan_class) : '',
     driver: r.driver != null ? String(r.driver) : null,
-    driver_name: r.driver_name != null ? String(r.driver_name) : '',
+    driver_name: legacyDriverName || assignment?.driver_name || '',
+    assignment:
+      assignment ??
+      (legacyDriverName
+        ? {
+            driver_id: r.driver != null ? String(r.driver) : null,
+            driver_name: legacyDriverName,
+            driver_phone: null,
+            helper_id: null,
+            helper_name: null,
+            helper_phone: null,
+          }
+        : null),
     is_b2b: Boolean(r.is_b2b),
     b2b_partner: r.b2b_partner != null ? String(r.b2b_partner) : null,
     package: r.package != null ? String(r.package) : null,

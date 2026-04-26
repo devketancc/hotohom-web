@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
+import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { adminQueryKeys, getAdminBookingById } from '@/services/admin.service';
 
 export default function AdminBookingDetailPage() {
@@ -75,5 +76,22 @@ export default function AdminBookingDetailPage() {
     );
   }
 
-  return <BookingDetailFullView booking={data} backHref="/admin/roster" backLabel="← Back to roster" />;
+  const assignment = getBookingAssignmentDisplay(data);
+
+  return (
+    <div className="space-y-4">
+      {(assignment.missingDriver || assignment.missingHelper) ? (
+        <div className="rounded-xl border border-amber-500/35 bg-amber-950/20 px-4 py-3">
+          <p className="font-body text-xs font-semibold uppercase tracking-wide text-amber-200">Ops action needed</p>
+          <p className="mt-1 font-body text-sm text-amber-100/90">
+            Assignment is pending for this booking. Open roster to assign available staff.
+          </p>
+          <Link href="/admin/roster" className="mt-2 inline-block font-body text-xs font-semibold text-amber-200 hover:underline">
+            Open roster
+          </Link>
+        </div>
+      ) : null}
+      <BookingDetailFullView booking={data} backHref="/admin/roster" backLabel="← Back to roster" />
+    </div>
+  );
 }

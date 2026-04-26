@@ -59,6 +59,15 @@ export interface CustomerBookingPricingSnapshot {
   deposit_amount: number;
 }
 
+export interface CustomerBookingAssignment {
+  driver_id: string | null;
+  driver_name: string | null;
+  driver_phone: string | null;
+  helper_id: string | null;
+  helper_name: string | null;
+  helper_phone: string | null;
+}
+
 export interface CustomerBookingListItem {
   id: string;
   source: string;
@@ -70,8 +79,10 @@ export interface CustomerBookingListItem {
   caravan: string;
   caravan_name: string;
   caravan_class: string;
-  driver: string | null;
-  driver_name: string;
+  /** Legacy fields retained as optional for backward compatibility during rollout. */
+  driver?: string | null;
+  driver_name?: string;
+  assignment: CustomerBookingAssignment | null;
   is_b2b: boolean;
   b2b_partner: string | null;
   package: string | null;

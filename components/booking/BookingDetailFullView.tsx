@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Calendar, Car, CircleDot, Flag, MapPin, Phone, Route, Users } from 'lucide-react';
+import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { sortedStops, statusPillClass } from '@/lib/customerBookingUi';
 import { cn } from '@/lib/utils';
 import { DetailRow, formatIsoDateTime, MoneyLine } from '@/components/booking/BookingDetailAtoms';
@@ -42,6 +43,8 @@ export function BookingDetailFullView({
   const trip = booking.trip;
   const snap = booking.pricing_snapshot;
   const coupon = parseMoney(booking.coupon_discount);
+  const assignment = getBookingAssignmentDisplay(booking);
+  const showAssignmentPending = assignment.missingDriver || assignment.missingHelper;
 
   return (
     <div className="space-y-8">
@@ -50,6 +53,20 @@ export function BookingDetailFullView({
           <p className="font-headline font-bold uppercase tracking-wide text-red-200">Cancelled</p>
           {booking.cancellation_reason ? <p className="mt-1 text-red-100/90">{booking.cancellation_reason}</p> : null}
           <p className="mt-1 text-xs text-red-200/80">{formatIsoDateTime(booking.cancelled_at)}</p>
+        </div>
+      ) : null}
+      {showAssignmentPending ? (
+        <div className="rounded-xl border border-amber-500/35 bg-amber-950/20 px-4 py-3 font-body text-sm text-amber-100">
+          <p className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200">
+            Assignment pending
+          </p>
+          <p className="mt-1 text-xs text-amber-100/90">
+            {assignment.missingDriver && assignment.missingHelper
+              ? 'Driver and helper are not assigned yet.'
+              : assignment.missingDriver
+                ? 'Driver is not assigned yet.'
+                : 'Helper is not assigned yet.'}
+          </p>
         </div>
       ) : null}
 
@@ -136,8 +153,13 @@ export function BookingDetailFullView({
             <DetailRow label="Class" value={booking.caravan_class} />
             <DetailRow
               label="Driver"
-              value={booking.driver_name?.trim() || null}
-              muted={!booking.driver_name?.trim()}
+              value={assignment.driverName || null}
+              muted={!assignment.driverName}
+            />
+            <DetailRow
+              label="Helper"
+              value={assignment.helperName || null}
+              muted={!assignment.helperName}
             />
             {booking.is_b2b ? <DetailRow label="B2B partner" value={booking.b2b_partner ?? '—'} /> : null}
           </dl>
