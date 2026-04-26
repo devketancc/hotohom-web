@@ -647,11 +647,21 @@ function CaravanCalendarContent() {
               </div>
             </dl>
             <div className="mt-4 flex items-center justify-between gap-2">
-              {selectedEvent.isBookingManaged ? (
-                <p className="text-xs font-semibold text-muted-foreground">Managed by booking; cannot delete here.</p>
-              ) : (
-                <p className="text-xs font-semibold text-muted-foreground">Manual blockout; deletion allowed.</p>
-              )}
+              <div className="flex items-center gap-2">
+                {selectedEvent.isBookingManaged ? (
+                  <p className="text-xs font-semibold text-muted-foreground">Managed by booking; cannot delete here.</p>
+                ) : (
+                  <p className="text-xs font-semibold text-muted-foreground">Manual blockout; deletion allowed.</p>
+                )}
+                {selectedEvent.isBookingManaged && selectedEvent.bookingId ? (
+                  <Link
+                    href={`/admin/bookings/${encodeURIComponent(selectedEvent.bookingId)}`}
+                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                  >
+                    Open booking
+                  </Link>
+                ) : null}
+              </div>
               <Button
                 type="button"
                 variant="destructive"

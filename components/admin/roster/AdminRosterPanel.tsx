@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { addDays, format, parseISO, startOfToday } from 'date-fns';
 import { CalendarOff } from 'lucide-react';
@@ -57,6 +58,28 @@ function RosterListSkeleton() {
       {Array.from({ length: 10 }).map((_, i) => (
         <div key={i} className="h-12 animate-pulse rounded-md border border-border/40 bg-muted/25" />
       ))}
+    </div>
+  );
+}
+
+function RosterColumnLegend({ compact }: { compact: boolean }) {
+  return (
+    <div className="hidden rounded-md border border-white/10 bg-zinc-950/80 px-2.5 py-1.5 sm:block">
+      <div
+        className={
+          compact
+            ? 'grid grid-cols-[7.5rem_minmax(10rem,1.25fr)_minmax(10rem,1.2fr)_minmax(5.5rem,0.8fr)_minmax(7.5rem,1fr)_minmax(7.5rem,1fr)_minmax(9rem,1.1fr)] items-center gap-1.5'
+            : 'grid grid-cols-[9rem_minmax(11rem,1.3fr)_minmax(11rem,1.25fr)_minmax(6rem,0.85fr)_minmax(8rem,1fr)_minmax(8rem,1fr)_minmax(10rem,1.15fr)] items-center gap-1.5'
+        }
+      >
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Date</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Customer</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Caravan</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Hub</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Driver</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Helper</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Status / Alerts</span>
+      </div>
     </div>
   );
 }
@@ -167,6 +190,7 @@ export function AdminRosterPanel() {
 
       {!isPending && !error && validation.ok && (data?.length ?? 0) > 0 ? (
         <div className="relative flex flex-col gap-1">
+          <RosterColumnLegend compact={compactMode} />
           {grouped.map(({ dayKey, items }) => (
             <RosterDateGroup
               key={dayKey}
@@ -174,7 +198,9 @@ export function AdminRosterPanel() {
               bookings={items}
               now={now}
               compact={compactMode}
-              onSelectBooking={setSelectedBooking}
+              onSelectBooking={(booking) => {
+                setSelectedBooking(booking);
+              }}
             />
           ))}
         </div>
@@ -191,7 +217,9 @@ export function AdminRosterPanel() {
             </div>
             <button
               type="button"
-              onClick={() => setSelectedBooking(null)}
+              onClick={() => {
+                setSelectedBooking(null);
+              }}
               className="rounded-md border border-border/60 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
             >
               Close
@@ -226,6 +254,12 @@ export function AdminRosterPanel() {
             >
               Assign Driver
             </button>
+            <Link
+              href={`/admin/bookings/${encodeURIComponent(selectedBooking.booking_id)}`}
+              className="rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs text-foreground hover:bg-background"
+            >
+              Open Full Booking
+            </Link>
           </div>
         </aside>
       ) : null}

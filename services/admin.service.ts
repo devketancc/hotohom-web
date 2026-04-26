@@ -24,6 +24,11 @@ import type {
   AdminStaffManualBlockoutReason,
   AdminStaffRole,
   AdminRosterBooking,
+  AdminBookingDetail,
+  AdminBookingPricingSnapshot,
+  AdminBookingStop,
+  AdminBookingTrip,
+  AdminBookingTripEvent,
   AdminRosterCaravan,
   AdminRosterPartyMember,
   AdminUpdateStaffPayload,
@@ -42,6 +47,7 @@ export const adminQueryKeys = {
     ['admin', 'staff', 'calendar', params.staffId, params.start, params.end, params.role ?? '', params.hub ?? ''] as const,
   roster: (params: { date?: string; start?: string; end?: string; hub?: string; hasAlerts?: boolean }) =>
     ['admin', 'calendar', 'roster', params.date ?? '', params.start ?? '', params.end ?? '', params.hub ?? '', params.hasAlerts ?? false] as const,
+  bookingDetail: (id: string) => ['admin', 'bookings', 'detail', id] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -533,6 +539,133 @@ function normalizeAdminRosterBooking(raw: unknown): AdminRosterBooking | null {
   };
 }
 
+function normalizeAdminBookingTripEvent(raw: unknown): AdminBookingTripEvent | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  return {
+    id,
+    event_type: r.event_type != null ? String(r.event_type) : '',
+    source: r.source != null ? String(r.source) : '',
+    occurred_at: r.occurred_at != null ? String(r.occurred_at) : null,
+    recorded_by: r.recorded_by != null ? String(r.recorded_by) : null,
+    recorded_by_name: r.recorded_by_name != null ? String(r.recorded_by_name) : '',
+    metadata: r.metadata && typeof r.metadata === 'object' ? (r.metadata as Record<string, unknown>) : {},
+    bill_url: r.bill_url != null ? String(r.bill_url) : null,
+    notes: r.notes != null ? String(r.notes) : '',
+    created_at: r.created_at != null ? String(r.created_at) : '',
+  };
+}
+
+function normalizeAdminBookingTrip(raw: unknown): AdminBookingTrip | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  const eventsRaw = Array.isArray(r.events) ? r.events : [];
+  return {
+    id,
+    status: r.status != null ? String(r.status) : '',
+    odometer_start: Number.isFinite(Number(r.odometer_start)) ? Number(r.odometer_start) : null,
+    odometer_end: Number.isFinite(Number(r.odometer_end)) ? Number(r.odometer_end) : null,
+    actual_km: Number.isFinite(Number(r.actual_km)) ? Number(r.actual_km) : null,
+    actual_start: r.actual_start != null ? String(r.actual_start) : null,
+    actual_end: r.actual_end != null ? String(r.actual_end) : null,
+    extra_km: Number(r.extra_km) || 0,
+    extra_km_charge: r.extra_km_charge != null ? String(r.extra_km_charge) : '0',
+    ac_hours: r.ac_hours != null ? String(r.ac_hours) : '0',
+    ac_charge: r.ac_charge != null ? String(r.ac_charge) : '0',
+    gen_hours: r.gen_hours != null ? String(r.gen_hours) : '0',
+    gen_charge: r.gen_charge != null ? String(r.gen_charge) : '0',
+    late_hours: r.late_hours != null ? String(r.late_hours) : '0',
+    late_charge: r.late_charge != null ? String(r.late_charge) : '0',
+    parking_charge: r.parking_charge != null ? String(r.parking_charge) : '0',
+    toll_charge: r.toll_charge != null ? String(r.toll_charge) : '0',
+    damage_charge: r.damage_charge != null ? String(r.damage_charge) : '0',
+    other_charge: r.other_charge != null ? String(r.other_charge) : '0',
+    other_charge_note: r.other_charge_note != null ? String(r.other_charge_note) : '',
+    total_extra_charge: r.total_extra_charge != null ? String(r.total_extra_charge) : '0',
+    eot_submitted_at: r.eot_submitted_at != null ? String(r.eot_submitted_at) : null,
+    driver_notes: r.driver_notes != null ? String(r.driver_notes) : '',
+    events: eventsRaw.map(normalizeAdminBookingTripEvent).filter((e): e is AdminBookingTripEvent => e !== null),
+    updated_at: r.updated_at != null ? String(r.updated_at) : '',
+  };
+}
+
+function normalizeAdminBookingStop(raw: unknown): AdminBookingStop | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  return {
+    id,
+    order: Number(r.order) || 0,
+    stop_type: r.stop_type != null ? String(r.stop_type) : '',
+    location: r.location != null ? String(r.location) : '',
+    location_name: r.location_name != null ? String(r.location_name) : '',
+    estimated_arrival: r.estimated_arrival != null ? String(r.estimated_arrival) : null,
+    notes: r.notes != null ? String(r.notes) : '',
+  };
+}
+
+function normalizeAdminBookingPricingSnapshot(raw: unknown): AdminBookingPricingSnapshot {
+  const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  return {
+    km_rate: Number(r.km_rate) || 0,
+    day_rate: Number(r.day_rate) || 0,
+    total_days: Number(r.total_days) || 0,
+    deposit_amount: Number(r.deposit_amount) || 0,
+  };
+}
+
+function normalizeAdminBookingDetail(raw: unknown): AdminBookingDetail | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const id = r.id != null ? String(r.id) : '';
+  if (!id) return null;
+  const stopsRaw = Array.isArray(r.stops) ? r.stops : [];
+  return {
+    id,
+    source: r.source != null ? String(r.source) : '',
+    booking_type: r.booking_type != null ? String(r.booking_type) : '',
+    status: r.status != null ? String(r.status) : '',
+    customer: r.customer != null ? String(r.customer) : '',
+    customer_name: r.customer_name != null ? String(r.customer_name) : '',
+    customer_phone: r.customer_phone != null ? String(r.customer_phone) : '',
+    caravan: r.caravan != null ? String(r.caravan) : '',
+    caravan_name: r.caravan_name != null ? String(r.caravan_name) : '',
+    caravan_class: r.caravan_class != null ? String(r.caravan_class) : '',
+    driver: r.driver != null ? String(r.driver) : null,
+    driver_name: r.driver_name != null ? String(r.driver_name) : '',
+    is_b2b: Boolean(r.is_b2b),
+    b2b_partner: r.b2b_partner != null ? String(r.b2b_partner) : null,
+    package: r.package != null ? String(r.package) : null,
+    start_datetime: r.start_datetime != null ? String(r.start_datetime) : '',
+    end_datetime: r.end_datetime != null ? String(r.end_datetime) : '',
+    total_days: Number(r.total_days) || 0,
+    num_humans: Number(r.num_humans) || 0,
+    num_pets: Number(r.num_pets) || 0,
+    is_one_way: Boolean(r.is_one_way),
+    pricing_mode: r.pricing_mode != null ? String(r.pricing_mode) : '',
+    pricing_snapshot: normalizeAdminBookingPricingSnapshot(r.pricing_snapshot),
+    pet_cleaning_charge: r.pet_cleaning_charge != null ? String(r.pet_cleaning_charge) : '0',
+    base_price: r.base_price != null ? String(r.base_price) : '0',
+    addons_price: r.addons_price != null ? String(r.addons_price) : '0',
+    coupon_discount: r.coupon_discount != null ? String(r.coupon_discount) : '0',
+    subtotal: r.subtotal != null ? String(r.subtotal) : '0',
+    razorpay_charges: r.razorpay_charges != null ? String(r.razorpay_charges) : '0',
+    grand_total: r.grand_total != null ? String(r.grand_total) : '0',
+    cancellation_reason: r.cancellation_reason != null ? String(r.cancellation_reason) : '',
+    cancelled_at: r.cancelled_at != null ? String(r.cancelled_at) : null,
+    notes: r.notes != null ? String(r.notes) : '',
+    stops: stopsRaw.map(normalizeAdminBookingStop).filter((s): s is AdminBookingStop => s !== null),
+    trip: normalizeAdminBookingTrip(r.trip),
+    created_at: r.created_at != null ? String(r.created_at) : '',
+    updated_at: r.updated_at != null ? String(r.updated_at) : '',
+  };
+}
+
 export type AdminCalendarRosterQueryParams = {
   /** When set, API uses single-day mode (`date` only). */
   date?: string;
@@ -563,6 +696,13 @@ export async function listAdminCalendarRoster(params: AdminCalendarRosterQueryPa
   const inner = data?.data;
   if (!Array.isArray(inner)) return [];
   return inner.map(normalizeAdminRosterBooking).filter((row): row is AdminRosterBooking => row !== null);
+}
+
+export async function getAdminBookingById(id: string): Promise<AdminBookingDetail> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(`/admin/bookings/${encodeURIComponent(id)}/`);
+  const row = normalizeAdminBookingDetail(data?.data);
+  if (!row) throw new Error('Failed to load booking details');
+  return row;
 }
 
 export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {

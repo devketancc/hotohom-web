@@ -29,6 +29,7 @@ type EventDetails = {
   notes: string;
   start: string;
   end: string;
+  bookingId?: string;
   customerName?: string;
   bookingStatus?: string;
   driverName?: string;
@@ -250,6 +251,7 @@ function AdminStaffDetailContent() {
           originalStart: event.start,
           originalEnd: event.end,
           blockoutId: event.blockout_id,
+          bookingId: event.booking_info?.id,
           customerName: event.booking_info?.customer_name,
           bookingStatus: event.booking_info?.status,
           driverName: event.booking_info?.driver?.name,
@@ -270,6 +272,7 @@ function AdminStaffDetailContent() {
         notes: String(e.extendedProps.notes ?? ''),
         start: String(e.extendedProps.originalStart ?? e.start),
         end: String(e.extendedProps.originalEnd ?? e.start),
+        bookingId: e.extendedProps.bookingId ? String(e.extendedProps.bookingId) : undefined,
         customerName: e.extendedProps.customerName ? String(e.extendedProps.customerName) : undefined,
         bookingStatus: e.extendedProps.bookingStatus ? String(e.extendedProps.bookingStatus) : undefined,
         driverName: e.extendedProps.driverName ? String(e.extendedProps.driverName) : undefined,
@@ -293,6 +296,7 @@ function AdminStaffDetailContent() {
       notes: arg.event.extendedProps.notes ? String(arg.event.extendedProps.notes) : '',
       start: String(arg.event.extendedProps.originalStart ?? arg.event.startStr),
       end: String(arg.event.extendedProps.originalEnd ?? arg.event.endStr ?? arg.event.startStr),
+      bookingId: arg.event.extendedProps.bookingId ? String(arg.event.extendedProps.bookingId) : undefined,
       customerName: arg.event.extendedProps.customerName ? String(arg.event.extendedProps.customerName) : undefined,
       bookingStatus: arg.event.extendedProps.bookingStatus ? String(arg.event.extendedProps.bookingStatus) : undefined,
       driverName: arg.event.extendedProps.driverName ? String(arg.event.extendedProps.driverName) : undefined,
@@ -529,17 +533,27 @@ function AdminStaffDetailContent() {
               <div><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</dt><dd className="text-muted-foreground">{selectedEvent.notes || 'No notes provided'}</dd></div>
             </dl>
             <div className="mt-4 flex justify-end">
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteConfirmOpen(true)}
-                disabled={selectedEvent.isBookingManaged || deleteBlockoutMutation.isPending}
-                className="gap-1.5"
-              >
-                <Trash2 className="size-3.5" />
-                Delete blockout
-              </Button>
+              <div className="flex items-center gap-2">
+                {selectedEvent.isBookingManaged && selectedEvent.bookingId ? (
+                  <Link
+                    href={`/admin/bookings/${encodeURIComponent(selectedEvent.bookingId)}`}
+                    className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                  >
+                    Open booking
+                  </Link>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                  disabled={selectedEvent.isBookingManaged || deleteBlockoutMutation.isPending}
+                  className="gap-1.5"
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete blockout
+                </Button>
+              </div>
             </div>
           </section>
         </div>
