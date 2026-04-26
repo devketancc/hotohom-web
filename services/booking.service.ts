@@ -34,7 +34,7 @@ function normalizeCustomerBooking(raw: unknown): CustomerBookingDetail | null {
       : null;
   const driverName = r.driver_name != null ? String(r.driver_name) : '';
   return {
-    ...(r as CustomerBookingDetail),
+    ...(r as unknown as CustomerBookingDetail),
     assignment:
       assignment ??
       (driverName
@@ -81,7 +81,7 @@ export const bookingService = {
     if (data?.success && data.data?.results && Array.isArray(data.data.results)) {
       data.data.results = data.data.results
         .map((row: unknown) => normalizeCustomerBooking(row))
-        .filter((row): row is CustomerBookingDetail => row !== null);
+        .filter((row: CustomerBookingDetail | null): row is CustomerBookingDetail => row !== null);
     }
     return data;
   },

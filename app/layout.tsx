@@ -36,7 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable}`}
+    >
       <body className="antialiased min-h-screen bg-background text-foreground flex flex-col font-sans">
         <Providers>
           {children}
