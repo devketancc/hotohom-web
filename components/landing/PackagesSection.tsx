@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { PackageCard } from '@/components/landing/PackageCard';
+import { Reveal } from '@/components/shared/Reveal';
+import { RevealStagger, RevealItem } from '@/components/shared/RevealStagger';
 import { locationService } from '@/services/location.service';
 import { packageService } from '@/services/package.service';
 import { formatCurrency } from '@/utils/format';
@@ -83,10 +85,10 @@ export function PackagesSection() {
   const refetchList = selectedClassCode ? refetchFiltered : refetchAll;
 
   return (
-    <section id="packages" className="py-40 bg-stitch-background overflow-hidden">
+    <section id="packages" className="section-ambient-warm py-40 bg-stitch-background overflow-hidden">
       <div className="max-w-screen-2xl mx-auto px-8">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between mb-16 lg:mb-24">
-          <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-5 duration-700">
+          <Reveal as="div" className="max-w-2xl">
             <span className="text-stitch-primary uppercase tracking-[0.4em] text-xs font-black mb-6 block font-headline">
               Signature Journeys
             </span>
@@ -94,9 +96,9 @@ export function PackagesSection() {
             <p className="mt-6 text-stitch-on-surface-variant text-lg font-body">
               Each package is designed by travel experts to ensure you see the hidden gems of every region.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
+          <Reveal as="div" delay={0.1} className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-widest text-stitch-on-surface-variant font-headline">
               Hub
               <select
@@ -132,7 +134,7 @@ export function PackagesSection() {
                 ))}
               </select>
             </label>
-          </div>
+          </Reveal>
         </div>
 
         {hubsError && (
@@ -183,24 +185,25 @@ export function PackagesSection() {
         )}
 
         {!listLoading && !listError && displayPackages.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-200">
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {displayPackages.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                href={`/packages/${pkg.id}`}
-                title={pkg.name}
-                duration={`${pkg.duration_days} ${pkg.duration_days === 1 ? 'day' : 'days'}`}
-                location={pkg.home_hub_name}
-                tag={`Class ${pkg.caravan_class_code}`}
-                price={
-                  Number.isFinite(Number.parseFloat(pkg.base_price))
-                    ? formatCurrency(Number.parseFloat(pkg.base_price))
-                    : '—'
-                }
-                image={pkg.thumbnail_url?.trim() ? pkg.thumbnail_url : FALLBACK_PACKAGE_IMAGE}
-              />
+              <RevealItem key={pkg.id}>
+                <PackageCard
+                  href={`/packages/${pkg.id}`}
+                  title={pkg.name}
+                  duration={`${pkg.duration_days} ${pkg.duration_days === 1 ? 'day' : 'days'}`}
+                  location={pkg.home_hub_name}
+                  tag={`Class ${pkg.caravan_class_code}`}
+                  price={
+                    Number.isFinite(Number.parseFloat(pkg.base_price))
+                      ? formatCurrency(Number.parseFloat(pkg.base_price))
+                      : '—'
+                  }
+                  image={pkg.thumbnail_url?.trim() ? pkg.thumbnail_url : FALLBACK_PACKAGE_IMAGE}
+                />
+              </RevealItem>
             ))}
-          </div>
+          </RevealStagger>
         )}
       </div>
     </section>

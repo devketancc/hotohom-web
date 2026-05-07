@@ -73,7 +73,7 @@ export default function PackageDetailPage() {
   };
 
   return (
-    <main className="bg-stitch-background text-stitch-on-background min-h-screen">
+    <main className="section-ambient-warm bg-stitch-background text-stitch-on-background min-h-screen">
       <Navbar />
       <div className="pt-28 max-w-screen-lg mx-auto px-8 pb-24">
         <Link

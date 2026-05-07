@@ -17,15 +17,15 @@ interface PackageCardProps {
 export const PackageCard = ({ title, duration, location, tag, price, image, href }: PackageCardProps) => {
   const inner = (
     <>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl mb-8">
-        <img 
-          alt={title} 
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+      <div className="card-lift relative aspect-[4/5] overflow-hidden rounded-2xl mb-8 ring-1 ring-[var(--color-line)]">
+        <img
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-[1500ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
           src={image}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-12">
-          <span className="text-white font-bold tracking-widest uppercase text-sm flex items-center gap-2 font-headline">
-            View details <ArrowUpRight className="size-5" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stitch-background/85 via-stitch-background/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-end justify-center pb-12">
+          <span className="text-stitch-on-background font-semibold tracking-[0.22em] uppercase text-[11px] flex items-center gap-2 font-headline">
+            View details <ArrowUpRight className="size-4 text-stitch-primary-container" />
           </span>
         </div>
         <div className="absolute top-6 left-6 flex flex-col gap-2">
@@ -39,7 +39,7 @@ export const PackageCard = ({ title, duration, location, tag, price, image, href
       </div>
       <div className="flex justify-between items-start px-2">
         <div>
-          <h3 className="text-3xl font-bold mb-3 group-hover:text-stitch-primary transition-colors font-headline">
+          <h3 className="text-3xl font-bold mb-3 group-hover:text-stitch-primary transition-[color,letter-spacing] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:tracking-tight font-headline">
             {title}
           </h3>
           <p className="text-stitch-on-surface-variant flex items-center gap-3 font-medium font-body">

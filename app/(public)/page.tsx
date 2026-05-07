@@ -9,6 +9,8 @@ import { FeatureCard } from '@/components/landing/FeatureCard'
 import { TestimonialCard } from '@/components/landing/TestimonialCard'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 import { Footer } from '@/components/landing/Footer'
+import { Reveal } from '@/components/shared/Reveal'
+import { RevealStagger, RevealItem } from '@/components/shared/RevealStagger'
 
 export default function PublicPage() {
   const features = [
@@ -46,18 +48,20 @@ export default function PublicPage() {
       {/* Experiential Feature Grid */}
       <section className="py-40">
         <div className="max-w-screen-2xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, idx) => (
-              <FeatureCard key={idx} {...feature} />
+              <RevealItem key={idx}>
+                <FeatureCard {...feature} />
+              </RevealItem>
             ))}
-          </div>
+          </RevealStagger>
         </div>
       </section>
 
       {/* Trust-Boosted Testimonials */}
       <section className="py-40 bg-zinc-950">
         <div className="max-w-screen-2xl mx-auto px-8">
-          <div className="text-center mb-24 animate-in fade-in slide-in-from-bottom-5 duration-700">
+          <Reveal as="div" className="text-center mb-24">
             <h2 className="text-5xl font-bold mb-6 font-headline">Real Traveler Stories</h2>
             <div className="flex justify-center gap-1 text-stitch-primary">
               {[...Array(5)].map((_, i) => (
@@ -67,23 +71,27 @@ export default function PublicPage() {
             <p className="mt-4 text-stitch-on-surface-variant font-bold uppercase tracking-widest text-xs font-headline">
               Rated 4.9/5 by 5,000+ explorers
             </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-100">
-            <TestimonialCard 
-              name="Julian Marc"
-              location="Goa"
-              stats="Coastal Expedition '23"
-              quote="The booking experience was as premium as the caravan itself. Motohom thought of everything—from the solar-powered coffee machine to the pre-loaded offline maps. Truly a Tesla-level road trip experience."
-              image="https://lh3.googleusercontent.com/aida-public/AB6AXuC_kSJthIm3KhnzCDn-Tchbac-1-Rq51mGTCbfgLCVECw1GbHHy-StDnFQZHJeSWVlidXK0ERLuozhnKRfsvwq_OmFXkRMTrw6iTsthWeUhYEK1XFRV5n7xuWvKjfzDJOBDOvRydPpNpg8Ccm5NnypXGxSol0sxJcY1cWrIpacVHxB-wr4SxbbKZZsxMgjIl9sJWCJJfdAUkcEMcFkmqNY1tnJqr0bUh6joUS_Wnf1iKGkJ2UfZ1JYFA8NvJfhYLBg1qR6Q3B79aQw"
-            />
-            <TestimonialCard 
-              name="Elena Rodriguez"
-              location="Himachal"
-              stats="Mountain Trek '24"
-              quote="Traveling with our golden retriever used to be a challenge. Motohom's pet-friendly caravan made our Himalayan trip absolutely seamless. The layout was spacious and the heating system was incredible."
-              image="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiEwQjKnD3ndczUcWxQxmqkgTGDG3spaC6sHD5rzXarubjv-uXVRkeM0cq0QHt3sTZgFlREZZ8elkp_ZXD7ap0mGCpZqVgcKHVAq9_tJ-6n00euxZWFUcEH8W7EhGkEZw3kXJlIQG8RA3XQkaB1rcagodDf0dBLnaNdp06L6xwZ2bZgPx4UsBIgfFCg8uiacvf42f-x9QfNRdjkHAK4b1nZ_CXv1K6nfdnxkMnwXgbCCcrOm-fmElZvEdQBcqsLhQTK4lLxmQEQo"
-            />
-          </div>
+          </Reveal>
+          <RevealStagger className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <RevealItem>
+              <TestimonialCard 
+                name="Julian Marc"
+                location="Goa"
+                stats="Coastal Expedition '23"
+                quote="The booking experience was as premium as the caravan itself. Motohom thought of everything—from the solar-powered coffee machine to the pre-loaded offline maps. Truly a Tesla-level road trip experience."
+                image="https://lh3.googleusercontent.com/aida-public/AB6AXuC_kSJthIm3KhnzCDn-Tchbac-1-Rq51mGTCbfgLCVECw1GbHHy-StDnFQZHJeSWVlidXK0ERLuozhnKRfsvwq_OmFXkRMTrw6iTsthWeUhYEK1XFRV5n7xuWvKjfzDJOBDOvRydPpNpg8Ccm5NnypXGxSol0sxJcY1cWrIpacVHxB-wr4SxbbKZZsxMgjIl9sJWCJJfdAUkcEMcFkmqNY1tnJqr0bUh6joUS_Wnf1iKGkJ2UfZ1JYFA8NvJfhYLBg1qR6Q3B79aQw"
+              />
+            </RevealItem>
+            <RevealItem>
+              <TestimonialCard 
+                name="Elena Rodriguez"
+                location="Himachal"
+                stats="Mountain Trek '24"
+                quote="Traveling with our golden retriever used to be a challenge. Motohom's pet-friendly caravan made our Himalayan trip absolutely seamless. The layout was spacious and the heating system was incredible."
+                image="https://lh3.googleusercontent.com/aida-public/AB6AXuDPiEwQjKnD3ndczUcWxQxmqkgTGDG3spaC6sHD5rzXarubjv-uXVRkeM0cq0QHt3sTZgFlREZZ8elkp_ZXD7ap0mGCpZqVgcKHVAq9_tJ-6n00euxZWFUcEH8W7EhGkEZw3kXJlIQG8RA3XQkaB1rcagodDf0dBLnaNdp06L6xwZ2bZgPx4UsBIgfFCg8uiacvf42f-x9QfNRdjkHAK4b1nZ_CXv1K6nfdnxkMnwXgbCCcrOm-fmElZvEdQBcqsLhQTK4lLxmQEQo"
+              />
+            </RevealItem>
+          </RevealStagger>
         </div>
       </section>
 
