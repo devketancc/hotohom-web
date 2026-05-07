@@ -113,14 +113,26 @@ export async function getAdminCoupon(id: string): Promise<AdminCoupon> {
 export async function createAdminCoupon(payload: AdminCouponWritePayload): Promise<AdminCoupon> {
   const { data } = await apiClient.post<ApiResponse<unknown>>('/admin/coupons/create/', payload);
   const row = normalizeAdminCoupon(data?.data);
-  if (!row) throw new Error('Invalid create response.');
+  if (!row) {
+    // Admin write serializer can omit `id`; fallback by re-fetching the newest matching code.
+    const createdCode = payload.code.trim().toUpperCase();
+    if (createdCode) {
+      const latest = await listAdminCoupons({ code: createdCode, page: 1, page_size: 1 });
+      const match = latest.results.find((coupon) => coupon.code.toUpperCase() === createdCode);
+      if (match) return match;
+    }
+    throw new Error('Invalid create response.');
+  }
   return row;
 }
 
 export async function updateAdminCoupon(id: string, payload: Partial<AdminCouponWritePayload>): Promise<AdminCoupon> {
   const { data } = await apiClient.patch<ApiResponse<unknown>>(`/admin/coupons/${id}/`, payload);
   const row = normalizeAdminCoupon(data?.data);
-  if (!row) throw new Error('Invalid update response.');
+  if (!row) {
+    // PATCH response may come from write serializer without read-only fields like `id`.
+    return getAdminCoupon(id);
+  }
   return row;
 }
 
