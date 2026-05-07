@@ -1,11 +1,11 @@
 "use client"
 
-import { Home, Route, Heart, Wallet, Star } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
 import { Hero } from '@/components/landing/Hero'
 import { PackagesSection } from '@/components/landing/PackagesSection'
 import { JourneyTimeline } from '@/components/landing/JourneyTimeline'
-import { FeatureCard } from '@/components/landing/FeatureCard'
+import { FleetExperience } from '@/components/landing/FleetExperience'
 import { TestimonialCard } from '@/components/landing/TestimonialCard'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 import { Footer } from '@/components/landing/Footer'
@@ -13,29 +13,6 @@ import { Reveal } from '@/components/shared/Reveal'
 import { RevealStagger, RevealItem } from '@/components/shared/RevealStagger'
 
 export default function PublicPage() {
-  const features = [
-    {
-      title: "Stay in Comfort Anywhere",
-      description: "Turn any scenic vista into your living room with state-of-the-art kitchens and luxury bedding.",
-      icon: Home
-    },
-    {
-      title: "Go Wherever the Road Takes You",
-      description: "Ditch the rigid itineraries. Change your destination mid-trip with our real-time planning app.",
-      icon: Route
-    },
-    {
-      title: "Bring the Whole Family",
-      description: "No member left behind. Our pet-friendly fleet ensures your furry friends travel in luxury too.",
-      icon: Heart
-    },
-    {
-      title: "Honest, Clear Pricing",
-      description: "No surprises on the road. Insurance, taxes, and premium amenities are always included.",
-      icon: Wallet
-    }
-  ]
-
   return (
     <main className="bg-stitch-background text-stitch-on-background min-h-screen">
       <Navbar />
@@ -45,18 +22,7 @@ export default function PublicPage() {
 
       <JourneyTimeline />
 
-      {/* Experiential Feature Grid */}
-      <section className="py-40">
-        <div className="max-w-screen-2xl mx-auto px-8">
-          <RevealStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, idx) => (
-              <RevealItem key={idx}>
-                <FeatureCard {...feature} />
-              </RevealItem>
-            ))}
-          </RevealStagger>
-        </div>
-      </section>
+      <FleetExperience />
 
       {/* Trust-Boosted Testimonials */}
       <section className="py-40 bg-zinc-950">
