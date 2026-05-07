@@ -8,6 +8,7 @@ import {
   useTransform,
   useReducedMotion,
   useMotionValueEvent,
+  useSpring,
   AnimatePresence,
   type MotionValue,
 } from "motion/react"
@@ -21,6 +22,12 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { MagneticButton } from "@/components/shared/MagneticButton"
+import {
+  fleetPlateauInteriorKeys,
+  fleetProgressTickFillInputs,
+  fleetSlideOpacityInputs,
+  fleetSlideOpacityOutputs,
+} from "@/lib/fleet-scroll-tracks"
 
 const LUXURY_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -123,10 +130,6 @@ const SCENES: Scene[] = [
   },
 ]
 
-function clamp01(n: number) {
-  return n < 0 ? 0 : n > 1 ? 1 : n
-}
-
 type SceneLayerProps = {
   scene: Scene
   index: number
@@ -142,31 +145,30 @@ function SceneImageLayer({
   scrollYProgress,
   isFirst,
 }: SceneLayerProps) {
-  const step = 1 / total
-  const start = index * step
-  const end = start + step
+  const opacityIn = fleetSlideOpacityInputs(index, total)
+  const opacityOut = fleetSlideOpacityOutputs(index, total)
 
   const opacity = useTransform(
     scrollYProgress,
-    [start - 0.04, start + 0.06, end - 0.06, end + 0.04].map(clamp01),
-    [0, 1, 1, 0]
+    [...opacityIn],
+    [...opacityOut]
   )
   const scale = useTransform(
     scrollYProgress,
-    [start - 0.04, end + 0.04].map(clamp01),
-    [1.04, 1.1]
+    [opacityIn[1], opacityIn[2]],
+    [1.04, 1.085]
   )
-  const y = useTransform(
+  const ty = useTransform(
     scrollYProgress,
-    [start, end].map(clamp01),
-    [40, -40]
+    [opacityIn[1], opacityIn[2]],
+    [22, -18]
   )
 
   return (
     <motion.div
       aria-hidden
       className="absolute inset-0 will-change-[opacity,transform]"
-      style={{ opacity, scale, y }}
+      style={{ opacity, scale, y: ty }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -186,13 +188,13 @@ function AmbientTintLayer({
   total,
   scrollYProgress,
 }: SceneLayerProps) {
-  const step = 1 / total
-  const start = index * step
-  const end = start + step
+  const opacityIn = fleetSlideOpacityInputs(index, total)
+  const opacityOut = fleetSlideOpacityOutputs(index, total)
+
   const opacity = useTransform(
     scrollYProgress,
-    [start - 0.06, start + 0.08, end - 0.08, end + 0.06].map(clamp01),
-    [0, 1, 1, 0]
+    [...opacityIn],
+    [...opacityOut]
   )
 
   return (
@@ -217,29 +219,29 @@ function SceneCopy({
   total,
   scrollYProgress,
 }: SceneCopyProps) {
-  const step = 1 / total
-  const start = index * step
-  const end = start + step
+  const opacityIn = fleetSlideOpacityInputs(index, total)
+  const opacityOut = fleetSlideOpacityOutputs(index, total)
+  const micro = fleetPlateauInteriorKeys(opacityIn)
 
   const opacity = useTransform(
     scrollYProgress,
-    [start - 0.02, start + 0.08, end - 0.08, end + 0.02].map(clamp01),
-    [0, 1, 1, 0]
+    [...opacityIn],
+    [...opacityOut]
   )
   const titleClip = useTransform(
     scrollYProgress,
-    [start - 0.02, start + 0.12].map(clamp01),
+    [micro.clipA, micro.clipB],
     ["inset(0 0 100% 0)", "inset(0 0 0% 0)"]
   )
   const paragraphY = useTransform(
     scrollYProgress,
-    [start + 0.02, start + 0.14].map(clamp01),
-    [18, 0]
+    [micro.fadeFrom, micro.fadeThru],
+    [20, 0]
   )
   const featureY = useTransform(
     scrollYProgress,
-    [start + 0.06, start + 0.18].map(clamp01),
-    [22, 0]
+    [micro.staggerA, micro.staggerB],
+    [18, 0]
   )
 
   return (
@@ -309,14 +311,13 @@ function ProgressTick({
   total: number
   scrollYProgress: MotionValue<number>
 }) {
-  const step = 1 / total
-  const start = index * step
-  const end = start + step
-  const fill = useTransform(
-    scrollYProgress,
-    [start - 0.02, start + 0.04, end - 0.04, end + 0.02].map(clamp01),
-    ["0%", "100%", "100%", "100%"]
-  )
+  const fillIn = fleetProgressTickFillInputs(index, total)
+  const fill = useTransform(scrollYProgress, [...fillIn], [
+    "0%",
+    "100%",
+    "100%",
+    "100%",
+  ])
 
   return (
     <div className="relative h-[3px] w-10 overflow-hidden rounded-full bg-white/10 md:w-14">
@@ -428,8 +429,16 @@ function FleetExperienceScroll() {
     offset: ["start start", "end end"],
   })
 
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 58,
+    damping: 40,
+    mass: 0.42,
+    restDelta: 0.001,
+    restSpeed: 0.001,
+  })
+
   const [activeIndex, setActiveIndex] = React.useState(0)
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+  useMotionValueEvent(smoothProgress, "change", (latest) => {
     const total = SCENES.length
     const next = Math.min(total - 1, Math.max(0, Math.floor(latest * total)))
     setActiveIndex((prev) => (next !== prev ? next : prev))
@@ -453,7 +462,7 @@ function FleetExperienceScroll() {
               scene={scene}
               index={i}
               total={SCENES.length}
-              scrollYProgress={scrollYProgress}
+              scrollYProgress={smoothProgress}
               isFirst={i === 0}
             />
           ))}
@@ -469,7 +478,7 @@ function FleetExperienceScroll() {
               scene={scene}
               index={i}
               total={SCENES.length}
-              scrollYProgress={scrollYProgress}
+              scrollYProgress={smoothProgress}
               isFirst={i === 0}
             />
           ))}
@@ -481,7 +490,7 @@ function FleetExperienceScroll() {
               scene={scene}
               index={i}
               total={SCENES.length}
-              scrollYProgress={scrollYProgress}
+              scrollYProgress={smoothProgress}
             />
           ))}
 
@@ -513,7 +522,7 @@ function FleetExperienceScroll() {
           </div>
 
           {/* Layer 6: progress rail */}
-          <ProgressRail scrollYProgress={scrollYProgress} total={SCENES.length} />
+          <ProgressRail scrollYProgress={smoothProgress} total={SCENES.length} />
         </div>
       </div>
     </section>

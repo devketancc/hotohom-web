@@ -56,7 +56,7 @@ export interface FleetCaravanPage {
   results: FleetCaravanListItem[];
 }
 
-/** Derived view-model for /fleet index cards. */
+/** Derived view-model for /fleet index / detail. */
 export interface FleetClassSummary {
   klass: FleetCaravanClass;
   unitCount: number;
