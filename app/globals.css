@@ -106,6 +106,117 @@
   }
 }
 
+@utility luxury-glass {
+  background: rgba(28, 32, 37, 0.4);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 30px 80px -30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+@utility luxury-glass-focus {
+  &:focus-within {
+    border-color: rgba(229, 185, 92, 0.5);
+    box-shadow:
+      0 30px 80px -30px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(229, 185, 92, 0.15),
+      0 0 32px -8px rgba(229, 185, 92, 0.25);
+  }
+}
+
+@utility hero-vignette {
+  background:
+    radial-gradient(ellipse at top right, rgba(229, 185, 92, 0.18), transparent 55%),
+    linear-gradient(to right, rgba(11, 15, 20, 0.85) 0%, rgba(11, 15, 20, 0.3) 45%, transparent 75%),
+    linear-gradient(to bottom, transparent 40%, rgba(11, 15, 20, 0.5) 80%, #0B0F14 100%);
+}
+
+@utility hero-grain {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 200px 200px;
+  }
+}
+
+@utility hero-eyebrow-rule {
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 1px;
+    background: rgba(229, 185, 92, 0.5);
+    margin-right: 14px;
+    vertical-align: middle;
+  }
+}
+
+@utility booking-panel-reflection {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(
+      114deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.05) 28%,
+      rgba(255, 255, 255, 0) 56%
+    );
+    opacity: 0.5;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    bottom: -18px;
+    height: 42px;
+    pointer-events: none;
+    filter: blur(28px);
+    background: radial-gradient(ellipse at center, rgba(229, 185, 92, 0.25), transparent 72%);
+    opacity: 0.45;
+  }
+}
+
+@utility hero-ambient-shift {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12% -8%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 74% 22%, rgba(229, 185, 92, 0.16), transparent 56%),
+      radial-gradient(ellipse at 15% 74%, rgba(120, 153, 214, 0.12), transparent 60%);
+    animation: heroAmbientFloat 14s ease-in-out infinite alternate;
+    opacity: 0.9;
+  }
+}
+
+@keyframes heroAmbientFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0.8%, -1.2%, 0) scale(1.015);
+  }
+  100% {
+    transform: translate3d(-1.2%, 0.9%, 0) scale(1.025);
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
