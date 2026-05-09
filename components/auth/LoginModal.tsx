@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Clock, Send, X } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 
 export type LoginModalProps = {
   open: boolean;
@@ -306,9 +307,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
         <div className="glass-panel-login rounded-xl p-10 shadow-2xl">
           <div className="mb-8 flex justify-center">
-            <span className="font-headline text-3xl font-black uppercase tracking-tighter text-stitch-primary-container">
-              Motohom
-            </span>
+            <MotohomLogo className="h-9 w-auto max-w-[min(100%,18rem)] sm:h-10" blendOnDark />
           </div>
 
           {(step === 'login-phone' || step === 'register-form') && (

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useBookingStore } from '@/store/bookingStore';
@@ -9,6 +10,7 @@ import { useAddons } from '@/hooks/useAddons';
 import { cartService } from '@/services/cart.service';
 import { formatBookingTravelWindow } from '@/utils/format';
 import { AddonList } from '@/components/booking/AddonList';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 import {
   Edit2,
   Calendar,
@@ -816,14 +818,12 @@ export default function BookingSummaryPage() {
 
       <footer className="mt-20 border-t border-border/10 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2 opacity-50">
-            <div className="size-5 text-stitch-on-background">
-              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fillRule="evenodd"></path>
-              </svg>
-            </div>
-            <span className="text-sm font-headline font-bold tracking-widest">MOTOHOM</span>
-          </div>
+          <Link
+            href="/"
+            className="flex items-center opacity-50 transition-opacity hover:opacity-80"
+          >
+            <MotohomLogo className="h-5 w-auto max-w-[140px] sm:h-6" blendOnDark />
+          </Link>
           <p className="text-xs text-muted-foreground">© 2026 Motohom. All rights reserved.</p>
         </div>
       </footer>

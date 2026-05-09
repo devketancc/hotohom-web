@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { adminNavItemActive, getAdminNavTitle, getNavForRole, type AdminNavItem } from '@/config/adminNav';
 import { AdminReferencePrefetch } from '@/components/admin/AdminReferencePrefetch';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 
 function NavItemRow({
   item,
@@ -96,10 +97,12 @@ export function AdminDashboardShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
         <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-          <span className="font-heading text-lg font-bold tracking-tight">Motohom</span>
-          <span className="rounded-md border border-sidebar-border bg-sidebar-accent/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-sidebar-accent-foreground">
-            Staff
-          </span>
+          <Link href="/admin" className="flex min-w-0 flex-1 items-center gap-2">
+            <MotohomLogo className="h-6 w-auto max-w-[9rem] shrink-0" blendOnDark />
+            <span className="rounded-md border border-sidebar-border bg-sidebar-accent/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-sidebar-accent-foreground">
+              Staff
+            </span>
+          </Link>
         </div>
         <div className="flex-1 overflow-y-auto py-4">
           <p className="px-4 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Menu</p>
@@ -126,12 +129,12 @@ export function AdminDashboardShell({ children }: { children: ReactNode }) {
           />
           <div className="absolute left-0 top-0 flex h-full w-[min(18rem,92vw)] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-2xl">
             <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
-              <div className="flex items-center gap-2">
-                <span className="font-heading text-sm font-bold">Motohom</span>
+              <Link href="/admin" className="flex min-w-0 items-center gap-2">
+                <MotohomLogo className="h-5 w-auto max-w-[7rem] shrink-0" blendOnDark />
                 <span className="rounded bg-sidebar-accent/60 px-1.5 py-0.5 text-[9px] font-bold uppercase text-sidebar-accent-foreground">
                   Staff
                 </span>
-              </div>
+              </Link>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}

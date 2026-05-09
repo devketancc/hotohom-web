@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock, Send } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 import { cn } from '@/lib/utils';
 import { isStaffRole } from '@/lib/staffRoles';
 
@@ -199,9 +200,9 @@ export function StaffLoginClient() {
       <div className="mb-8 text-center">
         <Link
           href="/"
-          className="font-headline text-3xl font-black uppercase tracking-tighter text-stitch-primary-container"
+          className="inline-flex items-center justify-center transition-opacity hover:opacity-90"
         >
-          Motohom
+          <MotohomLogo className="h-9 w-auto max-w-[min(100%,16rem)] sm:h-10" blendOnDark />
         </Link>
         <p className="mt-2 font-body text-xs font-semibold uppercase tracking-widest text-stitch-on-surface-variant">
           Staff

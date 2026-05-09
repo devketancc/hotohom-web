@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ContextBar } from '@/components/booking/ContextBar';
 import { HubLocationBackfill } from '@/components/booking/HubLocationBackfill';
 import { Bell, HelpCircle } from 'lucide-react';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 import { NavbarAuthCluster } from '@/components/layout/NavbarAuthCluster';
 
 export type BookingFlowShellProps = {
@@ -17,8 +18,8 @@ export function BookingFlowShell({ children, showContextBar = true }: BookingFlo
       <HubLocationBackfill />
       <header className="bg-stitch-background border-b border-border/10 sticky top-0 z-50">
         <div className="max-w-screen-2xl mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-black tracking-tighter text-primary uppercase font-manrope">
-            MOTOHOM
+          <Link href="/" className="inline-flex shrink-0 items-center transition-opacity hover:opacity-90">
+            <MotohomLogo className="h-7 w-auto max-w-[160px]" blendOnDark />
           </Link>
 
           <nav className="hidden md:flex gap-8 items-center">

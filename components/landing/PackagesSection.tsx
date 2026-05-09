@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
 import {
   PackageShowcaseCard,
-  sizeForIndex,
   taglineForIndex,
 } from '@/components/landing/PackageShowcaseCard';
 import { Reveal } from '@/components/shared/Reveal';
@@ -18,14 +17,17 @@ const FALLBACK_PACKAGE_IMAGE =
 
 const ALL_HUBS = '';
 
-const selectClass =
-  'rounded-xl border border-[var(--color-line-strong)] bg-[var(--color-surface-1)]/55 px-4 py-2.5 text-sm font-medium text-stitch-on-background outline-none transition-[border-color,box-shadow] duration-500 focus:border-[color:var(--color-gold)]/50 focus:ring-[3px] focus:ring-[color:var(--color-gold)]/15 disabled:cursor-not-allowed disabled:opacity-50';
 
 export function PackagesSection() {
   const [selectedHubId, setSelectedHubId] = useState<string>(ALL_HUBS);
   const [selectedClassCode, setSelectedClassCode] = useState('');
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     data: hubs,
@@ -116,201 +118,188 @@ export function PackagesSection() {
   }, []);
 
   return (
-    <section id="packages" className="section-ambient-warm bg-stitch-background py-32 md:py-40 overflow-hidden">
-      <div className="mx-auto max-w-screen-2xl px-6 md:px-10">
-        <div className="grid items-start gap-14 lg:grid-cols-12 lg:gap-12 xl:gap-16">
-          {/* Editorial column */}
-          <div className="flex flex-col justify-between gap-12 lg:col-span-4 lg:min-h-[min(70vh,600px)]">
-            <div>
-              <Reveal as="div">
-                <span className="font-headline text-[10px] font-semibold uppercase tracking-[0.42em] text-stitch-primary-container/90">
-                  Signature Journeys
-                </span>
-                <h2 className="mt-5 font-headline text-4xl font-semibold leading-[0.98] tracking-[-0.035em] text-stitch-on-background md:text-5xl lg:text-[3.25rem]">
-                  Handpicked Escapes
-                </h2>
-                <p className="mt-8 max-w-md font-body text-base leading-relaxed text-stitch-on-surface-variant/85 md:text-[17px]">
-                  A living gallery of journeys—each framed like a travel film still, each route written with room for
-                  awe, pause, and the quiet luxury of choosing your own horizon.
-                </p>
-              </Reveal>
+    <section id="packages" suppressHydrationWarning className="relative min-h-screen overflow-hidden bg-stitch-background py-32 md:py-48">
+      {!mounted ? null : (
+        <>
+          {/* Cinematic Top Blending */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-64 bg-gradient-to-b from-stitch-background via-stitch-background/80 to-transparent" />
+          
+          <div suppressHydrationWarning className="relative z-30 mx-auto max-w-[1920px] px-6 md:px-12">
+            {/* Editorial Header & Filters Row */}
+            <div suppressHydrationWarning className="mb-20 flex flex-col items-end justify-between gap-12 lg:flex-row lg:items-end">
+          <Reveal as="div" className="flex flex-col items-start text-left">
+            <span className="mb-6 font-headline text-[9px] font-bold uppercase tracking-[0.5em] text-stitch-primary-container/60">
+              Signature Journeys
+            </span>
+            <h2 className="font-headline text-5xl font-bold leading-[1] tracking-[-0.04em] text-white md:text-7xl">
+              Handpicked <br /> Escapes
+            </h2>
+            <p className="mt-8 max-w-lg font-body text-base leading-relaxed text-white/40 md:text-lg">
+              A curated anthology of experiences—each framed like a film still, crafted for those who find luxury in the quiet choosing of their own horizon.
+            </p>
+          </Reveal>
 
-              <Reveal as="div" delay={0.12} className="mt-10">
-                <div className="surface-glass rounded-2xl p-4 md:p-5">
-                  <p className="font-headline text-[10px] font-semibold uppercase tracking-[0.28em] text-stitch-on-surface-variant/60">
-                    Refine
-                  </p>
-                  <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-                    <label className="flex min-w-0 flex-1 flex-col gap-2 font-headline text-[10px] font-semibold uppercase tracking-[0.2em] text-stitch-on-surface-variant/75">
-                      Hub
-                      <select
-                        className={selectClass}
-                        value={selectedHubId}
-                        onChange={(e) => {
-                          setSelectedHubId(e.target.value);
-                          setSelectedClassCode('');
-                        }}
-                        disabled={hubsLoading || !!hubsError || !hubs?.length}
-                      >
-                        <option value={ALL_HUBS}>All hubs</option>
-                        {hubs?.map((h) => (
-                          <option key={h.id} value={h.id}>
-                            {h.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="flex min-w-0 flex-1 flex-col gap-2 font-headline text-[10px] font-semibold uppercase tracking-[0.2em] text-stitch-on-surface-variant/75">
-                      Fleet class
-                      <select
-                        className={selectClass}
-                        value={selectedClassCode}
-                        onChange={(e) => setSelectedClassCode(e.target.value)}
-                        disabled={!packagesEnabled || listLoading || classOptions.length === 0}
-                      >
-                        <option value="">All classes</option>
-                        {classOptions.map((code) => (
-                          <option key={code} value={code}>
-                            Class {code}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </div>
-              </Reveal>
+          {/* Luxury Dropdown Filters (Refined) */}
+          <Reveal as="div" delay={0.2} className="flex flex-wrap items-center gap-4">
+            <div className="relative group">
+              <select
+                value={selectedHubId}
+                onChange={(e) => {
+                  setSelectedHubId(e.target.value);
+                  setSelectedClassCode('');
+                }}
+                className="appearance-none rounded-2xl border border-white/5 bg-white/[0.03] px-6 py-4 pr-12 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 outline-none backdrop-blur-3xl transition-all duration-700 hover:border-white/10 hover:bg-white/[0.06] hover:text-white/70 focus:border-stitch-primary-container/30 focus:text-white"
+              >
+                <option value={ALL_HUBS} className="bg-stitch-background">All Locations</option>
+                {hubs?.map((h) => (
+                  <option key={h.id} value={h.id} className="bg-stitch-background">
+                    {h.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-hover:text-white/40">
+                <svg className="size-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </div>
             </div>
 
-            <Reveal as="div" delay={0.2} className="flex flex-col gap-6">
-              <div className="flex items-center gap-3">
+            <div className="relative group">
+              <select
+                value={selectedClassCode}
+                onChange={(e) => setSelectedClassCode(e.target.value)}
+                className="appearance-none rounded-2xl border border-white/5 bg-white/[0.03] px-6 py-4 pr-12 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 outline-none backdrop-blur-3xl transition-all duration-700 hover:border-white/10 hover:bg-white/[0.06] hover:text-white/70 focus:border-stitch-primary-container/30 focus:text-white"
+              >
+                <option value="" className="bg-stitch-background">All Classes</option>
+                {classOptions.map((code) => (
+                  <option key={code} value={code} className="bg-stitch-background">
+                    Class {code}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-hover:text-white/40">
+                <svg className="size-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Cinematic Carousel Container */}
+        <div className="relative w-full overflow-visible py-8">
+          {hubsError && (
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-10 text-center">
+              <AlertCircle className="size-10 text-red-400" />
+              <p className="font-body text-stitch-on-surface-variant">Could not load hubs.</p>
+              <button
+                type="button"
+                onClick={() => refetchHubs()}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors hover:border-stitch-primary hover:text-stitch-primary"
+              >
+                <RefreshCw className="size-4" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!hubsLoading && !hubsError && !hubs?.length && (
+            <p className="flex min-h-[320px] items-center justify-center text-center font-body text-stitch-on-surface-variant">
+              No hubs available yet.
+            </p>
+          )}
+
+          {listError && packagesEnabled && (
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-10 text-center">
+              <AlertCircle className="size-10 text-red-400" />
+              <p className="font-body text-stitch-on-surface-variant">Could not load packages.</p>
+              <button
+                type="button"
+                onClick={() => refetchList()}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors hover:border-stitch-primary hover:text-stitch-primary"
+              >
+                <RefreshCw className="size-4" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {listLoading && packagesEnabled && !listError && (
+            <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
+              <Loader2 className="size-10 animate-spin text-stitch-primary" />
+              <span className="font-body text-sm font-medium text-stitch-on-surface-variant">Curating journeys…</span>
+            </div>
+          )}
+
+          {!listLoading && !listError && packagesEnabled && displayPackages.length === 0 && (
+            <p className="flex min-h-[320px] items-center justify-center px-4 text-center font-body text-stitch-on-surface-variant">
+              No packages match these filters.
+            </p>
+          )}
+
+          {!listLoading && !listError && displayPackages.length > 0 && (
+            <div
+              ref={scrollerRef}
+              className="flex snap-x snap-mandatory items-center gap-10 overflow-x-auto overflow-y-visible pb-12 pt-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              style={{ scrollBehavior: 'smooth' }}
+            >
+              {displayPackages.map((pkg, index) => (
+                <PackageShowcaseCard
+                  key={pkg.id}
+                  href={`/packages/${pkg.id}`}
+                  title={pkg.name}
+                  duration={`${pkg.duration_days} ${pkg.duration_days === 1 ? 'day' : 'days'}`}
+                  location={pkg.home_hub_name}
+                  tag={`Class ${pkg.caravan_class_code}`}
+                  price={
+                    Number.isFinite(Number.parseFloat(pkg.base_price))
+                      ? formatCurrency(Number.parseFloat(pkg.base_price))
+                      : '—'
+                  }
+                  image={pkg.thumbnail_url?.trim() ? pkg.thumbnail_url : FALLBACK_PACKAGE_IMAGE}
+                  tagline={taglineForIndex(index)}
+                  index={index}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Floating Navigation Controls */}
+          {!listLoading && !listError && displayPackages.length > 0 && (
+            <>
+              <div className="pointer-events-none absolute left-0 top-1/2 z-40 flex w-full -translate-y-1/2 items-center justify-between px-4 md:px-8">
                 <button
                   type="button"
                   aria-label="Previous journeys"
                   onClick={() => scrollCarousel(-1)}
-                  className="inline-flex size-12 items-center justify-center rounded-full border border-[var(--color-line-strong)] bg-[var(--color-surface-1)]/40 text-stitch-on-background shadow-luxury-sm transition-[transform,box-shadow,border-color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-stitch-primary-container/35 hover:bg-stitch-primary-container/10 hover:shadow-glow-gold disabled:opacity-35 disabled:hover:translate-y-0"
+                  className="group pointer-events-auto flex size-14 items-center justify-center rounded-full border border-white/5 bg-black/20 text-white backdrop-blur-xl transition-all duration-500 hover:border-stitch-primary-container/40 hover:bg-black/40 hover:shadow-glow-gold disabled:opacity-0"
+                  disabled={scrollProgress <= 0.01}
                 >
-                  <ChevronLeft className="size-5" />
+                  <ChevronLeft className="size-6 transition-transform duration-500 group-hover:-translate-x-1" />
                 </button>
                 <button
                   type="button"
                   aria-label="Next journeys"
                   onClick={() => scrollCarousel(1)}
-                  className="inline-flex size-12 items-center justify-center rounded-full border border-stitch-primary-container/30 bg-stitch-primary-container/90 font-headline text-[10px] font-semibold uppercase tracking-[0.2em] text-stitch-on-primary-container shadow-[0_12px_40px_-18px_rgba(229,185,92,0.55)] transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-35 disabled:hover:translate-y-0"
+                  className="group pointer-events-auto flex size-14 items-center justify-center rounded-full border border-white/5 bg-black/20 text-white backdrop-blur-xl transition-all duration-500 hover:border-stitch-primary-container/40 hover:bg-black/40 hover:shadow-glow-gold disabled:opacity-0"
+                  disabled={scrollProgress >= 0.99}
                 >
-                  <ChevronRight className="size-5" />
+                  <ChevronRight className="size-6 transition-transform duration-500 group-hover:translate-x-1" />
                 </button>
               </div>
+            </>
+          )}
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between font-headline text-[10px] font-medium uppercase tracking-[0.28em] text-stitch-on-surface-variant/55">
-                  <span>Scroll</span>
-                  <span className="tabular-nums text-stitch-primary-container/80">
-                    {displayPackages.length > 0
-                      ? `${Math.round(scrollProgress * 100)}%`
-                      : '—'}
-                  </span>
-                </div>
-                <div className="h-px w-full overflow-hidden rounded-full bg-[var(--color-line)]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-stitch-primary-container/25 via-stitch-primary-container to-stitch-primary-container/40 transition-[width] duration-300 ease-out"
-                    style={{ width: `${Math.max(8, scrollProgress * 100)}%` }}
-                  />
-                </div>
-              </div>
-            </Reveal>
+          {/* Interaction Feedback Overlay removed per request */}
+
+          {/* Background Atmospheric Elements */}
+          <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 opacity-20 blur-[120px]" aria-hidden>
+             <div className="size-[600px] rounded-full bg-stitch-primary-container/10" />
           </div>
-
-          {/* Cinematic carousel */}
-          <div className="relative min-h-[min(68vh,560px)] lg:col-span-8">
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 z-20 w-16 bg-gradient-to-r from-stitch-background via-stitch-background/80 to-transparent md:w-24"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-stitch-background to-transparent"
-              aria-hidden
-            />
-
-            {hubsError && (
-              <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-10 text-center">
-                <AlertCircle className="size-10 text-red-400" />
-                <p className="text-stitch-on-surface-variant font-body">Could not load hubs.</p>
-                <button
-                  type="button"
-                  onClick={() => refetchHubs()}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider hover:border-stitch-primary hover:text-stitch-primary transition-colors"
-                >
-                  <RefreshCw className="size-4" />
-                  Retry
-                </button>
-              </div>
-            )}
-
-            {!hubsLoading && !hubsError && !hubs?.length && (
-              <p className="flex min-h-[320px] items-center justify-center text-center text-stitch-on-surface-variant font-body">
-                No hubs available yet.
-              </p>
-            )}
-
-            {listError && packagesEnabled && (
-              <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-10 text-center">
-                <AlertCircle className="size-10 text-red-400" />
-                <p className="text-stitch-on-surface-variant font-body">Could not load packages.</p>
-                <button
-                  type="button"
-                  onClick={() => refetchList()}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider hover:border-stitch-primary hover:text-stitch-primary transition-colors"
-                >
-                  <RefreshCw className="size-4" />
-                  Retry
-                </button>
-              </div>
-            )}
-
-            {listLoading && packagesEnabled && !listError && (
-              <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-                <Loader2 className="size-10 animate-spin text-stitch-primary" />
-                <span className="text-sm font-medium text-stitch-on-surface-variant font-body">Curating journeys…</span>
-              </div>
-            )}
-
-            {!listLoading && !listError && packagesEnabled && displayPackages.length === 0 && (
-              <p className="flex min-h-[320px] items-center justify-center text-center text-stitch-on-surface-variant font-body px-4">
-                No packages match these filters.
-              </p>
-            )}
-
-            {!listLoading && !listError && displayPackages.length > 0 && (
-              <div
-                ref={scrollerRef}
-                className="flex h-full snap-x snap-mandatory gap-5 overflow-x-auto overflow-y-visible pb-8 pl-1 pr-6 pt-4 md:gap-7 md:pl-2 md:pr-8 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                style={{ scrollBehavior: 'smooth' }}
-              >
-                {displayPackages.map((pkg, index) => (
-                  <PackageShowcaseCard
-                    key={pkg.id}
-                    href={`/packages/${pkg.id}`}
-                    title={pkg.name}
-                    duration={`${pkg.duration_days} ${pkg.duration_days === 1 ? 'day' : 'days'}`}
-                    location={pkg.home_hub_name}
-                    tag={`Class ${pkg.caravan_class_code}`}
-                    price={
-                      Number.isFinite(Number.parseFloat(pkg.base_price))
-                        ? formatCurrency(Number.parseFloat(pkg.base_price))
-                        : '—'
-                    }
-                    image={pkg.thumbnail_url?.trim() ? pkg.thumbnail_url : FALLBACK_PACKAGE_IMAGE}
-                    tagline={taglineForIndex(index)}
-                    size={sizeForIndex(index)}
-                    index={index}
-                  />
-                ))}
-                <div className="w-4 shrink-0 snap-none md:w-12" aria-hidden />
-              </div>
-            )}
+          <div className="pointer-events-none absolute right-0 top-1/3 opacity-10 blur-[150px]" aria-hidden>
+             <div className="size-[800px] rounded-full bg-stitch-primary-container/15" />
           </div>
         </div>
       </div>
+        </>
+      )}
     </section>
+
   );
 }

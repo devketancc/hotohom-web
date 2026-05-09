@@ -36,6 +36,8 @@ export const metadata: Metadata = {
   description: 'Premium Booking Platform',
 };
 
+import { SmoothScroll } from '@/components/shared/SmoothScroll';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,10 +49,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`dark ${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable} ${fleetSerif.variable}`}
     >
-      <body className="antialiased min-h-screen bg-background text-foreground flex flex-col font-sans">
-        <Providers>
-          {children}
-        </Providers>
+      <body className="antialiased min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
+        <SmoothScroll>
+          <Providers>
+            {children}
+          </Providers>
+        </SmoothScroll>
         <LoginModalHost />
       </body>
     </html>
