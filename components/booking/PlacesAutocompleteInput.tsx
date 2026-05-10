@@ -58,11 +58,11 @@ export function PlacesAutocompleteInput({
           const types = Array.isArray(place.types) ? [...place.types] : [];
 
           // Identify if the location is a specific point vs a broad region
-          const isPrecise = types.some((t) => 
+          const isPrecise = types.some((t) =>
             ['establishment', 'point_of_interest', 'street_address', 'premise', 'subpremise', 'route', 'airport', 'park', 'sublocality', 'neighborhood'].includes(t)
           );
-          
-          const isGeneric = types.some((t) => 
+
+          const isGeneric = types.some((t) =>
             ['locality', 'administrative_area_level_1', 'administrative_area_level_2', 'country', 'political', 'postal_code'].includes(t)
           );
 
@@ -130,7 +130,7 @@ export function PlacesAutocompleteInput({
           className="bg-transparent border-none focus:ring-0 w-full text-stitch-on-surface placeholder:text-stitch-surface-highest/60 font-medium"
         />
       </div>
-      
+
       {error && (
         <div className="absolute top-full left-10 mt-2 text-[10px] font-medium uppercase tracking-wider text-red-400 animate-in fade-in slide-in-from-top-1 duration-200">
           {error}
