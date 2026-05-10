@@ -8,11 +8,7 @@ export const HUB_COLUMN_SHELL =
 
 /**
  * Travel dates — md+ left border must stay vertical (no rounded corners on the left).
- * Mobile stays fully rounded when stacked.
+ * Now follows the hub directly, so we keep the left border and rounding logic.
  */
 export const DATE_COLUMN_SHELL =
   'flex-1 flex min-h-[74px] items-stretch rounded-2xl md:rounded-l-none md:rounded-r-2xl md:border-l-2 md:border-[var(--color-line-gold)]'
-
-/** Guests — straight divider; md row keeps square corners until inner buttons shape hover surface */
-export const GUESTS_COLUMN_SHELL =
-  'relative flex-1 min-h-[74px] rounded-2xl md:rounded-none md:border-l-2 md:border-[var(--color-line-gold)]'

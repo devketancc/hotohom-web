@@ -73,6 +73,7 @@ function HeroBackgroundVideos({
   const orderRef = React.useRef<HeroClipDef[]>([])
   const [clipIndex, setClipIndex] = React.useState(0)
   const [playlistReady, setPlaylistReady] = React.useState(false)
+  const [videoReady, setVideoReady] = React.useState(false)
 
   React.useEffect(() => {
     orderRef.current = shuffleClips(HERO_CLIP_DEFS)
@@ -83,6 +84,7 @@ function HeroBackgroundVideos({
     if (!playlistReady || orderRef.current.length === 0) return
     const clip = orderRef.current[clipIndex]
     if (clip) onActiveClip(clip)
+    setVideoReady(false) // Reset for next clip
   }, [clipIndex, playlistReady, onActiveClip])
 
   const handleEnded = React.useCallback(() => {
@@ -96,43 +98,58 @@ function HeroBackgroundVideos({
     })
   }, [])
 
-  if (!playlistReady || orderRef.current.length === 0) {
-    return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        alt=""
-        className="h-full w-full object-cover object-[60%_35%]"
-        src={poster}
-      />
-    )
-  }
+  const handleCanPlay = React.useCallback(() => {
+    setVideoReady(true)
+  }, [])
 
-  const src = orderRef.current[clipIndex]?.src ?? orderRef.current[0].src
+  const src = orderRef.current[clipIndex]?.src ?? orderRef.current[0]?.src
 
   return (
-    <video
-      key={`${clipIndex}-${src}`}
-      aria-hidden
-      autoPlay
-      className="h-full w-full object-cover object-[60%_35%]"
-      disablePictureInPicture
-      muted
-      playsInline
-      poster={poster}
-      preload="auto"
-      onEnded={handleEnded}
-    >
-      <source src={src} type="video/mp4" />
-    </video>
+    <div className="relative h-full w-full overflow-hidden">
+      {/* Permanent Poster / Fallback Layer */}
+      <img
+        alt=""
+        src={poster}
+        className={`absolute inset-0 h-full w-full object-cover object-[60%_35%] transition-opacity duration-1000 ${
+          videoReady ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+      
+      {playlistReady && orderRef.current.length > 0 && (
+        <video
+          key={`${clipIndex}-${src}`}
+          aria-hidden
+          autoPlay
+          muted
+          playsInline
+          loop={false}
+          className={`h-full w-full object-cover object-[60%_35%] transition-opacity duration-1000 ${
+            videoReady ? 'opacity-100' : 'opacity-0'
+          }`}
+          disablePictureInPicture
+          poster={poster}
+          preload="metadata"
+          onEnded={handleEnded}
+          onCanPlay={handleCanPlay}
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      )}
+    </div>
   )
 }
 
 export const Hero = () => {
   const reducedMotion = useReducedMotion()
+  const [mounted, setMounted] = React.useState(false)
   const [activeHeadline, setActiveHeadline] = React.useState<React.ReactNode>(
     HERO_CLIP_DEFS[0].headline
   )
   const [activeClipSrc, setActiveClipSrc] = React.useState(HERO_CLIP_DEFS[0].src)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const onActiveClip = React.useCallback((clip: HeroClipDef) => {
     setActiveHeadline(clip.headline)
@@ -141,9 +158,9 @@ export const Hero = () => {
 
   return (
     <section className="hero-grain hero-ambient-shift hero-ambient-counter relative min-h-[100svh] w-full overflow-hidden">
-      {/* Background: shuffled hero clips (no repeat until all three play); static image if reduced motion */}
+      {/* Background: shuffled hero clips (no repeat until all three play); static image if reduced motion or server-rendering */}
       <div className="absolute inset-0 z-0">
-        {reducedMotion ? (
+        {!mounted || reducedMotion ? (
           <img
             alt="Cinematic luxury caravan driving through scenic mountains at sunset"
             className="hero-kenburns h-full w-full object-cover object-[60%_35%]"
@@ -195,30 +212,6 @@ export const Hero = () => {
 
           <Reveal as="p" delay={0.18} y={14} className="mt-10 max-w-xl font-body text-base md:text-lg leading-relaxed text-stitch-on-surface-variant/80">
             Curated caravan journeys and immersive travel experiences designed for modern explorers.
-          </Reveal>
-
-          <Reveal as="div" delay={0.32} y={14} className="mt-12 flex flex-wrap items-center gap-4">
-            <MagneticButton>
-              <Link
-                href="/journeys"
-                className="group inline-flex items-center gap-3 rounded-full bg-stitch-primary-container px-8 py-4 font-headline text-[12px] font-semibold uppercase tracking-[0.18em] text-stitch-on-primary-container shadow-[0_10px_30px_-15px_rgba(229,185,92,0.5)] transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_50px_-15px_rgba(229,185,92,0.65)] hover:brightness-105"
-              >
-                Explore Journeys
-                <ArrowUpRight className="size-4 transition-transform duration-500 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </MagneticButton>
-            <Link
-              href="/fleet"
-              className="group inline-flex items-center gap-3 rounded-full border border-white/15 px-8 py-4 font-headline text-[12px] font-semibold uppercase tracking-[0.18em] text-stitch-on-background/90 transition-all duration-500 ease-out hover:border-white/30 hover:bg-white/[0.04] hover:text-stitch-on-background"
-            >
-              View Fleet
-              <span
-                aria-hidden
-                className="inline-block transition-transform duration-500 ease-out group-hover:translate-x-1"
-              >
-                →
-              </span>
-            </Link>
           </Reveal>
         </div>
 

@@ -3,7 +3,6 @@
 import {
   BOOKING_PANEL_CLASS,
   DATE_COLUMN_SHELL,
-  GUESTS_COLUMN_SHELL,
   HUB_COLUMN_SHELL,
 } from './booking-control-classes'
 
@@ -13,7 +12,6 @@ export function BookingControlPlaceholder() {
     <div className={BOOKING_PANEL_CLASS}>
       <div className={`${HUB_COLUMN_SHELL} bg-white/[0.03]`} />
       <div className={`${DATE_COLUMN_SHELL} bg-white/[0.03]`} />
-      <div className={`${GUESTS_COLUMN_SHELL} bg-white/[0.03]`} />
       <div className="md:ml-2 min-h-[74px] shrink-0 rounded-2xl bg-[var(--color-gold)]/35 px-10 md:flex md:min-w-fit md:items-center md:justify-center" />
     </div>
   )
