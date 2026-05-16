@@ -34,10 +34,13 @@ export function BookingDetailFullView({
   booking,
   backHref,
   backLabel,
+  showPricing = true,
 }: {
   booking: BookingDetailLike;
   backHref?: string;
   backLabel?: string;
+  /** When false, hides rate snapshot and payment summary (crew portal). */
+  showPricing?: boolean;
 }) {
   const stops = sortedStops(booking.stops);
   const trip = booking.trip;
@@ -195,6 +198,7 @@ export function BookingDetailFullView({
         </ol>
       </section>
 
+      {showPricing ? (
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="glass-card space-y-4 rounded-xl p-6">
           <h2 className="font-headline text-lg font-bold text-stitch-on-background">Rate snapshot</h2>
@@ -228,6 +232,7 @@ export function BookingDetailFullView({
           </div>
         </section>
       </div>
+      ) : null}
 
       {trip ? (
         <section className="glass-card space-y-6 rounded-xl p-6">

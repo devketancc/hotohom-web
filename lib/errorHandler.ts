@@ -43,8 +43,19 @@ function buildRejectionError(error: unknown): Error & { code?: string } {
  * Maps API failures to an Error with backend `message` and optional Motohom `code`
  * (e.g. INVALID_DATE, RANGE_TOO_LARGE).
  */
+function shouldLogApiError(error: unknown): boolean {
+  if (!isAxiosError(error)) return true;
+  const status = error.response?.status;
+  const url = error.config?.url ?? '';
+  // Crew roster/calendar 404s are expected until endpoints deploy or during roster→calendar fallback.
+  if (status === 404 && url.includes('/crew/')) return false;
+  return true;
+}
+
 export function toRejectionError(error: unknown): Error & { code?: string } {
-  logger.error('API Error occurred', error);
+  if (shouldLogApiError(error)) {
+    logger.error('API Error occurred', error);
+  }
   return buildRejectionError(error);
 }
 
