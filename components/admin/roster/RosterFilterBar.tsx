@@ -1,5 +1,6 @@
 'use client';
 
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AdminHub } from '@/types/admin';
@@ -120,20 +121,34 @@ export function RosterFilterBar({
             type="button"
             role="switch"
             aria-checked={alertsOnly}
+            aria-label="Show only bookings with alerts"
             onClick={() => onAlertsOnlyChange(!alertsOnly)}
             className={cn(
-              'relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full border border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
-              alertsOnly ? 'bg-zinc-700' : 'bg-zinc-900/60'
+              'relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20',
+              alertsOnly
+                ? 'border-amber-500/40 bg-amber-950/80'
+                : 'border-white/20 bg-zinc-800/90'
             )}
           >
             <span
               className={cn(
-                'pointer-events-none absolute top-0.5 left-0.5 size-5 rounded-full bg-background shadow transition-transform',
-                alertsOnly && 'translate-x-4'
+                'pointer-events-none absolute top-0.5 left-0.5 size-5 rounded-full shadow transition-transform',
+                alertsOnly ? 'translate-x-4 bg-amber-200/90' : 'bg-zinc-300'
               )}
             />
           </button>
-          <span className="text-xs text-zinc-300">Show only bookings with alerts</span>
+          <span
+            className={cn(
+              'flex items-center gap-1 text-xs',
+              alertsOnly ? 'text-amber-200/90' : 'text-zinc-400'
+            )}
+          >
+            <AlertTriangle
+              className={cn('size-3 shrink-0 opacity-80', alertsOnly && 'text-amber-400/80')}
+              aria-hidden
+            />
+            Alerts only
+          </span>
         </div>
       </div>
       {rangeError ? (

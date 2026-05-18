@@ -570,7 +570,7 @@ export default function BookingSummaryPage() {
 
               {pb.razorpay_charges > 0 && (
                 <div className="flex justify-between gap-3 text-sm">
-                  <span className="text-muted-foreground">Razorpay charges</span>
+                  <span className="text-muted-foreground">Payment processing fee</span>
                   <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.razorpay_charges)}</span>
                 </div>
               )}

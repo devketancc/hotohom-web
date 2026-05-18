@@ -91,7 +91,12 @@ export default function AdminBookingDetailPage() {
           </Link>
         </div>
       ) : null}
-      <BookingDetailFullView booking={data} backHref="/admin/roster" backLabel="← Back to roster" />
+      <BookingDetailFullView
+        booking={data}
+        backHref="/admin/roster"
+        backLabel="← Back to roster"
+        variant="admin"
+      />
     </div>
   );
 }

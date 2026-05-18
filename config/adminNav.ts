@@ -10,6 +10,7 @@ import {
   Wallet,
   LifeBuoy,
   TicketPercent,
+  PackagePlus,
 } from 'lucide-react';
 
 export type AdminNavBadge = 'soon';
@@ -32,6 +33,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { id: 'caravans', label: 'Caravans', href: '/admin/caravans', icon: Truck },
   { id: 'staff', label: 'Staff', href: '/admin/staff', icon: Users },
   { id: 'coupons', label: 'Coupons', href: '/admin/coupons', icon: TicketPercent },
+  { id: 'addons', label: 'Add-ons', href: '/admin/addons', icon: PackagePlus },
   {
     id: 'operations',
     label: 'Operations',

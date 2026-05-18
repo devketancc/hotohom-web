@@ -6,10 +6,10 @@ import { MotohomLogo } from '@/components/brand/MotohomLogo';
 import { NavbarAuthCluster } from '@/components/layout/NavbarAuthCluster';
 
 const NAV_ITEMS = [
-  { label: 'Journeys', href: '/journeys' },
   { label: 'Fleet', href: '/fleet' },
-  { label: 'Destinations', href: '/destinations' },
-  { label: 'Experiences', href: '/experiences' },
+  { label: 'Experiences', href: '/packages' },
+  { label: 'Gallery', href: '/gallery' },
+  { label: 'Community', href: '/community' },
   { label: 'About', href: '/about' },
 ];
 

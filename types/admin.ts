@@ -1,4 +1,13 @@
 import type { ApiResponse } from '@/types/api';
+import type {
+  BookingAssignment,
+  BookingDetailExtensions,
+  BookingItem,
+  BookingPricingBreakdown,
+  BookingPricingSnapshot,
+  BookingTripCore,
+  BookingTripEvent,
+} from '@/types/bookingDetail';
 
 export type AdminPaginated<T> = {
   count: number;
@@ -238,64 +247,14 @@ export interface AdminBookingStop {
   notes: string;
 }
 
-export interface AdminBookingTripEvent {
-  id: string;
-  event_type: string;
-  source: string;
-  occurred_at: string | null;
-  recorded_by: string | null;
-  recorded_by_name: string;
-  metadata: Record<string, unknown>;
-  bill_url: string | null;
-  notes: string;
-  created_at: string;
-}
+export type AdminBookingTripEvent = BookingTripEvent;
+export type AdminBookingTrip = BookingTripCore;
+export type AdminBookingPricingSnapshot = BookingPricingSnapshot;
+export type AdminBookingAssignment = BookingAssignment;
+export type AdminBookingItem = BookingItem;
+export type AdminBookingPricingBreakdown = BookingPricingBreakdown;
 
-export interface AdminBookingTrip {
-  id: string;
-  status: string;
-  odometer_start: number | null;
-  odometer_end: number | null;
-  actual_km: number | null;
-  actual_start: string | null;
-  actual_end: string | null;
-  extra_km: number;
-  extra_km_charge: string;
-  ac_hours: string;
-  ac_charge: string;
-  gen_hours: string;
-  gen_charge: string;
-  late_hours: string;
-  late_charge: string;
-  parking_charge: string;
-  toll_charge: string;
-  damage_charge: string;
-  other_charge: string;
-  other_charge_note: string;
-  total_extra_charge: string;
-  eot_submitted_at: string | null;
-  driver_notes: string;
-  events: AdminBookingTripEvent[];
-  updated_at: string;
-}
-
-export interface AdminBookingPricingSnapshot {
-  km_rate: number;
-  day_rate: number;
-  total_days: number;
-  deposit_amount: number;
-}
-
-export interface AdminBookingAssignment {
-  driver_id: string | null;
-  driver_name: string | null;
-  driver_phone: string | null;
-  helper_id: string | null;
-  helper_name: string | null;
-  helper_phone: string | null;
-}
-
-export interface AdminBookingDetail {
+export interface AdminBookingDetail extends BookingDetailExtensions {
   id: string;
   source: string;
   booking_type: string;

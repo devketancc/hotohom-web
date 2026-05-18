@@ -1,5 +1,15 @@
 /** API shapes for customer booking list/detail (distinct from wizard `BookingData`). */
 
+import type {
+  BookingAssignment,
+  BookingDetailExtensions,
+  BookingItem,
+  BookingPricingBreakdown,
+  BookingPricingSnapshot,
+  BookingTripCore,
+  BookingTripEvent,
+} from '@/types/bookingDetail';
+
 export type BookingListStatus =
   | 'confirmed'
   | 'pending'
@@ -24,51 +34,14 @@ export interface CustomerBookingStop {
   notes: string;
 }
 
-export interface CustomerBookingTrip {
-  id: string;
-  status: TripStatus;
-  odometer_start: number | null;
-  odometer_end: number | null;
-  actual_km: number | null;
-  actual_start: string | null;
-  actual_end: string | null;
-  extra_km: number;
-  extra_km_charge: string;
-  ac_hours: string;
-  ac_charge: string;
-  gen_hours: string;
-  gen_charge: string;
-  late_hours: string;
-  late_charge: string;
-  parking_charge: string;
-  toll_charge: string;
-  damage_charge: string;
-  other_charge: string;
-  other_charge_note: string;
-  total_extra_charge: string;
-  eot_submitted_at: string | null;
-  driver_notes: string;
-  events: unknown[];
-  updated_at: string;
-}
+export type CustomerBookingTripEvent = BookingTripEvent;
+export type CustomerBookingTrip = BookingTripCore & { status: TripStatus };
+export type CustomerBookingPricingSnapshot = BookingPricingSnapshot;
+export type CustomerBookingAssignment = BookingAssignment;
+export type CustomerBookingItem = BookingItem;
+export type CustomerBookingPricingBreakdown = BookingPricingBreakdown;
 
-export interface CustomerBookingPricingSnapshot {
-  km_rate: number;
-  day_rate: number;
-  total_days: number;
-  deposit_amount: number;
-}
-
-export interface CustomerBookingAssignment {
-  driver_id: string | null;
-  driver_name: string | null;
-  driver_phone: string | null;
-  helper_id: string | null;
-  helper_name: string | null;
-  helper_phone: string | null;
-}
-
-export interface CustomerBookingListItem {
+export interface CustomerBookingListItem extends BookingDetailExtensions {
   id: string;
   source: string;
   booking_type: string;
@@ -105,7 +78,7 @@ export interface CustomerBookingListItem {
   cancelled_at: string | null;
   notes: string;
   stops: CustomerBookingStop[];
-  trip: CustomerBookingTrip;
+  trip: CustomerBookingTrip | null;
   created_at: string;
   updated_at: string;
 }
