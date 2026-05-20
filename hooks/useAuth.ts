@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useUiStore } from '@/store/uiStore';
 import { authService, type ResendOtpResult, type SendOtpResult, type VerifyOtpResult } from '@/services/auth.service';
 import { clearClientSession } from '@/lib/clearClientSession';
+import { isCrewRole } from '@/lib/crewRoles';
 import { isStaffRole } from '@/lib/staffRoles';
 
 export function useAuth() {
@@ -59,6 +60,18 @@ export function useAuth() {
     [establishSession]
   );
 
+  const verifyCrewOtp = useCallback(
+    async (phone: string, otp: string) => {
+      const data = await authService.verifyOtp(phone, otp);
+      if (!isCrewRole(data.user.role)) {
+        throw new Error('This sign-in is for drivers and helpers only.');
+      }
+      establishSession(data);
+      return data;
+    },
+    [establishSession]
+  );
+
   const verifyOtp = useCallback(
     async (phone: string, otp: string) => {
       const data = await authService.verifyOtp(phone, otp);
@@ -100,6 +113,22 @@ export function useAuth() {
     }
   }, [logoutStore]);
 
+  const logoutCrew = useCallback(async () => {
+    const { accessToken, refreshToken } = useAuthStore.getState();
+    if (accessToken && refreshToken) {
+      try {
+        await authService.logout(accessToken, refreshToken);
+      } catch {
+        /* always clear local session */
+      }
+    }
+    logoutStore();
+    clearClientSession();
+    if (typeof window !== 'undefined') {
+      window.location.assign('/crew-login');
+    }
+  }, [logoutStore]);
+
   return {
     user,
     isAuthenticated,
@@ -107,9 +136,11 @@ export function useAuth() {
     resendOtp,
     verifyOtp,
     verifyStaffOtp,
+    verifyCrewOtp,
     establishSession,
     register,
     verifyRegistrationOtp,
     logout,
+    logoutCrew,
   };
 }

@@ -95,12 +95,19 @@ export function BookingDetailFullView({
   backHref,
   backLabel,
   variant = 'customer',
+  showPricing = true,
+  showAddonItems,
 }: {
   booking: BookingDetailLike;
   backHref?: string;
   backLabel?: string;
   variant?: 'admin' | 'customer';
+  /** When false, hides rate snapshot, payment summary, and trip charge lines (crew portal). */
+  showPricing?: boolean;
+  /** When true, shows add-on line items (operational columns only if showPricing is false). Defaults to showPricing. */
+  showAddonItems?: boolean;
 }) {
+  const displayAddonItems = showAddonItems ?? showPricing;
   const stops = sortedStops(booking.stops);
   const trip = booking.trip;
   const snap = booking.pricing_snapshot;
@@ -111,7 +118,10 @@ export function BookingDetailFullView({
   const assignment = getBookingAssignmentDisplay(booking);
   const showAssignmentPending = assignment.missingDriver || assignment.missingHelper;
   const showBufferedKm =
-    booking.buffered_km > 0 && (booking.pricing_mode === 'km' || booking.estimated_km > 0);
+    booking.buffered_km > 0 &&
+    (showPricing
+      ? booking.pricing_mode === 'km' || booking.estimated_km > 0
+      : booking.estimated_km > 0);
   const packageHref = booking.package
     ? `/packages/${encodeURIComponent(booking.package)}`
     : null;
@@ -198,7 +208,9 @@ export function BookingDetailFullView({
             <DetailRow label="Guests" value={booking.num_humans} />
             <DetailRow label="Pets" value={booking.num_pets} />
             <DetailRow label="One-way" value={booking.is_one_way ? 'Yes' : 'No'} />
-            <DetailRow label="Pricing mode" value={booking.pricing_mode.replace(/_/g, ' ')} />
+            {showPricing && booking.pricing_mode ? (
+              <DetailRow label="Pricing mode" value={booking.pricing_mode.replace(/_/g, ' ')} />
+            ) : null}
             <DetailRow label="Booking type" value={booking.booking_type.replace(/_/g, ' ')} />
             <DetailRow label="Source" value={booking.source} />
             {booking.estimated_km > 0 ? <DetailRow label="Estimated km" value={`${booking.estimated_km} km`} /> : null}
@@ -311,28 +323,50 @@ export function BookingDetailFullView({
         </ol>
       </section>
 
-      {booking.items.length > 0 ? (
+      {displayAddonItems && booking.items.length > 0 ? (
         <section className="glass-card space-y-4 rounded-xl p-6">
-          <h2 className="font-headline text-lg font-bold text-stitch-on-background">Add-on line items</h2>
+          <h2 className="font-headline text-lg font-bold text-stitch-on-background">
+            {showPricing ? 'Add-on line items' : 'Add-ons'}
+          </h2>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[32rem] border-collapse font-body text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-left text-xs font-semibold uppercase tracking-wide text-stitch-on-surface-variant">
                   <th className="pb-3 pr-4">Add-on</th>
                   <th className="pb-3 pr-4">Category</th>
+                  {showPricing ? null : (
+                    <th className="pb-3 pr-4">Pricing type</th>
+                  )}
                   <th className="pb-3 pr-4 text-right">Qty</th>
-                  <th className="pb-3 pr-4 text-right">Unit</th>
-                  <th className="pb-3 text-right">Total</th>
+                  {showPricing ? (
+                    <>
+                      <th className="pb-3 pr-4 text-right">Unit</th>
+                      <th className="pb-3 text-right">Total</th>
+                    </>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
                 {booking.items.map((item) => (
                   <tr key={item.id} className="border-b border-white/5 last:border-0">
                     <td className="py-3 pr-4 text-stitch-on-background">{item.addon_name}</td>
-                    <td className="py-3 pr-4 capitalize text-stitch-on-surface-variant">{item.addon_category.replace(/_/g, ' ')}</td>
+                    <td className="py-3 pr-4 capitalize text-stitch-on-surface-variant">
+                      {item.addon_category.replace(/_/g, ' ')}
+                    </td>
+                    {showPricing ? null : (
+                      <td className="py-3 pr-4 capitalize text-stitch-on-surface-variant">
+                        {item.addon_pricing_type.replace(/_/g, ' ') || '—'}
+                      </td>
+                    )}
                     <td className="py-3 pr-4 text-right tabular-nums">{item.quantity}</td>
-                    <td className="py-3 pr-4 text-right tabular-nums">₹{formatInr(parseMoney(item.unit_price))}</td>
-                    <td className="py-3 text-right tabular-nums font-medium">₹{formatInr(parseMoney(item.total_price))}</td>
+                    {showPricing ? (
+                      <>
+                        <td className="py-3 pr-4 text-right tabular-nums">₹{formatInr(parseMoney(item.unit_price))}</td>
+                        <td className="py-3 text-right tabular-nums font-medium">
+                          ₹{formatInr(parseMoney(item.total_price))}
+                        </td>
+                      </>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
@@ -341,6 +375,7 @@ export function BookingDetailFullView({
         </section>
       ) : null}
 
+      {showPricing ? (
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="glass-card space-y-4 rounded-xl p-6">
           <h2 className="font-headline text-lg font-bold text-stitch-on-background">Rate snapshot</h2>
@@ -420,6 +455,7 @@ export function BookingDetailFullView({
           </div>
         </section>
       </div>
+      ) : null}
 
       {trip ? (
         <section className="glass-card space-y-6 rounded-xl p-6">
@@ -439,22 +475,24 @@ export function BookingDetailFullView({
             <DetailRow label="Trip updated" value={formatIsoDateTime(trip.updated_at)} />
             {trip.hub_return_km != null ? <DetailRow label="Hub return km" value={trip.hub_return_km} /> : null}
           </div>
-          <div>
-            <h3 className="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-stitch-on-surface-variant">Charges</h3>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <MoneyLine label="Extra KM charge" amount={trip.extra_km_charge} />
-              <MoneyLine label="AC charge" amount={trip.ac_charge} />
-              <MoneyLine label="Generator charge" amount={trip.gen_charge} />
-              <MoneyLine label="Late charge" amount={trip.late_charge} />
-              <MoneyLine label="Parking" amount={trip.parking_charge} />
-              <MoneyLine label="Estimated toll" amount={trip.estimated_toll_charge} />
-              <MoneyLine label="Actual toll (EOT)" amount={trip.toll_charge} />
-              <MoneyLine label="Fuel (hub return)" amount={trip.fuel_charge} />
-              <MoneyLine label="Damage" amount={trip.damage_charge} />
-              <MoneyLine label="Other" amount={trip.other_charge} />
-              <MoneyLine label="Total extra" amount={trip.total_extra_charge} emphasize />
+          {showPricing ? (
+            <div>
+              <h3 className="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-stitch-on-surface-variant">Charges</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <MoneyLine label="Extra KM charge" amount={trip.extra_km_charge} />
+                <MoneyLine label="AC charge" amount={trip.ac_charge} />
+                <MoneyLine label="Generator charge" amount={trip.gen_charge} />
+                <MoneyLine label="Late charge" amount={trip.late_charge} />
+                <MoneyLine label="Parking" amount={trip.parking_charge} />
+                <MoneyLine label="Estimated toll" amount={trip.estimated_toll_charge} />
+                <MoneyLine label="Actual toll (EOT)" amount={trip.toll_charge} />
+                <MoneyLine label="Fuel (hub return)" amount={trip.fuel_charge} />
+                <MoneyLine label="Damage" amount={trip.damage_charge} />
+                <MoneyLine label="Other" amount={trip.other_charge} />
+                <MoneyLine label="Total extra" amount={trip.total_extra_charge} emphasize />
+              </div>
             </div>
-          </div>
+          ) : null}
           <div className="grid gap-3 border-t border-white/10 pt-4 md:grid-cols-2">
             <DetailRow label="AC hours" value={trip.ac_hours} muted={parseMoney(trip.ac_hours) === 0} />
             <DetailRow label="Generator hours" value={trip.gen_hours} muted={parseMoney(trip.gen_hours) === 0} />

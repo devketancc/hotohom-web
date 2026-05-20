@@ -62,7 +62,7 @@ function RosterListSkeleton() {
   );
 }
 
-function RosterColumnLegend({ compact }: { compact: boolean }) {
+export function RosterColumnLegend({ compact }: { compact: boolean }) {
   return (
     <div className="hidden rounded-md border border-white/10 bg-zinc-950/80 px-2.5 py-1.5 sm:block">
       <div
