@@ -4,11 +4,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { handleApiError } from '@/lib/errorHandler';
 import { crewTripActions, normalizeTripStatus } from '@/lib/crewTripUi';
-import { crewQueryKeys, createCrewTripEvent, endCrewTrip, startCrewTrip } from '@/services/crew.service';
+import {
+  crewQueryKeys,
+  createCrewTripEvent,
+  createCrewTripExpense,
+  endCrewTrip,
+  startCrewTrip,
+} from '@/services/crew.service';
 import type {
   CrewBookingDetail,
   CrewTripEndPayload,
   CrewTripEventWritePayload,
+  CrewTripExpenseWritePayload,
   CrewTripStartPayload,
 } from '@/types/crew';
 
@@ -26,6 +33,8 @@ export function useCrewTripActions(booking: CrewBookingDetail | undefined) {
     if (tripId) {
       await queryClient.invalidateQueries({ queryKey: crewQueryKeys.trip(tripId) });
       await queryClient.invalidateQueries({ queryKey: crewQueryKeys.tripEvents(tripId) });
+      await queryClient.invalidateQueries({ queryKey: crewQueryKeys.tripExpenses(tripId) });
+      await queryClient.invalidateQueries({ queryKey: crewQueryKeys.tripEotSummary(tripId) });
     }
   };
 
@@ -60,6 +69,15 @@ export function useCrewTripActions(booking: CrewBookingDetail | undefined) {
     onError,
   });
 
+  const expenseMutation = useMutation({
+    mutationFn: (payload: CrewTripExpenseWritePayload) => createCrewTripExpense(tripId, payload),
+    onSuccess: async () => {
+      toast.success('Expense logged');
+      await invalidateBooking();
+    },
+    onError,
+  });
+
   return {
     trip,
     tripId,
@@ -69,9 +87,15 @@ export function useCrewTripActions(booking: CrewBookingDetail | undefined) {
     startTrip: startMutation.mutateAsync,
     endTrip: endMutation.mutateAsync,
     logEvent: eventMutation.mutateAsync,
+    logExpense: expenseMutation.mutateAsync,
     isStarting: startMutation.isPending,
     isEnding: endMutation.isPending,
     isLoggingEvent: eventMutation.isPending,
-    isBusy: startMutation.isPending || endMutation.isPending || eventMutation.isPending,
+    isLoggingExpense: expenseMutation.isPending,
+    isBusy:
+      startMutation.isPending ||
+      endMutation.isPending ||
+      eventMutation.isPending ||
+      expenseMutation.isPending,
   };
 }

@@ -13,10 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CREW_TRIP_CONFIRM_COPY } from '@/lib/crewTripUi';
+import { useCrewTripEOTSummary } from '@/hooks/useCrewTripEOTSummary';
 import type { CrewTripEndPayload } from '@/types/crew';
 
-const STEPS = ['Odometer', 'Hours', 'Charges', 'Notes'] as const;
+const STEPS = ['Odometer', 'Review charges', 'Notes'] as const;
 
 type Step = (typeof STEPS)[number];
 
@@ -31,16 +33,22 @@ const emptyCharges = {
 export function EndTripWizard({
   open,
   onOpenChange,
+  tripId,
   odometerStart,
   onSubmit,
+  onRequestLogExpense,
   pending,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  tripId: string;
   odometerStart: number | null;
   onSubmit: (payload: CrewTripEndPayload) => Promise<void>;
+  onRequestLogExpense?: () => void;
   pending: boolean;
 }) {
+  const { data: eotSummary, isPending: summaryLoading } = useCrewTripEOTSummary(tripId, open);
+
   const [step, setStep] = useState<Step>('Odometer');
   const [confirmStep, setConfirmStep] = useState(false);
   const [odometerEnd, setOdometerEnd] = useState('');
@@ -49,6 +57,7 @@ export function EndTripWizard({
   const [charges, setCharges] = useState(emptyCharges);
   const [driverNotes, setDriverNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [summaryApplied, setSummaryApplied] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -60,8 +69,23 @@ export function EndTripWizard({
       setCharges(emptyCharges);
       setDriverNotes('');
       setError(null);
+      setSummaryApplied(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !eotSummary || summaryApplied) return;
+    setAcHours(eotSummary.ac_hours);
+    setGenHours(eotSummary.gen_hours);
+    setCharges({
+      toll_charge: eotSummary.toll_charge,
+      parking_charge: eotSummary.parking_charge,
+      damage_charge: eotSummary.damage_charge,
+      other_charge: eotSummary.other_charge,
+      other_charge_note: '',
+    });
+    setSummaryApplied(true);
+  }, [open, eotSummary, summaryApplied]);
 
   const parseNum = (v: string, label: string): number | null => {
     const n = Number.parseFloat(v);
@@ -106,6 +130,8 @@ export function EndTripWizard({
   };
 
   const stepIndex = STEPS.indexOf(step);
+  const otherChargeNum = Number.parseFloat(charges.other_charge);
+  const showOtherNote = Number.isFinite(otherChargeNum) && otherChargeNum > 0;
 
   const goNext = () => {
     setError(null);
@@ -116,16 +142,12 @@ export function EndTripWizard({
         setError(`Odometer end must be at least ${odometerStart} km.`);
         return;
       }
-      setStep('Hours');
+      setStep('Review charges');
       return;
     }
-    if (step === 'Hours') {
+    if (step === 'Review charges') {
       if (parseNum(acHours, 'AC hours') === null) return;
       if (parseNum(genHours, 'generator hours') === null) return;
-      setStep('Charges');
-      return;
-    }
-    if (step === 'Charges') {
       if (parseNum(charges.toll_charge, 'toll') === null) return;
       if (parseNum(charges.parking_charge, 'parking') === null) return;
       if (parseNum(charges.damage_charge, 'damage') === null) return;
@@ -164,6 +186,11 @@ export function EndTripWizard({
     }
   };
 
+  const handleRequestLogExpense = () => {
+    onOpenChange(false);
+    onRequestLogExpense?.();
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[min(92vh,720px)] overflow-y-auto rounded-t-2xl">
@@ -192,83 +219,103 @@ export function EndTripWizard({
               {odometerStart != null ? (
                 <p className="text-xs text-muted-foreground">Started at {odometerStart} km</p>
               ) : null}
+              <p className="text-xs text-muted-foreground">
+                Late charges and extra KM are calculated automatically when you submit.
+              </p>
             </div>
           ) : null}
 
-          {!confirmStep && step === 'Hours' ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="crew-ac-hours">AC hours</Label>
-                <Input
-                  id="crew-ac-hours"
-                  type="number"
-                  min={0}
-                  step="0.1"
-                  value={acHours}
-                  onChange={(e) => setAcHours(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="crew-gen-hours">Generator hours</Label>
-                <Input
-                  id="crew-gen-hours"
-                  type="number"
-                  min={0}
-                  step="0.1"
-                  value={genHours}
-                  onChange={(e) => setGenHours(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-            </div>
-          ) : null}
-
-          {!confirmStep && step === 'Charges' ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(
-                [
-                  ['toll_charge', 'Toll (₹)'],
-                  ['parking_charge', 'Parking (₹)'],
-                  ['damage_charge', 'Damage (₹)'],
-                  ['other_charge', 'Other (₹)'],
-                ] as const
-              ).map(([key, label]) => (
-                <div key={key} className="space-y-2">
-                  <Label htmlFor={`crew-${key}`}>{label}</Label>
+          {!confirmStep && step === 'Review charges' ? (
+            <div className="space-y-4">
+              <p className="rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-sm text-foreground/90">
+                Totals from expenses you logged during the trip. Adjust if something was missed.
+              </p>
+              {summaryLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-11 w-full" />
+                  <Skeleton className="h-11 w-full" />
+                </div>
+              ) : null}
+              {onRequestLogExpense ? (
+                <Button type="button" variant="outline" size="sm" onClick={handleRequestLogExpense}>
+                  Log another expense
+                </Button>
+              ) : null}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="crew-ac-hours">AC hours</Label>
                   <Input
-                    id={`crew-${key}`}
+                    id="crew-ac-hours"
                     type="number"
                     min={0}
-                    step="0.01"
-                    value={charges[key]}
-                    onChange={(e) => setCharges((c) => ({ ...c, [key]: e.target.value }))}
+                    step="0.1"
+                    value={acHours}
+                    onChange={(e) => setAcHours(e.target.value)}
                     className="h-11"
                   />
                 </div>
-              ))}
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="crew-other-note">Other charge note</Label>
-                <Input
-                  id="crew-other-note"
-                  value={charges.other_charge_note}
-                  onChange={(e) => setCharges((c) => ({ ...c, other_charge_note: e.target.value }))}
-                  placeholder="What was the other charge for?"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="crew-gen-hours">Generator hours</Label>
+                  <Input
+                    id="crew-gen-hours"
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    value={genHours}
+                    onChange={(e) => setGenHours(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(
+                  [
+                    ['toll_charge', 'Toll (₹)'],
+                    ['parking_charge', 'Parking (₹)'],
+                    ['damage_charge', 'Damage (₹)'],
+                    ['other_charge', 'Other (₹)'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <div key={key} className="space-y-2">
+                    <Label htmlFor={`crew-${key}`}>{label}</Label>
+                    <Input
+                      id={`crew-${key}`}
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={charges[key]}
+                      onChange={(e) => setCharges((c) => ({ ...c, [key]: e.target.value }))}
+                      className="h-11"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           ) : null}
 
           {!confirmStep && step === 'Notes' ? (
-            <div className="space-y-2">
-              <Label htmlFor="crew-driver-notes">Driver notes (optional)</Label>
-              <Textarea
-                id="crew-driver-notes"
-                value={driverNotes}
-                onChange={(e) => setDriverNotes(e.target.value)}
-                rows={4}
-                placeholder="Anything ops should know…"
-              />
+            <div className="space-y-4">
+              {showOtherNote ? (
+                <div className="space-y-2">
+                  <Label htmlFor="crew-other-note">Other charge note</Label>
+                  <Input
+                    id="crew-other-note"
+                    value={charges.other_charge_note}
+                    onChange={(e) => setCharges((c) => ({ ...c, other_charge_note: e.target.value }))}
+                    placeholder="What was the other charge for?"
+                  />
+                </div>
+              ) : null}
+              <div className="space-y-2">
+                <Label htmlFor="crew-driver-notes">Driver notes (optional)</Label>
+                <Textarea
+                  id="crew-driver-notes"
+                  value={driverNotes}
+                  onChange={(e) => setDriverNotes(e.target.value)}
+                  rows={4}
+                  placeholder="Anything ops should know…"
+                />
+              </div>
             </div>
           ) : null}
 

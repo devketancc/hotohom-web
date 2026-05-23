@@ -3,7 +3,8 @@
 import { Car } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { crewTripStatusLabel, crewTripStatusPillClass, normalizeTripStatus } from '@/lib/crewTripUi';
-import type { CrewTrip } from '@/types/crew';
+import { CrewExpenseTimeline } from '@/components/crew/trip/CrewExpenseTimeline';
+import type { CrewTrip, CrewTripExpenseLog } from '@/types/crew';
 
 function formatWhen(iso: string | null): string {
   if (!iso) return '—';
@@ -27,14 +28,20 @@ function sortedEvents(trip: CrewTrip) {
   });
 }
 
-export function CrewTripSummary({ trip }: { trip: CrewTrip | null }) {
+export function CrewTripSummary({
+  trip,
+  expenseLogs = [],
+}: {
+  trip: CrewTrip | null;
+  expenseLogs?: CrewTripExpenseLog[];
+}) {
   if (!trip) return null;
 
   const status = normalizeTripStatus(trip.status);
   const showOperational =
     status === 'active' || status === 'eot_pending' || status === 'completed' || trip.odometer_start != null;
 
-  if (!showOperational && trip.events.length === 0) return null;
+  if (!showOperational && trip.events.length === 0 && expenseLogs.length === 0) return null;
 
   const events = sortedEvents(trip);
 
@@ -137,6 +144,8 @@ export function CrewTripSummary({ trip }: { trip: CrewTrip | null }) {
       ) : status === 'active' ? (
         <p className="mt-3 text-sm text-muted-foreground">No events logged yet.</p>
       ) : null}
+
+      <CrewExpenseTimeline logs={expenseLogs} />
     </section>
   );
 }

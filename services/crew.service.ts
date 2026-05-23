@@ -1,5 +1,6 @@
 import apiClient from '@/services/apiClient';
 import { normalizeBookingDetailRaw, normalizeBookingTrip, normalizeBookingTripEvent } from '@/lib/normalizeBookingDetail';
+import { normalizeCrewEOTSummary, normalizeCrewExpenseLog } from '@/lib/normalizeCrewExpenses';
 import { normalizeRosterBooking } from '@/lib/normalizeRoster';
 import { normalizeStaffCalendarResource } from '@/lib/normalizeStaffCalendar';
 import type { ApiResponse } from '@/types/api';
@@ -9,8 +10,11 @@ import type {
   CrewRosterBooking,
   CrewTrip,
   CrewTripEndPayload,
+  CrewTripEOTSummary,
   CrewTripEvent,
   CrewTripEventWritePayload,
+  CrewTripExpenseLog,
+  CrewTripExpenseWritePayload,
   CrewTripStartPayload,
 } from '@/types/crew';
 import type { AdminBookingStop } from '@/types/admin';
@@ -23,6 +27,8 @@ export const crewQueryKeys = {
   bookingDetail: (id: string) => ['crew', 'bookings', 'detail', id] as const,
   trip: (tripId: string) => ['crew', 'trips', 'detail', tripId] as const,
   tripEvents: (tripId: string) => ['crew', 'trips', 'events', tripId] as const,
+  tripExpenses: (tripId: string) => ['crew', 'trips', 'expenses', tripId] as const,
+  tripEotSummary: (tripId: string) => ['crew', 'trips', 'eot-summary', tripId] as const,
 };
 
 export type CrewCalendarQueryParams = {
@@ -116,5 +122,36 @@ export async function createCrewTripEvent(
   );
   const row = normalizeBookingTripEvent(data?.data);
   if (!row) throw new Error('Failed to log event');
+  return row;
+}
+
+export async function listCrewTripExpenses(tripId: string): Promise<CrewTripExpenseLog[]> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/expenses/`
+  );
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return [];
+  return inner.map(normalizeCrewExpenseLog).filter((log): log is CrewTripExpenseLog => log !== null);
+}
+
+export async function createCrewTripExpense(
+  tripId: string,
+  body: CrewTripExpenseWritePayload
+): Promise<CrewTripExpenseLog> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/expenses/`,
+    body
+  );
+  const row = normalizeCrewExpenseLog(data?.data);
+  if (!row) throw new Error('Failed to log expense');
+  return row;
+}
+
+export async function getCrewTripEOTSummary(tripId: string): Promise<CrewTripEOTSummary> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/eot-summary/`
+  );
+  const row = normalizeCrewEOTSummary(data?.data);
+  if (!row) throw new Error('Failed to load EOT summary');
   return row;
 }

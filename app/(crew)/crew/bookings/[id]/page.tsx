@@ -5,8 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
 import { CrewJobPacketHeader } from '@/components/crew/CrewJobPacketHeader';
-import { CrewTripActionBar } from '@/components/crew/trip/CrewTripActionBar';
-import { CrewTripSummary } from '@/components/crew/trip/CrewTripSummary';
+import { CrewBookingTripPanel } from '@/components/crew/trip/CrewBookingTripPanel';
 import {
   crewBookingBackHref,
   crewBookingBackLabel,
@@ -107,8 +106,7 @@ export default function CrewBookingDetailPage() {
   return (
     <div className="space-y-4">
       <CrewJobPacketHeader booking={data} />
-      <CrewTripActionBar booking={data} />
-      <CrewTripSummary trip={data.trip} />
+      <CrewBookingTripPanel booking={data} />
       <BookingDetailFullView
         booking={data}
         backHref={crewBookingBackHref(from)}

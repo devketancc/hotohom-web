@@ -36,3 +36,52 @@ export type CrewTripEventWritePayload = {
   occurred_at: string;
   notes?: string;
 };
+
+export type CrewExpenseType =
+  | 'ac_hours'
+  | 'gen_hours'
+  | 'parking_charge'
+  | 'damage_charge'
+  | 'toll_charge'
+  | 'other_charge';
+
+export type CrewTripExpenseItem = {
+  id: string;
+  expense_type: CrewExpenseType;
+  value: string;
+  description: string;
+};
+
+export type CrewTripExpenseLog = {
+  id: string;
+  occurred_at: string;
+  lat: string | null;
+  lng: string | null;
+  notes: string;
+  recorded_by_name: string;
+  items: CrewTripExpenseItem[];
+  created_at: string;
+};
+
+export type CrewTripExpenseWriteItem = {
+  expense_type: CrewExpenseType;
+  value: number;
+  description?: string;
+};
+
+export type CrewTripExpenseWritePayload = {
+  occurred_at: string;
+  lat?: number | null;
+  lng?: number | null;
+  notes?: string;
+  items: CrewTripExpenseWriteItem[];
+};
+
+export type CrewTripEOTSummary = {
+  ac_hours: string;
+  gen_hours: string;
+  parking_charge: string;
+  damage_charge: string;
+  toll_charge: string;
+  other_charge: string;
+};

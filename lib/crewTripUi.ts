@@ -3,6 +3,7 @@ import type { CrewTripStatus } from '@/types/crew';
 export type CrewTripUiActions = {
   canStart: boolean;
   canLogEvent: boolean;
+  canLogExpense: boolean;
   canEnd: boolean;
   isReadOnly: boolean;
 };
@@ -44,14 +45,14 @@ export function crewTripStatusPillClass(status: CrewTripStatus): string {
 export function crewTripActions(status: CrewTripStatus): CrewTripUiActions {
   switch (status) {
     case 'pending':
-      return { canStart: true, canLogEvent: false, canEnd: false, isReadOnly: false };
+      return { canStart: true, canLogEvent: false, canLogExpense: false, canEnd: false, isReadOnly: false };
     case 'active':
-      return { canStart: false, canLogEvent: true, canEnd: true, isReadOnly: false };
+      return { canStart: false, canLogEvent: true, canLogExpense: true, canEnd: true, isReadOnly: false };
     case 'eot_pending':
     case 'completed':
-      return { canStart: false, canLogEvent: false, canEnd: false, isReadOnly: true };
+      return { canStart: false, canLogEvent: false, canLogExpense: false, canEnd: false, isReadOnly: true };
     default:
-      return { canStart: false, canLogEvent: false, canEnd: false, isReadOnly: true };
+      return { canStart: false, canLogEvent: false, canLogExpense: false, canEnd: false, isReadOnly: true };
   }
 }
 
