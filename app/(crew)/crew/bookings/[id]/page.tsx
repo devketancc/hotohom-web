@@ -3,9 +3,7 @@
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
-import { CrewJobPacketHeader } from '@/components/crew/CrewJobPacketHeader';
-import { CrewBookingTripPanel } from '@/components/crew/trip/CrewBookingTripPanel';
+import { CrewBookingCommandCenter } from '@/components/crew/CrewBookingCommandCenter';
 import {
   crewBookingBackHref,
   crewBookingBackLabel,
@@ -103,20 +101,5 @@ export default function CrewBookingDetailPage() {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <CrewJobPacketHeader booking={data} />
-      <CrewBookingTripPanel booking={data} />
-      <BookingDetailFullView
-        booking={data}
-        backHref={crewBookingBackHref(from)}
-        backLabel={`← ${crewBookingBackLabel(from)}`}
-        variant="admin"
-        showPricing={false}
-        showTripCharges={false}
-        hideTripSection
-        showAddonItems
-      />
-    </div>
-  );
+  return <CrewBookingCommandCenter booking={data} from={from} />;
 }
