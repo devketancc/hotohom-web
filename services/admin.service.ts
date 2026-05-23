@@ -1,5 +1,7 @@
 import { normalizeBookingDetailRaw } from '@/lib/normalizeBookingDetail';
+import { normalizeCrewExpenseLog } from '@/lib/normalizeCrewExpenses';
 import apiClient from '@/services/apiClient';
+import type { CrewTripEndPayload, CrewTripExpenseLog } from '@/types/crew';
 import type { ApiResponse } from '@/types/api';
 import type {
   AdminCreateStaffPayload,
@@ -46,6 +48,7 @@ export const adminQueryKeys = {
   roster: (params: { date?: string; start?: string; end?: string; hub?: string; hasAlerts?: boolean }) =>
     ['admin', 'calendar', 'roster', params.date ?? '', params.start ?? '', params.end ?? '', params.hub ?? '', params.hasAlerts ?? false] as const,
   bookingDetail: (id: string) => ['admin', 'bookings', 'detail', id] as const,
+  tripExpenses: (tripId: string) => ['admin', 'trips', tripId, 'expenses'] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -583,6 +586,26 @@ export async function getAdminBookingById(id: string): Promise<AdminBookingDetai
   const row = normalizeAdminBookingDetail(data?.data);
   if (!row) throw new Error('Failed to load booking details');
   return row;
+}
+
+export async function listAdminTripExpenses(tripId: string): Promise<CrewTripExpenseLog[]> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(
+    `/admin/trips/${encodeURIComponent(tripId)}/expenses/`
+  );
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return [];
+  return inner.map(normalizeCrewExpenseLog).filter((log): log is CrewTripExpenseLog => log !== null);
+}
+
+export async function submitAdminTripEnd(
+  tripId: string,
+  payload: CrewTripEndPayload
+): Promise<void> {
+  await apiClient.post(`/admin/trips/${encodeURIComponent(tripId)}/end/`, payload);
+}
+
+export async function approveAdminTripEOT(tripId: string): Promise<void> {
+  await apiClient.post(`/admin/trips/${encodeURIComponent(tripId)}/approve-eot/`);
 }
 
 export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {

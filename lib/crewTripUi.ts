@@ -65,3 +65,11 @@ export const CREW_TRIP_EVENT_PRESETS: { type: import('@/types/crew').CrewTripEve
 
 export const CREW_TRIP_CONFIRM_COPY =
   'Only one crew member should start or end this trip. Continue if you are doing this now.';
+
+export const END_TRIP_STEPS = [
+  { id: 'odometer', title: 'Odometer', subtitle: 'End reading (km)' },
+  { id: 'charges', title: 'Review charges', subtitle: 'From logged expenses' },
+  { id: 'notes', title: 'Notes', subtitle: 'Optional details' },
+] as const;
+
+export type EndTripStepId = (typeof END_TRIP_STEPS)[number]['id'];

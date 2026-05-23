@@ -8,6 +8,7 @@ import type { AdminRosterBooking } from '@/types/admin';
 function alertLabel(code: string): string {
   if (code === 'no_driver') return 'No Driver';
   if (code === 'no_helper') return 'No Helper';
+  if (code === 'eot_approval_pending') return 'EOT approval';
   return code.replace(/_/g, ' ');
 }
 

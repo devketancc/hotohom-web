@@ -246,6 +246,9 @@ export function AdminRosterPanel() {
               <span className="text-muted-foreground">Status: </span>
               {selectedBooking.status || 'unknown'}
             </p>
+            {selectedBooking.open_alerts.includes('eot_approval_pending') ? (
+              <p className="text-amber-200/90">Review and approve EOT on the full booking page.</p>
+            ) : null}
           </div>
           <div className="mt-4 flex gap-2">
             <button

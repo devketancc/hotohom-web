@@ -4,13 +4,17 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { AdminEOTApprovalPanel } from '@/components/admin/booking/AdminEOTApprovalPanel';
 import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
 import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { adminQueryKeys, getAdminBookingById } from '@/services/admin.service';
+import { useAuthStore } from '@/store/authStore';
 
 export default function AdminBookingDetailPage() {
   const params = useParams<{ id: string }>();
   const id = typeof params?.id === 'string' ? params.id : '';
+
+  const userRole = useAuthStore((s) => s.user?.role);
 
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: adminQueryKeys.bookingDetail(id),
@@ -91,6 +95,7 @@ export default function AdminBookingDetailPage() {
           </Link>
         </div>
       ) : null}
+      {data.trip ? <AdminEOTApprovalPanel booking={data} userRole={userRole} /> : null}
       <BookingDetailFullView
         booking={data}
         backHref="/admin/roster"
