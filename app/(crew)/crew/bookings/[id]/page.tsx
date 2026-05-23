@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
+import { CrewJobPacketHeader } from '@/components/crew/CrewJobPacketHeader';
+import { CrewTripActionBar } from '@/components/crew/trip/CrewTripActionBar';
+import { CrewTripSummary } from '@/components/crew/trip/CrewTripSummary';
 import {
   crewBookingBackHref,
   crewBookingBackLabel,
   parseCrewBookingFrom,
 } from '@/lib/crewBookingAccess';
-import { crewQueryKeys, getCrewBookingById } from '@/services/crew.service';
+import { useCrewBookingDetail } from '@/hooks/useCrewBookingDetail';
 
 export default function CrewBookingDetailPage() {
   const params = useParams<{ id: string }>();
@@ -18,11 +20,7 @@ export default function CrewBookingDetailPage() {
   const id = typeof params?.id === 'string' ? params.id : '';
   const from = parseCrewBookingFrom(searchParams.get('from'));
 
-  const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: crewQueryKeys.bookingDetail(id),
-    queryFn: () => getCrewBookingById(id),
-    enabled: Boolean(id) && from !== null,
-  });
+  const { data, isPending, isError, error, refetch } = useCrewBookingDetail(id, Boolean(id) && from !== null);
 
   if (!id) {
     return (
@@ -107,13 +105,20 @@ export default function CrewBookingDetailPage() {
   }
 
   return (
-    <BookingDetailFullView
-      booking={data}
-      backHref={crewBookingBackHref(from)}
-      backLabel={`← ${crewBookingBackLabel(from)}`}
-      variant="admin"
-      showPricing={false}
-      showAddonItems
-    />
+    <div className="space-y-4">
+      <CrewJobPacketHeader booking={data} />
+      <CrewTripActionBar booking={data} />
+      <CrewTripSummary trip={data.trip} />
+      <BookingDetailFullView
+        booking={data}
+        backHref={crewBookingBackHref(from)}
+        backLabel={`← ${crewBookingBackLabel(from)}`}
+        variant="admin"
+        showPricing={false}
+        showTripCharges={false}
+        hideTripSection
+        showAddonItems
+      />
+    </div>
   );
 }

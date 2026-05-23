@@ -1,9 +1,18 @@
 import apiClient from '@/services/apiClient';
-import { normalizeBookingDetailRaw } from '@/lib/normalizeBookingDetail';
+import { normalizeBookingDetailRaw, normalizeBookingTrip, normalizeBookingTripEvent } from '@/lib/normalizeBookingDetail';
 import { normalizeRosterBooking } from '@/lib/normalizeRoster';
 import { normalizeStaffCalendarResource } from '@/lib/normalizeStaffCalendar';
 import type { ApiResponse } from '@/types/api';
-import type { CrewBookingDetail, CrewCalendarResource, CrewRosterBooking } from '@/types/crew';
+import type {
+  CrewBookingDetail,
+  CrewCalendarResource,
+  CrewRosterBooking,
+  CrewTrip,
+  CrewTripEndPayload,
+  CrewTripEvent,
+  CrewTripEventWritePayload,
+  CrewTripStartPayload,
+} from '@/types/crew';
 import type { AdminBookingStop } from '@/types/admin';
 
 export const crewQueryKeys = {
@@ -12,6 +21,8 @@ export const crewQueryKeys = {
   roster: (params: { date?: string; start?: string; end?: string }) =>
     ['crew', 'roster', params.date ?? '', params.start ?? '', params.end ?? ''] as const,
   bookingDetail: (id: string) => ['crew', 'bookings', 'detail', id] as const,
+  trip: (tripId: string) => ['crew', 'trips', 'detail', tripId] as const,
+  tripEvents: (tripId: string) => ['crew', 'trips', 'events', tripId] as const,
 };
 
 export type CrewCalendarQueryParams = {
@@ -59,11 +70,51 @@ export async function getCrewBookingById(id: string): Promise<CrewBookingDetail>
   };
 }
 
-/** Phase 2: trip lifecycle APIs at `/crew/trips/` — no UI in crew portal v1. */
-export type CrewTripApiSurface = {
-  list: '/crew/trips/';
-  detail: '/crew/trips/{id}/';
-  start: '/crew/trips/{id}/start/';
-  end: '/crew/trips/{id}/end/';
-  events: '/crew/trips/{id}/events/';
-};
+export async function getCrewTrip(tripId: string): Promise<CrewTrip> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(`/crew/trips/${encodeURIComponent(tripId)}/`);
+  const row = normalizeBookingTrip(data?.data);
+  if (!row) throw new Error('Failed to load trip');
+  return row;
+}
+
+export async function startCrewTrip(tripId: string, body: CrewTripStartPayload): Promise<CrewTrip> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/start/`,
+    body
+  );
+  const row = normalizeBookingTrip(data?.data);
+  if (!row) throw new Error('Failed to start trip');
+  return row;
+}
+
+export async function endCrewTrip(tripId: string, body: CrewTripEndPayload): Promise<CrewTrip> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/end/`,
+    body
+  );
+  const row = normalizeBookingTrip(data?.data);
+  if (!row) throw new Error('Failed to submit end of trip');
+  return row;
+}
+
+export async function listCrewTripEvents(tripId: string): Promise<CrewTripEvent[]> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/events/`
+  );
+  const inner = data?.data;
+  if (!Array.isArray(inner)) return [];
+  return inner.map(normalizeBookingTripEvent).filter((e): e is CrewTripEvent => e !== null);
+}
+
+export async function createCrewTripEvent(
+  tripId: string,
+  body: CrewTripEventWritePayload
+): Promise<CrewTripEvent> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/crew/trips/${encodeURIComponent(tripId)}/events/`,
+    body
+  );
+  const row = normalizeBookingTripEvent(data?.data);
+  if (!row) throw new Error('Failed to log event');
+  return row;
+}

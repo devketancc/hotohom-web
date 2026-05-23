@@ -97,6 +97,8 @@ export function BookingDetailFullView({
   variant = 'customer',
   showPricing = true,
   showAddonItems,
+  showTripCharges,
+  hideTripSection = false,
 }: {
   booking: BookingDetailLike;
   backHref?: string;
@@ -106,8 +108,13 @@ export function BookingDetailFullView({
   showPricing?: boolean;
   /** When true, shows add-on line items (operational columns only if showPricing is false). Defaults to showPricing. */
   showAddonItems?: boolean;
+  /** When false, hides trip charge money lines. Defaults to showPricing. */
+  showTripCharges?: boolean;
+  /** When true, hides the entire trip execution section (crew uses CrewTripSummary). */
+  hideTripSection?: boolean;
 }) {
   const displayAddonItems = showAddonItems ?? showPricing;
+  const displayTripCharges = showTripCharges ?? showPricing;
   const stops = sortedStops(booking.stops);
   const trip = booking.trip;
   const snap = booking.pricing_snapshot;
@@ -457,7 +464,7 @@ export function BookingDetailFullView({
       </div>
       ) : null}
 
-      {trip ? (
+      {trip && !hideTripSection ? (
         <section className="glass-card space-y-6 rounded-xl p-6">
           <h2 className="flex items-center gap-2 font-headline text-lg font-bold text-stitch-on-background">
             <Car className="size-5 text-stitch-primary-container" aria-hidden />
@@ -475,7 +482,7 @@ export function BookingDetailFullView({
             <DetailRow label="Trip updated" value={formatIsoDateTime(trip.updated_at)} />
             {trip.hub_return_km != null ? <DetailRow label="Hub return km" value={trip.hub_return_km} /> : null}
           </div>
-          {showPricing ? (
+          {displayTripCharges ? (
             <div>
               <h3 className="mb-3 font-headline text-xs font-bold uppercase tracking-[0.2em] text-stitch-on-surface-variant">Charges</h3>
               <div className="grid gap-2 sm:grid-cols-2">
