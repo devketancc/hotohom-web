@@ -10,27 +10,23 @@ function shouldProxy(): boolean {
   );
 }
 
-/** Django-style routes expect trailing slash; Next/axios may omit it on the incoming request. */
-const BACKEND_TRAILING_SLASH_PATHS = new Set([
-  '/api/v1/auth/otp/send',
-  '/api/v1/auth/otp/verify',
-  '/api/v1/auth/token/refresh',
-  '/api/v1/auth/logout',
-  '/api/v1/carts',
-  '/api/v1/addons',
-]);
+/** Resource-like API paths should keep trailing slash for Django-style backends. */
+const API_V1_RESOURCE_PATH = /^\/api\/v1(\/.*)?$/;
+const PATH_WITH_FILE_EXT = /\/[^/]+\.[^/]+$/;
 
-/** Django: GET /api/v1/carts/{uuid}/ requires trailing slash */
-const CART_DETAIL_PATH = /^\/api\/v1\/carts\/[^/]+$/;
+function shouldAppendTrailingSlash(pathname: string): boolean {
+  if (!API_V1_RESOURCE_PATH.test(pathname)) return false;
+  if (pathname.endsWith('/')) return false;
+  if (pathname === '/api/v1') return true;
+  // Avoid touching file-like paths, e.g. /api/v1/openapi.json
+  if (PATH_WITH_FILE_EXT.test(pathname)) return false;
+  return true;
+}
 
 function buildBackendUrl(request: NextRequest): string {
   let pathname = request.nextUrl.pathname;
-  const basePath = pathname.replace(/\/+$/, '') || '/';
-  const needsSlash =
-    (BACKEND_TRAILING_SLASH_PATHS.has(basePath) && !pathname.endsWith('/')) ||
-    (CART_DETAIL_PATH.test(basePath) && !pathname.endsWith('/'));
-  if (needsSlash) {
-    pathname = `${basePath}/`;
+  if (shouldAppendTrailingSlash(pathname)) {
+    pathname = `${pathname}/`;
   }
   const pathAndQuery = pathname + request.nextUrl.search;
   return new URL(pathAndQuery, `${backendOrigin()}/`).toString();

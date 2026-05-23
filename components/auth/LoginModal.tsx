@@ -5,28 +5,53 @@ import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, Clock, Send, X } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
+import { MotohomLogo } from '@/components/brand/MotohomLogo';
 
 export type LoginModalProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type Step = 'phone' | 'otp';
+type Step = 'login-phone' | 'register-form' | 'otp';
+
+type OtpFlow = 'login' | 'register';
 
 const OTP_LEN = 6;
+const OTP_RESEND_SECONDS = 45;
 
 const emptyOtpCells = () => Array<string>(OTP_LEN).fill('');
 
+const formatCountdown = (totalSeconds: number) => {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+};
+
+const emailLooksValid = (value: string) => {
+  const t = value.trim();
+  if (t.length < 5) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t);
+};
+
 export function LoginModal({ open, onClose }: LoginModalProps) {
-  const { sendOtp, verifyOtp } = useAuth();
-  const [step, setStep] = useState<Step>('phone');
+  const { sendOtp, resendOtp, verifyOtp, register, verifyRegistrationOtp } = useAuth();
+  const [step, setStep] = useState<Step>('login-phone');
+  const [otpFlow, setOtpFlow] = useState<OtpFlow>('login');
   const [phone, setPhone] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   /** One character per OTP box (fixed positions, matches Stitch 6-cell UX). */
   const [otpCells, setOtpCells] = useState<string[]>(emptyOtpCells);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [phoneStepError, setPhoneStepError] = useState<string | null>(null);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  /** Login OTP send indicated this phone is not registered yet. */
+  const [loginSuggestedSignup, setLoginSuggestedSignup] = useState(false);
+  const [otpResendSecondsRemaining, setOtpResendSecondsRemaining] = useState(0);
+  const [resendingOtp, setResendingOtp] = useState(false);
   const otp = otpCells.join('');
   const otpComplete = otpCells.every((c) => c.length === 1);
   const verifyingRef = useRef(false);
@@ -34,14 +59,34 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
   useEffect(() => {
     if (!open) return;
-    setStep('phone');
+    setStep('login-phone');
+    setOtpFlow('login');
     setPhone('');
+    setFirstName('');
+    setLastName('');
+    setEmail('');
     setOtpCells(emptyOtpCells());
     setLoginError(null);
     setPhoneStepError(null);
+    setLoginSuggestedSignup(false);
+    setOtpResendSecondsRemaining(0);
+    setResendingOtp(false);
     verifyingRef.current = false;
     verifyInFlightRef.current = false;
   }, [open]);
+
+  useEffect(() => {
+    if (!open || step !== 'otp') return;
+    setOtpResendSecondsRemaining(OTP_RESEND_SECONDS);
+  }, [open, step]);
+
+  useEffect(() => {
+    if (!open || step !== 'otp') return;
+    const id = window.setInterval(() => {
+      setOtpResendSecondsRemaining((s) => (s <= 0 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [open, step]);
 
   const panelRef = useClickOutside<HTMLDivElement>(() => {
     if (open) onClose();
@@ -55,20 +100,59 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     setPhone(digitsOnly(e.target.value, 10));
   };
 
+  const goToRegisterWithPhone = () => {
+    setPhoneStepError(null);
+    setLoginSuggestedSignup(false);
+    setOtpFlow('register');
+    setStep('register-form');
+  };
+
   const submitPhone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length < 10 || sendingOtp) return;
     setPhoneStepError(null);
     setSendingOtp(true);
     try {
-      const ok = await sendOtp(phone);
-      if (!ok) {
-        setPhoneStepError('Could not send OTP. Try again.');
+      const result = await sendOtp(phone);
+      if (!result.ok) {
+        setPhoneStepError(result.message);
+        setLoginSuggestedSignup(Boolean(result.notRegistered));
         return;
       }
+      setLoginSuggestedSignup(false);
+      setOtpFlow('login');
+      setStep('otp');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const submitRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (phone.length < 10 || sendingOtp) return;
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    if (!fn || !ln) {
+      setPhoneStepError('Please enter your first and last name.');
+      return;
+    }
+    if (!emailLooksValid(email)) {
+      setPhoneStepError('Please enter a valid email address.');
+      return;
+    }
+    setPhoneStepError(null);
+    setSendingOtp(true);
+    try {
+      await register({
+        first_name: fn,
+        last_name: ln,
+        phone,
+        email: email.trim(),
+      });
+      setOtpFlow('register');
       setStep('otp');
     } catch (err) {
-      setPhoneStepError(err instanceof Error ? err.message : 'Could not send OTP.');
+      setPhoneStepError(err instanceof Error ? err.message : 'Could not send verification code.');
     } finally {
       setSendingOtp(false);
     }
@@ -81,15 +165,20 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     setLoginError(null);
     setVerifyingOtp(true);
     try {
-      await verifyOtp(phone, otp);
+      if (otpFlow === 'register') {
+        await verifyRegistrationOtp(phone, otp);
+      } else {
+        await verifyOtp(phone, otp);
+      }
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : 'Could not verify. Try again.');
+      const e = err as Error & { code?: string };
+      setLoginError(e.message || 'Could not verify. Try again.');
       verifyingRef.current = false;
     } finally {
       verifyInFlightRef.current = false;
       setVerifyingOtp(false);
     }
-  }, [phone, otp, verifyOtp]);
+  }, [phone, otp, otpFlow, verifyOtp, verifyRegistrationOtp]);
 
   useEffect(() => {
     if (!otpComplete) verifyingRef.current = false;
@@ -111,6 +200,13 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     const t = requestAnimationFrame(() => focusOtpIndex(0));
     return () => cancelAnimationFrame(t);
   }, [open, step, focusOtpIndex]);
+
+  const modalTitleId =
+    step === 'login-phone'
+      ? 'login-modal-phone-title'
+      : step === 'register-form'
+        ? 'login-modal-register-title'
+        : 'login-modal-otp-title';
 
   const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const d = digitsOnly(e.target.value, 1);
@@ -164,6 +260,27 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
     void runVerify();
   };
 
+  const handleResendOtp = async () => {
+    if (phone.length < 10 || resendingOtp || otpResendSecondsRemaining > 0) return;
+    setResendingOtp(true);
+    setLoginError(null);
+    try {
+      const result = await resendOtp(phone, {
+        purpose: otpFlow === 'register' ? 'register' : 'login',
+      });
+      if (!result.ok) {
+        setLoginError(result.message);
+        return;
+      }
+      setOtpCells(emptyOtpCells());
+      verifyingRef.current = false;
+      verifyInFlightRef.current = false;
+      setOtpResendSecondsRemaining(OTP_RESEND_SECONDS);
+    } finally {
+      setResendingOtp(false);
+    }
+  };
+
   if (!open) return null;
 
   const modal = (
@@ -171,7 +288,7 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
       className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-labelledby={step === 'phone' ? 'login-modal-phone-title' : 'login-modal-otp-title'}
+      aria-labelledby={modalTitleId}
     >
       <div className="absolute inset-0 bg-stitch-background/85 backdrop-blur-md" aria-hidden />
 
@@ -190,14 +307,56 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
 
         <div className="glass-panel-login rounded-xl p-10 shadow-2xl">
           <div className="mb-8 flex justify-center">
-            <span className="font-headline text-3xl font-black uppercase tracking-tighter text-stitch-primary-container">
-              Motohom
-            </span>
+            <MotohomLogo className="h-9 w-auto max-w-[min(100%,18rem)] sm:h-10" blendOnDark />
           </div>
 
-          {step === 'phone' ? (
+          {(step === 'login-phone' || step === 'register-form') && (
             <div
-              key="phone"
+              className="mb-8 grid grid-cols-2 gap-1 rounded-lg border border-stitch-outline/20 p-1"
+              role="tablist"
+              aria-label="Account"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={step === 'login-phone'}
+                onClick={() => {
+                  setStep('login-phone');
+                  setPhoneStepError(null);
+                  setLoginSuggestedSignup(false);
+                }}
+                className={cn(
+                  'rounded-md py-2.5 font-body text-sm font-semibold transition-colors',
+                  step === 'login-phone'
+                    ? 'bg-stitch-primary/20 text-stitch-on-background'
+                    : 'text-stitch-on-surface-variant hover:text-stitch-on-background'
+                )}
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={step === 'register-form'}
+                onClick={() => {
+                  setStep('register-form');
+                  setPhoneStepError(null);
+                }}
+                className={cn(
+                  'rounded-md py-2.5 font-body text-sm font-semibold transition-colors',
+                  step === 'register-form'
+                    ? 'bg-stitch-primary/20 text-stitch-on-background'
+                    : 'text-stitch-on-surface-variant hover:text-stitch-on-background'
+                )}
+              >
+                Sign up
+              </button>
+            </div>
+          )}
+
+          {step === 'login-phone' ? (
+            <div
+              key="login-phone"
               className="animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
             >
               <div className="mb-10 text-center">
@@ -240,6 +399,24 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                   </p>
                 )}
 
+                {loginSuggestedSignup && (
+                  <div
+                    className="rounded-lg border border-stitch-outline/25 bg-stitch-surface-highest/40 px-4 py-3 text-center"
+                    role="status"
+                  >
+                    <p className="text-sm text-stitch-on-background">
+                      This number isn&apos;t registered yet. Create an account to continue.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={goToRegisterWithPhone}
+                      className="mt-3 font-body text-sm font-semibold text-stitch-primary-container underline-offset-4 hover:underline"
+                    >
+                      Create account
+                    </button>
+                  </div>
+                )}
+
                 <div className="pt-4">
                   <button
                     type="submit"
@@ -277,6 +454,119 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                 </button>
               </div>
             </div>
+          ) : step === 'register-form' ? (
+            <div
+              key="register-form"
+              className="animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+            >
+              <div className="mb-10 text-center">
+                <h1
+                  id="login-modal-register-title"
+                  className="font-headline text-2xl font-bold leading-tight tracking-tight text-stitch-on-background"
+                >
+                  Create your account
+                </h1>
+                <p className="mt-3 text-sm font-medium text-stitch-on-surface-variant">
+                  We&apos;ll send a code to verify your mobile number
+                </p>
+              </div>
+
+              <form className="space-y-5" onSubmit={submitRegister}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="ml-1 font-body text-xs font-semibold uppercase tracking-[0.1em] text-stitch-on-surface-variant">
+                      First name
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="First name"
+                      className="input-gradient-border-login w-full border-none bg-transparent px-3 pb-2 pt-2 font-body text-sm font-medium text-stitch-on-background placeholder:text-stitch-outline/50 focus:ring-0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="ml-1 font-body text-xs font-semibold uppercase tracking-[0.1em] text-stitch-on-surface-variant">
+                      Last name
+                    </label>
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Last name"
+                      className="input-gradient-border-login w-full border-none bg-transparent px-3 pb-2 pt-2 font-body text-sm font-medium text-stitch-on-background placeholder:text-stitch-outline/50 focus:ring-0"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="ml-1 font-body text-xs font-semibold uppercase tracking-[0.1em] text-stitch-on-surface-variant">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="input-gradient-border-login w-full border-none bg-transparent px-3 pb-2 pt-2 font-body text-sm font-medium text-stitch-on-background placeholder:text-stitch-outline/50 focus:ring-0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="ml-1 font-body text-xs font-semibold uppercase tracking-[0.1em] text-stitch-on-surface-variant">
+                    Mobile Number
+                  </label>
+                  <div className="input-gradient-border-login flex items-center">
+                    <span className="px-2 pb-2 font-headline text-lg font-bold text-stitch-primary-container">
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={10}
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      placeholder="98765 43210"
+                      className="w-full border-none bg-transparent pb-2 font-headline text-lg font-bold tracking-wider text-stitch-on-background placeholder:text-stitch-outline/50 focus:ring-0"
+                    />
+                  </div>
+                </div>
+
+                {phoneStepError && (
+                  <p className="text-center text-sm text-destructive" role="alert">
+                    {phoneStepError}
+                  </p>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={phone.length < 10 || sendingOtp}
+                    className="flex h-14 w-full items-center justify-center gap-3 rounded-md font-headline font-bold shadow-lg transition-all enabled:gradient-cta enabled:text-stitch-on-primary enabled:shadow-lg enabled:hover:scale-[1.02] enabled:active:scale-95 disabled:cursor-not-allowed disabled:border disabled:border-stitch-outline/25 disabled:bg-stitch-surface-highest/70 disabled:text-stitch-on-background disabled:opacity-100"
+                  >
+                    <Send className="size-5 shrink-0" aria-hidden />
+                    {sendingOtp ? 'Sending code…' : 'Send verification code'}
+                  </button>
+                </div>
+              </form>
+
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('login-phone');
+                    setPhoneStepError(null);
+                  }}
+                  className="font-body text-sm text-stitch-on-surface-variant transition-colors hover:text-stitch-on-background"
+                >
+                  Already have an account? <span className="font-semibold text-stitch-primary-container">Log in</span>
+                </button>
+              </div>
+            </div>
           ) : (
             <div
               key="otp"
@@ -290,47 +580,62 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                   Enter Verification Code
                 </h1>
                 <p className="font-body text-stitch-on-surface-variant">
-                  We&apos;ve sent a 6-digit code to your registered mobile number.
+                  {otpFlow === 'register'
+                    ? 'Enter the code we sent to finish signing up.'
+                    : 'We&apos;ve sent a 6-digit code to your registered mobile number.'}
                 </p>
               </div>
 
               <form className="space-y-8" onSubmit={handleVerify}>
                 <div className="flex justify-center py-4">
                   <div className="mx-auto flex w-max gap-2 sm:gap-3 md:gap-4">
-                  {Array.from({ length: OTP_LEN }, (_, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => {
-                        otpInputRefs.current[i] = el;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={1}
-                      value={otpCells[i] ?? ''}
-                      placeholder="·"
-                      onChange={(e) => handleOtpChange(i, e)}
-                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                      onPaste={i === 0 ? handleOtpPaste : undefined}
-                      className="h-16 w-11 rounded-none border-0 border-b-2 border-stitch-outline/80 bg-transparent text-center font-headline text-3xl font-bold text-stitch-primary transition-colors focus:border-stitch-primary focus:outline-none focus:ring-0 sm:h-20 sm:w-14"
-                    />
-                  ))}
+                    {Array.from({ length: OTP_LEN }, (_, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => {
+                          otpInputRefs.current[i] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={1}
+                        value={otpCells[i] ?? ''}
+                        placeholder="·"
+                        onChange={(e) => handleOtpChange(i, e)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        onPaste={i === 0 ? handleOtpPaste : undefined}
+                        className="h-16 w-11 rounded-none border-0 border-b-2 border-stitch-outline/80 bg-transparent text-center font-headline text-3xl font-bold text-stitch-primary transition-colors focus:border-stitch-primary focus:outline-none focus:ring-0 sm:h-20 sm:w-14"
+                      />
+                    ))}
                   </div>
                 </div>
 
                 <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2 font-body text-sm text-stitch-on-surface-variant">
-                    <Clock className="size-4" aria-hidden />
-                    <span>
-                      Resend code in <span className="font-bold text-stitch-primary">00:24</span>
-                    </span>
-                  </div>
+                  {otpResendSecondsRemaining > 0 ? (
+                    <div className="flex items-center gap-2 font-body text-sm text-stitch-on-surface-variant">
+                      <Clock className="size-4" aria-hidden />
+                      <span>
+                        Resend code in{' '}
+                        <span className="font-bold text-stitch-primary">
+                          {formatCountdown(otpResendSecondsRemaining)}
+                        </span>
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-body text-sm text-stitch-on-surface-variant">Didn&apos;t get a code?</p>
+                  )}
                   <button
                     type="button"
-                    disabled
-                    className="cursor-not-allowed text-sm font-semibold text-stitch-on-surface-variant opacity-50"
+                    onClick={() => void handleResendOtp()}
+                    disabled={otpResendSecondsRemaining > 0 || resendingOtp || phone.length < 10}
+                    className={cn(
+                      'text-sm font-semibold transition-colors',
+                      otpResendSecondsRemaining > 0 || resendingOtp || phone.length < 10
+                        ? 'cursor-not-allowed text-stitch-on-surface-variant opacity-50'
+                        : 'text-stitch-primary-container hover:underline'
+                    )}
                   >
-                    Resend Code
+                    {resendingOtp ? 'Sending…' : 'Resend code'}
                   </button>
                 </div>
 
@@ -359,8 +664,8 @@ export function LoginModal({ open, onClose }: LoginModalProps) {
                   type="button"
                   onClick={() => {
                     setLoginError(null);
-                    setStep('phone');
                     setOtpCells(emptyOtpCells());
+                    setStep(otpFlow === 'register' ? 'register-form' : 'login-phone');
                   }}
                   className="font-body text-xs uppercase tracking-widest text-stitch-on-surface-variant transition-colors hover:text-stitch-on-background"
                 >

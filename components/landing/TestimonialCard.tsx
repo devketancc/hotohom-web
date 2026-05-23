@@ -12,12 +12,12 @@ interface TestimonialCardProps {
 
 export const TestimonialCard = ({ name, location, quote, image, stats }: TestimonialCardProps) => {
   return (
-    <div className="bg-stitch-surface-highest/30 p-16 rounded-[40px] relative border border-white/5 hover:border-stitch-primary/20 transition-all group">
-      <Quote className="text-stitch-primary/10 size-24 absolute top-8 right-12 transition-colors group-hover:text-stitch-primary/20" />
+    <div className="card-lift bg-stitch-surface-highest/30 p-16 rounded-[40px] relative border border-white/5 hover:border-stitch-primary/20 transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group h-full">
+      <Quote className="text-stitch-primary/10 size-24 absolute top-8 right-12 transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:text-stitch-primary/20" />
       <div className="flex items-center gap-6 mb-12 relative z-10">
-        <img 
-          alt={name} 
-          className="w-20 h-20 rounded-full object-cover border-2 border-stitch-primary/20" 
+        <img
+          alt={name}
+          className="w-20 h-20 rounded-full object-cover border-2 border-stitch-primary/20"
           src={image}
         />
         <div>
@@ -33,7 +33,7 @@ export const TestimonialCard = ({ name, location, quote, image, stats }: Testimo
         </div>
       </div>
       <p className="text-stitch-on-surface-variant text-xl italic leading-[1.8] font-body relative z-10">
-        "{quote}"
+        &ldquo;{quote}&rdquo;
       </p>
     </div>
   )

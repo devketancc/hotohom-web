@@ -27,7 +27,7 @@ export function HubPickerPanel({ selectedHubId, onSelect, className }: HubPicker
           <span className="text-xs font-medium text-stitch-on-surface-variant">Searching for hubs...</span>
         </div>
       ) : (
-        <div className="max-h-64 overflow-y-auto">
+        <div className="max-h-64 overflow-y-auto overscroll-y-contain" data-lenis-prevent>
           {hubs?.map((item) => (
             <button
               key={item.id}

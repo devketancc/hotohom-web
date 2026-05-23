@@ -1,3 +1,5 @@
+import type { TravelPackage } from '@/types/package';
+
 export interface CaravanClass {
   id: string;
   name: string;
@@ -57,6 +59,8 @@ export interface Addon {
   price: number;
 }
 
+export type BookingFlow = 'standard' | 'package';
+
 /** Persisted when user picks a hub (from LocationHub.coordinates) for maps / round-trip routing. */
 export interface HubLocation {
   lat: number;
@@ -83,4 +87,7 @@ export interface BookingData {
     tax: number;
     total: number;
   };
+  bookingFlow: BookingFlow;
+  /** Package row while user is in package booking (set on detail proceed). */
+  activePackage: TravelPackage | null;
 }

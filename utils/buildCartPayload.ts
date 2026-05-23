@@ -45,7 +45,7 @@ export function buildCartPayload(booking: BookingData): CreateCartPayload {
     throw new Error('Journey stops are incomplete');
   }
 
-  const stops: CreateCartStopPayload[] = journey.stops.map((s, index) => {
+  const routeStops: CreateCartStopPayload[] = journey.stops.map((s, index) => {
     const loc = s.location;
     if (!loc) {
       throw new Error(`Stop ${index + 1} has no location`);
@@ -63,6 +63,22 @@ export function buildCartPayload(booking: BookingData): CreateCartPayload {
       },
     };
   });
+
+  const stops: CreateCartStopPayload[] = [
+    {
+      location_id: hub,
+      order: 0,
+      stop_type: 'hub_start',
+      notes: '',
+    },
+    ...routeStops,
+    {
+      location_id: hub,
+      order: routeStops.length + 1,
+      stop_type: 'hub_end',
+      notes: '',
+    },
+  ];
 
   return {
     caravan_class_id: caravanClass.id,

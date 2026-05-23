@@ -1,6 +1,8 @@
 "use client"
 
-import { Compass, Map, Star, ArrowRight } from 'lucide-react'
+import { Compass, Map, Star } from 'lucide-react'
+import { Reveal } from '@/components/shared/Reveal'
+import { RevealStagger, RevealItem } from '@/components/shared/RevealStagger'
 
 export const JourneyTimeline = () => {
   const steps = [
@@ -25,23 +27,26 @@ export const JourneyTimeline = () => {
   ]
 
   return (
-    <section className="py-40 bg-zinc-900 border-y border-white/5 relative overflow-hidden">
+    <section className="section-ambient-cool py-40 bg-zinc-900 border-y border-white/5 relative overflow-hidden">
       <div className="max-w-screen-2xl mx-auto px-8 relative z-10">
-        <div className="text-center mb-32 animate-in fade-in slide-in-from-bottom-5 duration-700">
+        <Reveal as="div" className="text-center mb-32">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight font-headline">The Journey Path</h2>
           <p className="text-stitch-on-surface-variant text-xl max-w-2xl mx-auto font-body">
             Three simple steps from your front door to the open road.
           </p>
-        </div>
-        
+        </Reveal>
+
         <div className="relative">
-          {/* Connecting Line */}
-          <div className="hidden lg:block absolute top-[60px] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-stitch-primary/30 to-transparent"></div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-24 relative">
+          {/* Drifting gradient connecting line */}
+          <div
+            aria-hidden
+            className="timeline-connector-sweep hidden lg:block absolute top-[60px] left-[15%] right-[15%] h-px opacity-60"
+          />
+
+          <RevealStagger className="grid grid-cols-1 lg:grid-cols-3 gap-24 relative">
             {steps.map((step) => (
-              <div key={step.id} className="flex flex-col items-center text-center group">
-                <div className="w-32 h-32 rounded-3xl bg-stitch-background border border-stitch-primary/20 flex items-center justify-center mb-10 shadow-2xl relative transition-transform duration-500 group-hover:-translate-y-2">
+              <RevealItem key={step.id} className="flex flex-col items-center text-center group">
+                <div className="ring-pulse-gold w-32 h-32 rounded-3xl bg-stitch-background border border-stitch-primary/20 flex items-center justify-center mb-10 shadow-2xl relative transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-2">
                   <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-stitch-primary-container text-stitch-on-primary-container font-black flex items-center justify-center text-xl font-headline">
                     {step.id}
                   </div>
@@ -51,9 +56,9 @@ export const JourneyTimeline = () => {
                 <p className="text-stitch-on-surface-variant text-lg leading-relaxed max-w-sm font-body">
                   {step.description}
                 </p>
-              </div>
+              </RevealItem>
             ))}
-          </div>
+          </RevealStagger>
         </div>
       </div>
     </section>

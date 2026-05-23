@@ -14,16 +14,18 @@ export const DatePicker = () => {
   const containerRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false))
 
   return (
-    <div ref={containerRef} className="flex-1 relative border-x border-white/5 h-full">
+    <div ref={containerRef} className="flex-1 relative h-full">
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-full flex flex-col items-start justify-center px-4 hover:bg-white/5 transition-colors group text-left"
+        className="w-full h-full flex flex-col items-start justify-center rounded-2xl px-5 hover:bg-white/[0.04] transition-all duration-300 group text-left"
       >
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stitch-on-surface-variant mb-1 group-hover:text-stitch-primary transition-colors">Travel Window</span>
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="size-4 text-stitch-primary" />
-          <span className="text-sm font-bold truncate">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stitch-on-surface-variant/70 mb-1.5 group-hover:text-stitch-primary-container transition-colors duration-300">
+          Travel Dates
+        </span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <CalendarIcon className="size-4 text-stitch-primary-container/85" />
+          <span className="text-[15px] font-medium text-stitch-on-background truncate">
             {formatBookingTravelWindow(dates)}
           </span>
         </div>

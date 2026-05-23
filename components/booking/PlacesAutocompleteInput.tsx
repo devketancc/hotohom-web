@@ -27,6 +27,7 @@ export function PlacesAutocompleteInput({
   className,
 }: PlacesAutocompleteInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = React.useState<string | null>(null);
   const onResolvedRef = useRef(onResolved);
   onResolvedRef.current = onResolved;
 
@@ -41,7 +42,7 @@ export function PlacesAutocompleteInput({
         const google = window.google;
         const input = inputRef.current;
         const ac = new google.maps.places.Autocomplete(input, {
-          fields: ['formatted_address', 'geometry', 'name', 'place_id'],
+          fields: ['formatted_address', 'geometry', 'name', 'place_id', 'types'],
           componentRestrictions: { country: 'in' },
         });
         ac.setBounds(
@@ -54,14 +55,34 @@ export function PlacesAutocompleteInput({
         const listener = ac.addListener('place_changed', () => {
           const place = ac.getPlace();
           const geom = place.geometry?.location;
-          if (!geom || !place.place_id) return;
+          const types = Array.isArray(place.types) ? [...place.types] : [];
+
+          // Identify if the location is a specific point vs a broad region
+          const isPrecise = types.some((t) =>
+            ['establishment', 'point_of_interest', 'street_address', 'premise', 'subpremise', 'route', 'airport', 'park', 'sublocality', 'neighborhood'].includes(t)
+          );
+
+          const isGeneric = types.some((t) =>
+            ['locality', 'administrative_area_level_1', 'administrative_area_level_2', 'country', 'political', 'postal_code'].includes(t)
+          );
+
+          // If it's a broad region and doesn't have a precise point marker, reject it
+          if (!geom || !place.place_id || (isGeneric && !isPrecise)) {
+            input.value = '';
+            onResolvedRef.current(null);
+            setError('Please select a specific landmark or address, not just a city.');
+            return;
+          }
+
+          setError(null);
           const name = place.formatted_address || place.name || input.value;
+          const formatted_address = place.formatted_address ?? name;
           onResolvedRef.current({
             name,
             lat: geom.lat(),
             lng: geom.lng(),
             place_id: place.place_id,
-            meta: {},
+            meta: { formatted_address, types },
           });
         });
         removeListener = () => listener.remove();
@@ -83,27 +104,38 @@ export function PlacesAutocompleteInput({
   }, [location?.name, location?.place_id]);
 
   return (
-    <div
-      className={cn(
-        'relative flex items-center border-b-2 border-stitch-outline/30 focus-within:border-stitch-primary transition-all pb-2',
-        disabled && 'opacity-50 pointer-events-none',
-        className
+    <div className={cn('relative w-full', className)}>
+      <div
+        className={cn(
+          'relative flex items-center border-b-2 border-stitch-outline/30 focus-within:border-stitch-primary transition-all pb-2',
+          error && 'border-red-400',
+          disabled && 'opacity-50 pointer-events-none'
+        )}
+      >
+        <span className={cn('mr-4 shrink-0 text-stitch-primary', error && 'text-red-400')}>
+          {icon}
+        </span>
+        <input
+          ref={inputRef}
+          type="text"
+          defaultValue={location?.name ?? ''}
+          disabled={disabled}
+          placeholder={placeholder}
+          onChange={(e) => {
+            if (error) setError(null);
+            if (e.target.value.trim() === '') {
+              onResolved(null);
+            }
+          }}
+          className="bg-transparent border-none focus:ring-0 w-full text-stitch-on-surface placeholder:text-stitch-surface-highest/60 font-medium"
+        />
+      </div>
+
+      {error && (
+        <div className="absolute top-full left-10 mt-2 text-[10px] font-medium uppercase tracking-wider text-red-400 animate-in fade-in slide-in-from-top-1 duration-200">
+          {error}
+        </div>
       )}
-    >
-      <span className="mr-4 shrink-0 text-stitch-primary">{icon}</span>
-      <input
-        ref={inputRef}
-        type="text"
-        defaultValue={location?.name ?? ''}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => {
-          if (e.target.value.trim() === '') {
-            onResolved(null);
-          }
-        }}
-        className="bg-transparent border-none focus:ring-0 w-full text-stitch-on-surface placeholder:text-stitch-surface-highest/60 font-medium"
-      />
     </div>
   );
 }

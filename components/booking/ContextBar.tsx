@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useBooking } from '@/hooks/useBooking';
 import { formatBookingTravelWindow } from '@/utils/format';
@@ -8,6 +8,8 @@ import { Edit2, CheckCircle } from 'lucide-react';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { HubPickerPanel } from '@/components/booking/HubPickerPanel';
 import { DateRangePickerPanel } from '@/components/booking/DateRangePickerPanel';
+import { PackageTripDatePanel } from '@/components/package/PackageTripDatePanel';
+import { useBookingStore } from '@/store/bookingStore';
 
 function isJourneyStepPath(pathname: string | null) {
   if (!pathname) return false;
@@ -16,14 +18,19 @@ function isJourneyStepPath(pathname: string | null) {
 
 export const ContextBar: React.FC = () => {
   const pathname = usePathname();
-  const lockHubAndDates = isJourneyStepPath(pathname);
+  const journeyPath = isJourneyStepPath(pathname);
+  const bookingFlow = useBookingStore((s) => s.bookingFlow ?? 'standard');
+  const activePackage = useBookingStore((s) => s.activePackage);
+  /** Hub/class fixed for this package; dates can change start only via `PackageTripDatePanel`. */
+  const packageSession = bookingFlow === 'package' && activePackage != null;
+  const hubLocked = journeyPath || packageSession;
+  const datesLocked = journeyPath;
+  const vehicleLocked = packageSession;
   const { bookingState } = useBooking();
   const { hub, hubName, dates, caravanClass, setData } = bookingState;
   const [openPanel, setOpenPanel] = useState<null | 'hub' | 'dates'>(null);
-
-  useEffect(() => {
-    if (lockHubAndDates) setOpenPanel(null);
-  }, [lockHubAndDates]);
+  const showHubPanel = openPanel === 'hub' && !hubLocked;
+  const showDatesPanel = openPanel === 'dates' && !datesLocked;
 
   const containerRef = useClickOutside<HTMLDivElement>(() => setOpenPanel(null));
 
@@ -40,19 +47,22 @@ export const ContextBar: React.FC = () => {
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
               Hub
             </span>
-            {lockHubAndDates ? (
+            {hubLocked ? (
               <span className="font-bold text-primary cursor-default">{hubName || 'Select Hub'}</span>
             ) : (
               <>
                 <button
                   type="button"
-                  onClick={() => setOpenPanel((p) => (p === 'hub' ? null : 'hub'))}
+                  onClick={() => {
+                    if (hubLocked) return;
+                    setOpenPanel((p) => (p === 'hub' ? null : 'hub'));
+                  }}
                   className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors text-left"
                 >
                   <span className="font-bold text-primary">{hubName || 'Select Hub'}</span>
                   <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform shrink-0" />
                 </button>
-                {openPanel === 'hub' && (
+                {showHubPanel && (
                   <div className="absolute top-full left-0 mt-2 z-[200] w-[min(340px,calc(100vw-2rem))] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-top-2 duration-200">
                     <HubPickerPanel
                       selectedHubId={hub}
@@ -78,21 +88,28 @@ export const ContextBar: React.FC = () => {
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
               Dates
             </span>
-            {lockHubAndDates ? (
+            {datesLocked ? (
               <span className="font-bold text-primary cursor-default">{dateLabel}</span>
             ) : (
               <>
                 <button
                   type="button"
-                  onClick={() => setOpenPanel((p) => (p === 'dates' ? null : 'dates'))}
+                  onClick={() => {
+                    if (datesLocked) return;
+                    setOpenPanel((p) => (p === 'dates' ? null : 'dates'));
+                  }}
                   className="flex items-center gap-2 group cursor-pointer hover:text-primary transition-colors text-left"
                 >
                   <span className="font-bold text-primary">{dateLabel}</span>
                   <Edit2 size={12} className="text-primary group-hover:scale-110 transition-transform shrink-0" />
                 </button>
-                {openPanel === 'dates' && (
+                {showDatesPanel && (
                   <div className="absolute top-full left-0 mt-2 z-[200] animate-in fade-in slide-in-from-top-2 duration-200 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
-                    <DateRangePickerPanel onRangeComplete={() => setOpenPanel(null)} />
+                    {packageSession ? (
+                      <PackageTripDatePanel onComplete={() => setOpenPanel(null)} />
+                    ) : (
+                      <DateRangePickerPanel onRangeComplete={() => setOpenPanel(null)} />
+                    )}
                   </div>
                 )}
               </>
@@ -104,14 +121,20 @@ export const ContextBar: React.FC = () => {
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
                 Vehicle
               </span>
-              <div className="flex items-center gap-2 group cursor-pointer">
-                <span className="font-bold text-primary">{caravanClass.name}</span>
-                <Edit2 
-                  size={12} 
-                  className="text-primary group-hover:scale-110 transition-transform cursor-pointer" 
-                  onClick={() => window.location.href = '/select-caravan'}
-                />
-              </div>
+              {vehicleLocked ? (
+                <span className="font-bold text-primary cursor-default">{caravanClass.name}</span>
+              ) : (
+                <div className="flex items-center gap-2 group cursor-pointer">
+                  <span className="font-bold text-primary">{caravanClass.name}</span>
+                  <Edit2
+                    size={12}
+                    className="text-primary group-hover:scale-110 transition-transform cursor-pointer"
+                    onClick={() => {
+                      window.location.href = '/select-caravan';
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

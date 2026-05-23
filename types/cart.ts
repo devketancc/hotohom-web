@@ -1,5 +1,10 @@
 /** POST /carts/ body — must match backend contract */
-export type CreateCartStopType = 'pickup' | 'waypoint' | 'dropoff';
+export type CreateCartStopType =
+  | 'pickup'
+  | 'waypoint'
+  | 'dropoff'
+  | 'hub_start'
+  | 'hub_end';
 
 export type CreateCartLocation = {
   name: string;
@@ -9,13 +14,23 @@ export type CreateCartLocation = {
   meta: Record<string, unknown>;
 };
 
-export type CreateCartStopPayload = {
+export type CreateCartRouteStopPayload = {
   order: number;
-  stop_type: CreateCartStopType;
+  stop_type: 'pickup' | 'waypoint' | 'dropoff';
   notes: string;
   location: CreateCartLocation;
 };
 
+export type CreateCartHubStopPayload = {
+  order: number;
+  stop_type: 'hub_start' | 'hub_end';
+  notes: string;
+  location_id: string;
+};
+
+export type CreateCartStopPayload = CreateCartRouteStopPayload | CreateCartHubStopPayload;
+
+/** Round-trip custom route cart (hub_start / route / hub_end). */
 export type CreateCartPayload = {
   caravan_class_id: string;
   hub_id: string;
@@ -28,12 +43,42 @@ export type CreateCartPayload = {
   stops: CreateCartStopPayload[];
 };
 
+/** Package cart: pickup + dropoff only, plus `package_id` (POST /carts/). */
+export type CreatePackageCartPayload = {
+  package_id: string;
+  caravan_class_id: string;
+  hub_id: string;
+  start_datetime: string;
+  num_humans: number;
+  num_pets: number;
+  name: string;
+  phone: string;
+  stops: CreateCartRouteStopPayload[];
+  end_datetime?: string;
+  is_one_way?: boolean;
+  estimated_km?: number;
+};
+
+export type CreateCartBody = CreateCartPayload | CreatePackageCartPayload;
+
 export type CartPricingBreakdown = {
   grand_total: number;
   base_price: number;
   addons_total: number;
   insurance_total: number;
   tax_total: number;
+  gst: number;
+  gst_rate: string;
+  razorpay_charges: number;
+  deposit_amount: number;
+  pet_cleaning_charge: number;
+  one_way_surcharge: number;
+  coupon_discount: number;
+  /** Set only when the API sends `subtotal` (used for an extra line before tax). */
+  subtotal?: number;
+  chosen: string;
+  pricing_mode_label: string;
+  reason: string;
 };
 
 export type CartItem = {
@@ -48,6 +93,7 @@ export type CartItem = {
 /** Snapshot returned from create cart (and future cart reads) */
 export type Cart = {
   id: string;
+  coupon: string | null;
   pricing_mode: string;
   pricing_breakdown: CartPricingBreakdown;
   total_days: number;
