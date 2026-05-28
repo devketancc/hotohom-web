@@ -58,8 +58,8 @@ export default function JourneyDetailsPage() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-8 py-10 w-full grid grid-cols-1 md:grid-cols-[1fr_380px] gap-12 text-stitch-on-background">
-      <section className="space-y-10">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 md:py-8 lg:py-10 w-full grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-6 lg:gap-8 xl:gap-12 text-stitch-on-background">
+      <section className="space-y-6 md:space-y-8 lg:space-y-10">
         <JourneyPlannerForm
           routePreviewShown={routePreviewShown}
           onRoutePreviewShownChange={setRoutePreviewShown}

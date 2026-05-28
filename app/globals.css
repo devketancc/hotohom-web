@@ -767,6 +767,22 @@
   }
 }
 
+@utility scrollbar-custom {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 214, 130, 0.15);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 214, 130, 0.35);
+  }
+}
+
 /* =============================================================
    Base layer
    ============================================================= */

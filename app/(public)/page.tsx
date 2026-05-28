@@ -14,7 +14,7 @@ import { RevealStagger, RevealItem } from '@/components/shared/RevealStagger'
 
 export default function PublicPage() {
   return (
-    <main className="bg-stitch-background text-stitch-on-background min-h-screen">
+    <main className="w-full bg-stitch-background text-stitch-on-background min-h-screen">
       <Navbar />
       <Hero />
 

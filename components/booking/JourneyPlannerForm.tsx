@@ -223,19 +223,19 @@ export const JourneyPlannerForm = ({
   const moreThanOneWaypoint = waypoints.length > 1;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 md:space-y-8 lg:space-y-10">
       <div className="space-y-2">
-        <h1 className="font-headline text-5xl font-extrabold tracking-tight text-stitch-on-surface">
+        <h1 className="font-headline text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-stitch-on-surface">
           Plan Your Journey
         </h1>
-        <p className="font-body text-stitch-on-surface-variant text-lg">
+        <p className="font-body text-stitch-on-surface-variant text-sm md:text-base lg:text-lg">
           Pickup, one stop, and drop-off are required. Add more stops if you like. Places search is limited to
           India.
         </p>
       </div>
 
-      <div className="space-y-8 max-w-2xl">
-        <div className="relative space-y-6">
+      <div className="space-y-6 lg:space-y-8 max-w-2xl">
+        <div className="relative space-y-4 lg:space-y-6">
           <div className="group">
             <label className="block text-[10px] uppercase tracking-[0.1em] text-stitch-outline mb-2 ml-1">
               Pickup location
@@ -292,7 +292,7 @@ export const JourneyPlannerForm = ({
             type="button"
             onClick={handleShowRoute}
             disabled={!routeReady}
-            className="px-8 py-4 gradient-cta text-stitch-on-primary font-headline font-bold rounded-xl flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-stitch-primary/10 disabled:opacity-50 disabled:grayscale"
+            className="px-6 py-3 lg:px-8 lg:py-4 gradient-cta text-stitch-on-primary font-headline font-bold rounded-xl flex items-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-stitch-primary/10 disabled:opacity-50 disabled:grayscale"
           >
             Show route
             <ArrowRight size={20} />
@@ -307,7 +307,7 @@ export const JourneyPlannerForm = ({
 
       <div
         ref={mapSectionRef}
-        className="w-full aspect-video rounded-3xl bg-stitch-surface overflow-hidden relative group border border-stitch-outline/10 shadow-inner scroll-mt-28"
+        className="w-full h-[320px] md:h-[380px] lg:h-[420px] xl:h-[460px] rounded-3xl bg-stitch-surface overflow-hidden relative group border border-stitch-outline/10 shadow-inner scroll-mt-28"
       >
         {routeReady && routePreviewShown ? (
           <div className="w-full h-full animate-in fade-in duration-500">

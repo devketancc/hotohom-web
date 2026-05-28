@@ -79,31 +79,31 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
   const showFinancials = showCaravanPricing;
 
   return (
-    <div className="sticky top-24 glass-card rounded-2xl p-8 border border-border/10 shadow-2xl bg-stitch-surface/50 backdrop-blur-xl text-stitch-on-background overflow-hidden relative">
+    <div className="sticky top-[150px] glass-card rounded-2xl p-5 lg:p-5 xl:p-6 border border-border/10 shadow-2xl bg-stitch-surface/50 backdrop-blur-xl text-stitch-on-background overflow-hidden lg:max-h-[calc(100vh-180px)] flex flex-col relative">
       {/* Accent Glow to match Stitch Design */}
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-stitch-primary/10 blur-[100px] rounded-full"></div>
 
-      <h2 className="text-2xl font-bold tracking-tight mb-8 font-headline relative z-10">Your Journey</h2>
+      <h2 className="text-lg xl:text-xl font-bold tracking-tight mb-2 lg:mb-3 xl:mb-4 font-headline relative z-10">Your Journey</h2>
 
-      <div className="space-y-6 mb-10 relative z-10">
-        <div className="flex justify-between items-start pb-6 border-b border-border/10">
+      <div className="space-y-2.5 lg:space-y-3 xl:space-y-4 flex-grow overflow-y-auto overflow-x-hidden pr-2 scrollbar-custom mb-4 relative z-10">
+        <div className="flex justify-between items-start pb-2 lg:pb-2.5 xl:pb-3 border-b border-border/10">
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+            <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
               Location
             </span>
-            <p className="font-bold text-lg">{hubName || 'Select Hub'}</p>
+            <p className="font-bold text-sm xl:text-base leading-tight mt-0.5">{hubName || 'Select Hub'}</p>
           </div>
-          <MapPin size={20} className="text-stitch-primary-container" />
+          <MapPin size={14} className="text-stitch-primary-container shrink-0 mt-1" />
         </div>
 
-        <div className="flex justify-between items-start pb-6 border-b border-border/10">
+        <div className="flex justify-between items-start pb-2 lg:pb-2.5 xl:pb-3 border-b border-border/10">
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+            <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80 font-semibold">
               Schedule
             </span>
-            <p className="font-bold text-lg">{formatBookingTravelWindow(dates)}</p>
+            <p className="font-bold text-sm xl:text-base leading-tight mt-0.5">{formatBookingTravelWindow(dates)}</p>
           </div>
-          <Calendar size={20} className="text-stitch-primary-container" />
+          <Calendar size={14} className="text-stitch-primary-container shrink-0 mt-1" />
         </div>
 
         <div className="flex justify-between items-start pt-2">
@@ -113,7 +113,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                 'w-full',
                 emphasizeCaravanSelection &&
                 cn(
-                  'rounded-2xl border-2 p-6 bg-stitch-background/40',
+                  'rounded-xl border-2 p-2.5 lg:p-3 xl:p-3.5 bg-stitch-background/40',
                   'border-stitch-primary shadow-[0_0_0_1px_rgba(212,175,55,0.15)]'
                 ),
                 !emphasizeCaravanSelection && 'space-y-0'
@@ -124,29 +124,29 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                   'flex items-start justify-between gap-3',
                   emphasizeCaravanSelection
                     ? showFinancials
-                      ? 'mb-4'
+                      ? 'mb-2'
                       : ''
-                    : 'pb-6 border-b border-border/10'
+                    : 'pb-2 lg:pb-2.5 xl:pb-3 border-b border-border/10'
                 )}
               >
                 <div>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold block mb-1">
+                  <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80 font-semibold block mb-0.5">
                     {emphasizeCaravanSelection ? 'Selected caravan' : 'Fleet'}
                   </span>
                   <p
                     className={cn(
-                      'font-bold text-lg font-headline',
+                      'font-bold text-sm xl:text-base font-headline leading-tight',
                       emphasizeCaravanSelection ? 'text-stitch-primary' : ''
                     )}
                   >
                     {caravanClass.name}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">{fleetSubtitleParts.join(' • ')}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{fleetSubtitleParts.join(' • ')}</p>
                 </div>
                 <Caravan
-                  size={emphasizeCaravanSelection ? 22 : 20}
+                  size={emphasizeCaravanSelection ? 16 : 14}
                   className={cn(
-                    'shrink-0',
+                    'shrink-0 mt-0.5',
                     emphasizeCaravanSelection ? 'text-stitch-primary' : 'text-stitch-primary-container'
                   )}
                 />
@@ -156,11 +156,11 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <>
                   <div
                     className={cn(
-                      'space-y-2',
-                      emphasizeCaravanSelection ? 'border-t border-border/10 pt-4' : 'pt-4'
+                      'space-y-0.5 lg:space-y-1',
+                      emphasizeCaravanSelection ? 'border-t border-border/10 pt-2' : 'pt-2'
                     )}
                   >
-                    <div className="flex justify-between gap-3 text-sm">
+                    <div className="flex justify-between gap-3 text-[11px] xl:text-xs">
                       <span className="text-muted-foreground">Price per day</span>
                       <span className="font-semibold text-stitch-primary tabular-nums text-right">
                         ₹
@@ -169,24 +169,23 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                           : '—'}
                       </span>
                     </div>
-                    <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground py-0.5">
+                    <p className="text-center text-[8px] font-semibold uppercase tracking-widest text-muted-foreground/60 my-0.5">
                       or
                     </p>
-                    <div className="flex justify-between gap-3 text-sm">
+                    <div className="flex justify-between gap-3 text-[11px] xl:text-xs">
                       <span className="text-muted-foreground">Price per km</span>
                       <span className="font-semibold text-stitch-primary tabular-nums text-right">
                         ₹
                         {Number.isFinite(Number(caravanClass.km_rate))
                           ? Number(caravanClass.km_rate).toLocaleString('en-IN')
                           : '—'}
-
                       </span>
                     </div>
-                    <div className="pt-2">
-                      <div className="inline-flex items-start gap-1.5 text-[11px] text-muted-foreground leading-snug">
-                        <span>We automatically choose the lower price based on your trip.</span>
+                    <div className="pt-1">
+                      <div className="inline-flex items-center gap-1.5 text-[9px] text-muted-foreground leading-tight">
+                        <span>We automatically charge the lower price.</span>
                         <span className="relative inline-flex group">
-                          <Info className="size-3.5 shrink-0 text-stitch-primary/80 cursor-help mt-0.5" />
+                          <Info className="size-2.5 shrink-0 text-stitch-primary/80 cursor-help" />
                           <span className="pointer-events-none absolute left-1/2 top-[130%] z-20 hidden w-72 -translate-x-1/2 rounded-md border border-border/30 bg-stitch-surface px-3 py-2 text-[11px] font-normal text-stitch-on-background shadow-xl group-hover:block">
                             Depending on distance, duration, and itinerary, we calculate both pricing methods and apply whichever is cheaper.
                           </span>
@@ -196,41 +195,41 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
                   </div>
 
                   {caravanClass.is_pet_friendly && maxPets > 0 && (
-                    <div className="mt-5 pt-5 border-t border-border/10">
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold block mb-3">
+                    <div className="mt-2 pt-2 border-t border-border/10">
+                      <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80 font-semibold block mb-1">
                         Pets
                       </span>
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <PawPrint className="size-4 text-stitch-primary shrink-0" />
-                          <span className="text-sm font-medium text-stitch-on-background truncate">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <PawPrint className="size-3 text-stitch-primary shrink-0" />
+                          <span className="text-[11px] xl:text-xs font-medium text-stitch-on-background truncate">
                             Add pet companion
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => adjustPets(pets - 1)}
                             disabled={pets <= 0}
-                            className="size-9 rounded-lg border border-border bg-stitch-surface flex items-center justify-center text-stitch-on-background hover:border-stitch-primary disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+                            className="size-6 rounded border border-border bg-stitch-surface flex items-center justify-center text-stitch-on-background hover:border-stitch-primary disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
                             aria-label="Decrease pets"
                           >
-                            <Minus className="size-4" />
+                            <Minus className="size-2.5" />
                           </button>
-                          <span className="text-sm font-bold w-6 text-center tabular-nums">{pets}</span>
+                          <span className="text-xs font-bold w-4 text-center tabular-nums">{pets}</span>
                           <button
                             type="button"
                             onClick={() => adjustPets(pets + 1)}
                             disabled={pets >= maxPets}
-                            className="size-9 rounded-lg border-2 border-stitch-primary bg-stitch-primary/10 flex items-center justify-center text-stitch-primary hover:bg-stitch-primary/20 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+                            className="size-6 rounded border-2 border-stitch-primary bg-stitch-primary/10 flex items-center justify-center text-stitch-primary hover:bg-stitch-primary/20 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
                             aria-label="Increase pets"
                           >
-                            <Plus className="size-4" />
+                            <Plus className="size-2.5" />
                           </button>
                         </div>
                       </div>
-                      <p className="mt-3 flex items-start gap-2 text-[11px] text-muted-foreground leading-snug">
-                        <Info className="size-3.5 shrink-0 mt-0.5 text-stitch-primary/80" />
+                      <p className="mt-1.5 flex items-start gap-1.5 text-[9px] text-muted-foreground leading-tight">
+                        <Info className="size-2.5 shrink-0 mt-0.5 text-stitch-primary/80" />
                         <span>{PET_CLEANING_NOTE}</span>
                       </p>
                     </div>
@@ -250,46 +249,48 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onContinue}
-        disabled={continueDisabled}
-        className={cn(
-          'w-full py-4 font-bold rounded-xl flex items-center justify-center gap-2 group transition-all',
-          isReady && !continueGated
-            ? 'gradient-cta text-stitch-on-primary shadow-lg shadow-stitch-primary/20 active:scale-95'
-            : 'bg-stitch-surface-highest/30 text-stitch-on-surface-variant/40 cursor-not-allowed'
+      <div className="relative z-10 mt-auto pt-2 border-t border-border/10">
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={continueDisabled}
+          className={cn(
+            'w-full py-2 lg:py-2.5 xl:py-3 font-bold rounded-xl flex items-center justify-center gap-2 group transition-all',
+            isReady && !continueGated
+              ? 'gradient-cta text-stitch-on-primary shadow-lg shadow-stitch-primary/20 active:scale-95'
+              : 'bg-stitch-surface-highest/30 text-stitch-on-surface-variant/40 cursor-not-allowed'
+          )}
+        >
+          {isLoading ? continueLoadingLabel : 'Continue to booking'}
+          <ArrowRight
+            size={16}
+            className={cn(isReady && !continueGated && 'group-hover:translate-x-1 transition-transform')}
+          />
+        </button>
+
+        {!isReady && (
+          <p className="text-[9px] text-center text-muted-foreground/50 mt-2 uppercase tracking-[0.1em]">
+            Select a fleet to unlock the next step
+          </p>
         )}
-      >
-        {isLoading ? continueLoadingLabel : 'Continue to booking'}
-        <ArrowRight
-          size={18}
-          className={cn(isReady && !continueGated && 'group-hover:translate-x-1 transition-transform')}
-        />
-      </button>
 
-      {!isReady && (
-        <p className="text-[10px] text-center text-muted-foreground/50 mt-4 uppercase tracking-[0.1em]">
-          Select a fleet to unlock the next step
-        </p>
-      )}
+        {continueError ? (
+          <p className="text-center text-xs text-destructive mt-2" role="alert">
+            {continueError}
+          </p>
+        ) : null}
 
-      {continueError ? (
-        <p className="text-center text-sm text-destructive mt-3" role="alert">
-          {continueError}
-        </p>
-      ) : null}
-
-      {isReady && (
-        <p className="text-[10px] text-center text-muted-foreground/60 mt-4 flex items-center justify-center gap-1.5">
-          <Info className="size-3 shrink-0" />
-          <span>
-            {continueGated && continueLockedHint
-              ? continueLockedHint
-              : 'Free cancellation up to 24 hours before your trip starts.'}
-          </span>
-        </p>
-      )}
+        {isReady && (
+          <p className="text-[9px] text-center text-muted-foreground/60 mt-2 flex items-center justify-center gap-1.5 mb-1">
+            <Info className="size-2.5 shrink-0" />
+            <span>
+              {continueGated && continueLockedHint
+                ? continueLockedHint
+                : 'Free cancellation up to 24 hours before your trip starts.'}
+            </span>
+          </p>
+        )}
+      </div>
     </div>
   );
 };

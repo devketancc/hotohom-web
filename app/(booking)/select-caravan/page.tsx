@@ -62,12 +62,12 @@ export default function SelectCaravanPage() {
   }
 
   return (
-    <div className="max-w-screen-2xl mx-auto px-4 py-10 lg:px-8 text-stitch-on-background">
-      <div className="flex flex-col lg:flex-row gap-12">
+    <div className="max-w-screen-2xl mx-auto px-4 py-6 md:py-8 lg:py-10 lg:px-8 text-stitch-on-background">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-12">
         {/* Caravan Selection List */}
-        <div className="flex-grow lg:w-[70%]">
-          <header className="mb-10">
-            <h1 className="text-4xl font-extrabold tracking-tight mb-2 font-headline">Select Your Fleet</h1>
+        <div className="flex-grow lg:w-[66%] xl:w-[70%]">
+          <header className="mb-6 lg:mb-8">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 font-headline">Select Your Fleet</h1>
             <p className="text-stitch-on-surface-variant max-w-2xl font-body">
               Tailored for the modern nomad. Each caravan is a masterpiece of engineering and luxury, designed for your ultimate comfort on the open road.
             </p>
@@ -90,7 +90,7 @@ export default function SelectCaravanPage() {
             <div className="flex flex-col items-center justify-center py-20 bg-destructive/5 rounded-3xl border border-destructive/20 text-center px-6">
               <AlertCircle className="text-destructive mb-4" size={40} />
               <h3 className="text-xl font-bold mb-2 font-headline">Failed to fetch available caravans</h3>
-              <p className="text-stitch-on-surface-variant mb-6">{(error as any)?.message || 'Something went wrong while connecting to the server.'}</p>
+              <p className="text-stitch-on-surface-variant mb-6">{(error as Error)?.message || 'Something went wrong while connecting to the server.'}</p>
               <button 
                 onClick={() => refetch()}
                 className="flex items-center gap-2 px-6 py-2 border border-border rounded-xl hover:bg-stitch-surface transition-all"
@@ -102,7 +102,7 @@ export default function SelectCaravanPage() {
             <div className="flex flex-col items-center justify-center py-20 bg-stitch-surface rounded-3xl border border-dashed border-border/50 text-center px-6">
               <Caravan size={48} className="text-stitch-on-surface-variant/30 mb-4" />
               <h3 className="text-xl font-bold mb-2 font-headline">No Caravans Available</h3>
-              <p className="text-stitch-on-surface-variant mb-6">We couldn't find any available caravans for your selected dates and hub. Please try different dates or another hub.</p>
+              <p className="text-stitch-on-surface-variant mb-6">We couldn&apos;t find any available caravans for your selected dates and hub. Please try different dates or another hub.</p>
               <button 
                 onClick={() => router.push('/')}
                 className="px-6 py-2 bg-stitch-primary text-stitch-on-primary font-bold rounded-xl"
@@ -111,7 +111,7 @@ export default function SelectCaravanPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 xl:gap-8">
               {data?.data?.available_classes.map((caravan, index) => (
                 <CaravanCard 
                   key={caravan.id}
@@ -126,7 +126,7 @@ export default function SelectCaravanPage() {
         </div>
 
         {/* Journey Summary Sidebar */}
-        <aside className="lg:w-[30%]">
+        <aside className="w-full lg:w-[34%] xl:w-[30%] lg:max-w-[380px]">
           <BookingSummary
             booking={bookingState}
             onContinue={handleContinue}

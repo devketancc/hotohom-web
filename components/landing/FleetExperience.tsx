@@ -31,6 +31,15 @@ import {
 
 const LUXURY_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
+/** Home Fleet Experience imagery (`public/exp-case/`), one per chapter in scroll order. */
+const EXP_CASE_IMAGES = [
+  "/exp-case/mh1.png",
+  "/exp-case/mh2.png",
+  "/exp-case/mh3.png",
+  "/exp-case/mh4.png",
+  "/exp-case/mh5.png",
+] as const
+
 type Scene = {
   id: string
   index: string
@@ -56,9 +65,8 @@ const SCENES: Scene[] = [
     paragraph:
       "Soft ambient lighting, hand-finished materials, and considered ergonomics turn every kilometer into a calm, hotel-grade retreat.",
     features: ["Hand-finished cabinetry", "Climate-tuned lounge", "Hush-quiet sleep zones"],
-    image:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=2400&auto=format&fit=crop",
-    imageAlt: "Cinematic luxury caravan interior with warm ambient lighting",
+    image: EXP_CASE_IMAGES[0],
+    imageAlt: "Luxury caravan interior experience",
     ambient:
       "radial-gradient(ellipse at 20% 30%, rgba(229,185,92,0.22), transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(184,146,63,0.18), transparent 60%)",
     accent: "rgba(229, 185, 92, 0.95)",
@@ -72,9 +80,8 @@ const SCENES: Scene[] = [
     paragraph:
       "Take the long way. Pause at lookouts. Let the route bend to your mood while precision navigation quietly keeps the path within reach.",
     features: ["Live route concierge", "Off-the-grid waypoints", "Fuel + range planning"],
-    image:
-      "https://images.unsplash.com/photo-1470246973918-29a93221c455?q=80&w=2400&auto=format&fit=crop",
-    imageAlt: "Mountain highway during a soft cinematic sunrise",
+    image: EXP_CASE_IMAGES[1],
+    imageAlt: "Open-road caravan journey",
     ambient:
       "radial-gradient(ellipse at 18% 24%, rgba(120,153,214,0.22), transparent 56%), radial-gradient(ellipse at 86% 78%, rgba(229,185,92,0.10), transparent 60%)",
     accent: "rgba(170, 196, 240, 0.95)",
@@ -88,9 +95,8 @@ const SCENES: Scene[] = [
     paragraph:
       "Layouts that flex with the people you love most. Cook together, sleep close, and let the journey itself become the memory.",
     features: ["Modular family layouts", "Pet-ready cabin", "Shared galley + dining"],
-    image:
-      "https://images.unsplash.com/photo-1527631746610-bca00a040d60?q=80&w=2400&auto=format&fit=crop",
-    imageAlt: "Family enjoying a scenic moment beside their caravan",
+    image: EXP_CASE_IMAGES[2],
+    imageAlt: "Family caravan travel experience",
     ambient:
       "radial-gradient(ellipse at 22% 32%, rgba(255,176,90,0.22), transparent 54%), radial-gradient(ellipse at 82% 76%, rgba(229,143,74,0.15), transparent 60%)",
     accent: "rgba(255, 196, 132, 0.95)",
@@ -104,9 +110,8 @@ const SCENES: Scene[] = [
     paragraph:
       "Solar-tuned power, deep water reserves, and satellite-aware connectivity keep the cabin civilised long after the road runs out.",
     features: ["Solar + lithium reserves", "Satellite uplink ready", "Multi-day water capacity"],
-    image:
-      "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=2400&auto=format&fit=crop",
-    imageAlt: "Caravan parked under a starlit night sky in the wilderness",
+    image: EXP_CASE_IMAGES[3],
+    imageAlt: "Off-grid caravan comfort",
     ambient:
       "radial-gradient(ellipse at 18% 28%, rgba(70,140,150,0.24), transparent 56%), radial-gradient(ellipse at 84% 80%, rgba(40,80,120,0.22), transparent 62%)",
     accent: "rgba(140, 220, 220, 0.95)",
@@ -120,9 +125,8 @@ const SCENES: Scene[] = [
     paragraph:
       "An editorial way to move through the world: less itinerary, more atmosphere. The caravan as a quiet, connected, considered home.",
     features: ["App-controlled cabin", "Concierge add-ons", "Lifestyle integrations"],
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=2400&auto=format&fit=crop",
-    imageAlt: "Cinematic editorial caravan lifestyle moment in soft light",
+    image: EXP_CASE_IMAGES[4],
+    imageAlt: "Modern caravan travel lifestyle",
     ambient:
       "radial-gradient(ellipse at 22% 24%, rgba(240,220,190,0.22), transparent 54%), radial-gradient(ellipse at 80% 80%, rgba(229,185,92,0.18), transparent 60%)",
     accent: "rgba(245, 222, 179, 0.95)",
@@ -352,6 +356,37 @@ function ProgressRail({
   )
 }
 
+/** SSR + first client paint — no scene images (avoids hydration drift with motion/mounted gates). */
+function FleetExperiencePlaceholder() {
+  return (
+    <section
+      id="fleet-experience"
+      className="section-ambient-warm bg-stitch-background py-32"
+      aria-busy="true"
+      aria-label="Loading fleet experience"
+    >
+      <div className="mx-auto max-w-screen-xl animate-pulse px-6 md:px-10">
+        <div className="mb-16 max-w-md space-y-4">
+          <div className="h-3 w-40 rounded-full bg-stitch-surface-variant/15" />
+          <div className="h-12 rounded-2xl bg-stitch-surface-variant/10" />
+        </div>
+        <div className="space-y-16">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="grid gap-10 lg:grid-cols-12 lg:items-center">
+              <div className="h-[28rem] rounded-[2rem] bg-stitch-surface-variant/10 lg:col-span-7" />
+              <div className="space-y-4 lg:col-span-5">
+                <div className="h-3 w-28 rounded-full bg-stitch-surface-variant/10" />
+                <div className="h-10 max-w-md rounded-xl bg-stitch-surface-variant/10" />
+                <div className="h-24 rounded-xl bg-stitch-surface-variant/10" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function StaticFallback() {
   return (
     <section
@@ -532,12 +567,17 @@ function FleetExperienceScroll() {
 export function FleetExperience() {
   const reduced = useReducedMotion()
   const [mounted, setMounted] = React.useState(false)
+
   React.useEffect(() => {
     setMounted(true)
   }, [])
-  const animate = mounted && !reduced
 
-  if (!animate) {
+  // Deterministic shell for SSR/hydration; real imagery mounts client-side only.
+  if (!mounted) {
+    return <FleetExperiencePlaceholder />
+  }
+
+  if (reduced) {
     return <StaticFallback />
   }
 

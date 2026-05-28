@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { motion, useInView, useReducedMotion, type Variants } from "motion/react";
 
 const luxuryEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -36,30 +36,31 @@ export function RevealStagger({
   once = true,
 }: RevealStaggerProps) {
   const reduced = useReducedMotion();
-  const [mounted, setMounted] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, {
+    once,
+    amount: 0.15,
+    margin: "0px 0px -8% 0px",
+  });
+  const [ready, setReady] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
+  React.useLayoutEffect(() => {
+    setReady(true);
   }, []);
 
-  const shouldAnimate = mounted && !reduced;
-
-  if (!mounted) {
-    return (
-      <div className={className} suppressHydrationWarning>
-        {children}
-      </div>
-    );
+  if (reduced) {
+    return <div className={className}>{children}</div>;
   }
+
+  const show = !ready || isInView;
 
   return (
     <motion.div
+      ref={ref}
       className={className}
-      initial={shouldAnimate ? "hidden" : false}
-      whileInView={shouldAnimate ? "visible" : undefined}
-      viewport={{ once, margin: "-10% 0px" }}
-      variants={shouldAnimate ? containerVariants : undefined}
-      suppressHydrationWarning
+      initial={false}
+      animate={show ? "visible" : "hidden"}
+      variants={containerVariants}
     >
       {children}
     </motion.div>
@@ -73,28 +74,13 @@ export type RevealItemProps = {
 
 export function RevealItem({ children, className }: RevealItemProps) {
   const reduced = useReducedMotion();
-  const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const shouldAnimate = mounted && !reduced;
-
-  if (!mounted) {
-    return (
-      <div className={className} suppressHydrationWarning>
-        {children}
-      </div>
-    );
+  if (reduced) {
+    return <div className={className}>{children}</div>;
   }
 
   return (
-    <motion.div
-      className={className}
-      variants={shouldAnimate ? itemVariants : undefined}
-      suppressHydrationWarning
-    >
+    <motion.div className={className} variants={itemVariants}>
       {children}
     </motion.div>
   );

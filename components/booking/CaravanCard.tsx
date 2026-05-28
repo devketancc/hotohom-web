@@ -1,7 +1,6 @@
 import React from 'react';
-import Image from 'next/image';
 import { CaravanClass } from '@/types/booking';
-import { Users, Dog, Bed, Star, ChevronRight } from 'lucide-react';
+import { Users, Dog, Bed, Star } from 'lucide-react';
 
 interface CaravanCardProps {
   caravan: CaravanClass;
@@ -36,9 +35,9 @@ export const CaravanCard: React.FC<CaravanCardProps> = ({
         )}
       </div>
 
-      <div className="p-6 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold tracking-tight font-headline">{caravan.name}</h3>
+      <div className="p-5 lg:p-4 xl:p-6 flex flex-col flex-grow">
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="text-lg lg:text-lg xl:text-xl font-bold tracking-tight font-headline">{caravan.name}</h3>
           <div className="text-right">
             <span className="text-stitch-primary font-bold text-lg">
               ₹
@@ -50,7 +49,7 @@ export const CaravanCard: React.FC<CaravanCardProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-4 lg:mb-6 xl:mb-8">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-stitch-surface-highest/50 text-[11px] font-medium text-stitch-on-surface-variant uppercase tracking-wider">
             <Users size={14} /> {caravan.full_capacity} Passengers
           </div>
@@ -67,11 +66,11 @@ export const CaravanCard: React.FC<CaravanCardProps> = ({
         <div className="mt-auto flex flex-col gap-3">
           <button 
             onClick={() => onSelect(caravan)}
-            className={`w-full py-3 font-bold rounded-xl transition-all active:scale-95 ${isSelected ? 'bg-stitch-primary text-stitch-on-primary shadow-lg shadow-stitch-primary/20' : 'bg-stitch-primary/10 text-stitch-primary hover:bg-stitch-primary/20'}`}
+            className={`w-full py-2.5 lg:py-2.5 xl:py-3 font-bold rounded-xl transition-all active:scale-95 ${isSelected ? 'bg-stitch-primary text-stitch-on-primary shadow-lg shadow-stitch-primary/20' : 'bg-stitch-primary/10 text-stitch-primary hover:bg-stitch-primary/20'}`}
           >
             {isSelected ? 'Selected' : 'Choose This Caravan'}
           </button>
-          <button className="w-full py-3 border border-border text-stitch-on-background font-bold rounded-xl hover:bg-stitch-surface-highest/20 transition-all flex items-center justify-center gap-2">
+          <button className="w-full py-2.5 lg:py-2.5 xl:py-3 border border-border text-stitch-on-background font-bold rounded-xl hover:bg-stitch-surface-highest/20 transition-all flex items-center justify-center gap-2">
             Explore Features
           </button>
         </div>

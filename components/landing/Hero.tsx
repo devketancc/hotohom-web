@@ -1,12 +1,9 @@
 "use client"
 
 import * as React from 'react'
-import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { BookingControl } from './BookingControl'
 import { Reveal } from '@/components/shared/Reveal'
-import { MagneticButton } from '@/components/shared/MagneticButton'
 import { AmbientSpotlight } from '@/components/shared/AmbientSpotlight'
 
 interface HeroClipDef {
@@ -32,7 +29,7 @@ const HERO_CLIP_DEFS: HeroClipDef[] = [
       <>
         <span className="block">Wake Up</span>
         <span className="block font-light italic text-stitch-primary-container/95">
-          Somewhere Different
+          Somewhere New
         </span>
       </>
     ),
@@ -70,39 +67,37 @@ function HeroBackgroundVideos({
   poster: string
   onActiveClip: (clip: HeroClipDef) => void
 }) {
-  const orderRef = React.useRef<HeroClipDef[]>([])
+  const [playlist, setPlaylist] = React.useState<HeroClipDef[]>([])
   const [clipIndex, setClipIndex] = React.useState(0)
-  const [playlistReady, setPlaylistReady] = React.useState(false)
   const [videoReady, setVideoReady] = React.useState(false)
 
   React.useEffect(() => {
-    orderRef.current = shuffleClips(HERO_CLIP_DEFS)
-    setPlaylistReady(true)
+    setPlaylist(shuffleClips(HERO_CLIP_DEFS))
   }, [])
 
   React.useEffect(() => {
-    if (!playlistReady || orderRef.current.length === 0) return
-    const clip = orderRef.current[clipIndex]
+    if (playlist.length === 0) return
+    const clip = playlist[clipIndex]
     if (clip) onActiveClip(clip)
     setVideoReady(false) // Reset for next clip
-  }, [clipIndex, playlistReady, onActiveClip])
+  }, [clipIndex, playlist, onActiveClip])
 
   const handleEnded = React.useCallback(() => {
     setClipIndex((prev) => {
       const next = prev + 1
-      if (next >= orderRef.current.length) {
-        orderRef.current = shuffleClips(HERO_CLIP_DEFS)
+      if (next >= playlist.length) {
+        setPlaylist(shuffleClips(HERO_CLIP_DEFS))
         return 0
       }
       return next
     })
-  }, [])
+  }, [playlist.length])
 
   const handleCanPlay = React.useCallback(() => {
     setVideoReady(true)
   }, [])
 
-  const src = orderRef.current[clipIndex]?.src ?? orderRef.current[0]?.src
+  const src = playlist[clipIndex]?.src ?? playlist[0]?.src
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -115,7 +110,7 @@ function HeroBackgroundVideos({
         }`}
       />
       
-      {playlistReady && orderRef.current.length > 0 && (
+      {playlist.length > 0 && (
         <video
           key={`${clipIndex}-${src}`}
           aria-hidden
@@ -157,7 +152,7 @@ export const Hero = () => {
   }, [])
 
   return (
-    <section className="hero-grain hero-ambient-shift hero-ambient-counter relative min-h-[100svh] w-full overflow-hidden">
+    <section className="hero-grain hero-ambient-shift hero-ambient-counter relative min-h-[100svh] lg:h-[100svh] lg:min-h-0 w-full overflow-hidden">
       {/* Background: shuffled hero clips (no repeat until all three play); static image if reduced motion or server-rendering */}
       <div className="absolute inset-0 z-0">
         {!mounted || reducedMotion ? (
@@ -177,13 +172,13 @@ export const Hero = () => {
       </div>
 
       {/* Editorial 12-col grid */}
-      <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-screen-2xl grid-cols-12 gap-x-6 px-10 pb-20 pt-44 md:pt-52">
+      <div className="relative z-10 mx-auto grid min-h-[100svh] lg:h-full lg:min-h-0 max-w-screen-2xl grid-cols-12 lg:grid-rows-[auto_1fr_auto] gap-x-6 px-10 pb-12 lg:pb-16 pt-36 md:pt-40 lg:pt-44">
         {/* Top-right eyebrow */}
         <Reveal
           as="div"
           duration={1.1}
           y={0}
-          className="col-span-12 md:col-start-9 md:col-span-4 flex items-start justify-end"
+          className="col-span-12 md:col-start-9 md:col-span-4 flex items-start justify-end lg:row-start-1"
         >
           <div className="hero-eyebrow-rule font-headline text-[10px] font-medium uppercase tracking-[0.4em] text-stitch-primary-container/90">
             Est. 2024 — Curated Caravan Travel
@@ -191,11 +186,11 @@ export const Hero = () => {
         </Reveal>
 
         {/* Spacer pushes content toward lower portion for editorial weight */}
-        <div className="col-span-12 grow" />
+        <div className="col-span-12 grow lg:hidden" />
 
         {/* Headline block */}
-        <div className="col-span-12 md:col-span-8 mt-auto pt-24 md:pt-32">
-          <div className="relative min-h-[12rem] md:min-h-[14rem] xl:min-h-[16rem]">
+        <div className="col-span-12 md:col-span-8 lg:row-start-2 lg:self-end mt-auto pt-10 md:pt-16 lg:pt-0">
+          <div className="relative min-h-[10rem] md:min-h-[12rem] lg:min-h-[10rem] xl:min-h-[14rem] 2xl:min-h-[16rem]">
             <AnimatePresence initial={false} mode="wait">
               <motion.h1
                 key={reducedMotion ? 'static-h1' : activeClipSrc}
@@ -203,14 +198,14 @@ export const Hero = () => {
                 animate={reducedMotion ? undefined : { opacity: 1, y: 0 }}
                 exit={reducedMotion ? undefined : { opacity: 0, y: -12 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="font-headline font-semibold text-stitch-on-background leading-[0.95] tracking-[-0.04em] text-6xl md:text-8xl xl:text-[9.5rem]"
+                className="font-headline font-semibold text-stitch-on-background leading-[0.95] tracking-[-0.04em] text-5xl md:text-7xl lg:text-[5.5rem] xl:text-[7.5rem] 2xl:text-[9.5rem]"
               >
                 {activeHeadline}
               </motion.h1>
             </AnimatePresence>
           </div>
 
-          <Reveal as="p" delay={0.18} y={14} className="mt-10 max-w-xl font-body text-base md:text-lg leading-relaxed text-stitch-on-surface-variant/80">
+          <Reveal as="p" delay={0.18} y={14} className="mt-6 md:mt-8 max-w-xl font-body text-sm md:text-base lg:text-lg leading-relaxed text-stitch-on-surface-variant/80">
             Curated caravan journeys and immersive travel experiences designed for modern explorers.
           </Reveal>
         </div>
@@ -221,9 +216,11 @@ export const Hero = () => {
           delay={0.5}
           y={18}
           duration={1.1}
-          className="col-span-12 lg:col-span-11 mt-14 md:mt-16 motion-safe:hover:-translate-y-0.5 transition-transform"
+          className="col-span-12 lg:row-start-3 mt-8 lg:mt-10 flex justify-center w-full"
         >
-          <BookingControl />
+          <div className="w-full md:max-w-2xl lg:max-w-4xl xl:max-w-5xl motion-safe:hover:-translate-y-0.5 transition-transform">
+            <BookingControl />
+          </div>
         </Reveal>
       </div>
     </section>

@@ -49,7 +49,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`dark ${geistSans.variable} ${geistMono.variable} ${manrope.variable} ${inter.variable} ${fleetSerif.variable}`}
     >
-      <body className="antialiased min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
+      <body className="antialiased w-full min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-hidden">
         <SmoothScroll>
           <Providers>
             {children}

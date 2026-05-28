@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion, type HTMLMotionProps } from "motion/react";
+import { motion, useInView, useReducedMotion, type HTMLMotionProps } from "motion/react";
 
 type RevealTag = "div" | "section" | "article" | "header" | "footer" | "main" | "aside" | "li" | "ul" | "ol" | "span" | "p" | "h1" | "h2" | "h3" | "h4";
 
@@ -28,31 +28,32 @@ export function Reveal({
   ...rest
 }: RevealProps) {
   const reduced = useReducedMotion();
-  const Tag = motion[as] as typeof motion.div;
-  const [mounted, setMounted] = React.useState(false);
+  const ref = React.useRef<HTMLElement>(null);
+  const isInView = useInView(ref, {
+    once,
+    amount: 0.15,
+    margin: "0px 0px -8% 0px",
+  });
+  const [ready, setReady] = React.useState(false);
 
-  React.useEffect(() => {
-    setMounted(true);
+  React.useLayoutEffect(() => {
+    setReady(true);
   }, []);
 
-  const shouldAnimate = mounted && !reduced;
-
-  if (!mounted) {
-    return React.createElement(
-      as,
-      { className, suppressHydrationWarning: true, ...rest },
-      children
-    );
+  if (reduced) {
+    return React.createElement(as, { className, ...rest }, children);
   }
+
+  const show = !ready || isInView;
+  const Tag = motion[as] as typeof motion.div;
 
   return (
     <Tag
-      initial={shouldAnimate ? { opacity: 0, y } : false}
-      whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
-      viewport={{ once, margin: "-8% 0px" }}
-      transition={shouldAnimate ? { duration, ease: luxuryEase, delay } : undefined}
+      ref={ref}
+      initial={false}
+      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
+      transition={{ duration, ease: luxuryEase, delay }}
       className={className}
-      suppressHydrationWarning
       {...rest}
     >
       {children}

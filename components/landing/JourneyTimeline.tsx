@@ -27,7 +27,7 @@ export const JourneyTimeline = () => {
   ]
 
   return (
-    <section className="section-ambient-cool py-40 bg-zinc-900 border-y border-white/5 relative overflow-hidden">
+    <section className="section-ambient-cool py-40 bg-zinc-900 border-y border-white/5 relative">
       <div className="max-w-screen-2xl mx-auto px-8 relative z-10">
         <Reveal as="div" className="text-center mb-32">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight font-headline">The Journey Path</h2>
