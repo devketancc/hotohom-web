@@ -49,7 +49,7 @@ export function Reveal({
 
   return (
     <Tag
-      ref={ref}
+      ref={ref as React.Ref<HTMLDivElement>}
       initial={false}
       animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y }}
       transition={{ duration, ease: luxuryEase, delay }}
