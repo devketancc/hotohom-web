@@ -4,20 +4,24 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { addDays, format } from 'date-fns';
+import { addDays } from 'date-fns';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/landing/Footer';
-import { PackageStartDateCalendar } from '@/components/package/PackageStartDateCalendar';
+import { PackageBookingPanel } from '@/components/package/PackageBookingPanel';
+import { PackageDetailHero } from '@/components/package/PackageDetailHero';
+import { PackageHighlights } from '@/components/package/PackageHighlights';
+import { PackageItinerary } from '@/components/package/PackageItinerary';
+import { PackageMobileBookBar } from '@/components/package/PackageMobileBookBar';
+import { PackageQuickFacts } from '@/components/package/PackageQuickFacts';
+import { Reveal } from '@/components/shared/Reveal';
 import { usePackageById } from '@/hooks/usePackageById';
 import { locationService } from '@/services/location.service';
 import { useBookingStore } from '@/store/bookingStore';
-import { formatCurrency } from '@/utils/format';
 import { minimalCaravanClassFromPackage } from '@/utils/packageBooking';
 import { newStopId, reassignStopOrders, syncPickupDropStrings } from '@/utils/journeyStops';
 
-const FALLBACK_IMG =
-  'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?q=80&w=1200&auto=format&fit=crop';
+const BOOKING_PANEL_ID = 'package-booking-panel';
 
 function emptyPickupDrop() {
   return [
@@ -44,6 +48,13 @@ export default function PackageDetailPage() {
   const hubRow = useMemo(() => hubs?.find((h) => h.id === pkg?.home_hub), [hubs, pkg?.home_hub]);
 
   const canProceed = Boolean(pkg && startDate);
+
+  const scrollToBooking = () => {
+    const el =
+      document.getElementById(`${BOOKING_PANEL_ID}-mobile`) ??
+      document.getElementById(BOOKING_PANEL_ID);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const handleProceed = () => {
     if (!pkg || !startDate || !hubRow) return;
@@ -75,10 +86,10 @@ export default function PackageDetailPage() {
   return (
     <main className="section-ambient-warm bg-stitch-background text-stitch-on-background min-h-screen">
       <Navbar />
-      <div className="pt-28 max-w-screen-lg mx-auto px-8 pb-24">
+      <div className="pt-28 max-w-screen-2xl mx-auto px-6 md:px-8 pb-32 lg:pb-24">
         <Link
           href="/#packages"
-          className="inline-flex items-center gap-2 text-sm font-bold text-stitch-on-surface-variant hover:text-stitch-primary mb-10"
+          className="inline-flex items-center gap-2 text-sm font-bold text-stitch-on-surface-variant hover:text-stitch-primary mb-8 md:mb-10"
         >
           <ArrowLeft className="size-4" />
           Back to packages
@@ -108,73 +119,55 @@ export default function PackageDetailPage() {
         )}
 
         {pkg && (
-          <div className="grid gap-12 lg:grid-cols-[1fr_360px]">
-            <div>
-              <div className="aspect-[4/5] max-h-[420px] overflow-hidden rounded-2xl border border-white/10 mb-8">
-                {/* eslint-disable-next-line @next/next/no-img-element -- remote thumbnails */}
-                <img
-                  src={pkg.thumbnail_url?.trim() ? pkg.thumbnail_url : FALLBACK_IMG}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
+          <>
+            <PackageDetailHero pkg={pkg} className="mb-10 md:mb-14" />
+
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-14 xl:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="space-y-12 md:space-y-16 min-w-0">
+                <PackageQuickFacts pkg={pkg} />
+
+                <PackageHighlights highlights={pkg.highlights} />
+
+                {pkg.description?.trim() ? (
+                  <Reveal as="section">
+                    <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-stitch-primary font-headline">
+                      Overview
+                    </h2>
+                    <p className="text-lg leading-relaxed text-stitch-on-surface-variant font-body whitespace-pre-line">
+                      {pkg.description}
+                    </p>
+                  </Reveal>
+                ) : null}
+
+                <PackageItinerary days={pkg.days} />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tight mb-4">{pkg.name}</h1>
-              <p className="text-stitch-on-surface-variant font-body text-lg leading-relaxed mb-6">
-                {pkg.description}
-              </p>
-              <ul className="space-y-2 text-stitch-on-surface font-body">
-                <li>
-                  <span className="text-stitch-on-surface-variant">Hub:</span> {pkg.home_hub_name}
-                </li>
-                <li>
-                  <span className="text-stitch-on-surface-variant">Class:</span> {pkg.caravan_class_code}
-                </li>
-                <li>
-                  <span className="text-stitch-on-surface-variant">Duration:</span> {pkg.duration_days}{' '}
-                  {pkg.duration_days === 1 ? 'day' : 'days'}
-                </li>
-                <li>
-                  <span className="text-stitch-on-surface-variant">Included km:</span>{' '}
-                  {pkg.included_km.toLocaleString('en-IN')}
-                </li>
-                <li>
-                  <span className="text-stitch-on-surface-variant">From:</span>{' '}
-                  {Number.isFinite(Number.parseFloat(pkg.base_price))
-                    ? formatCurrency(Number.parseFloat(pkg.base_price))
-                    : '—'}
-                </li>
-              </ul>
+
+              <PackageBookingPanel
+                id={BOOKING_PANEL_ID}
+                pkg={pkg}
+                startDate={startDate}
+                onSelectDate={setStartDate}
+                onProceed={handleProceed}
+                canProceed={canProceed}
+                hubAvailable={Boolean(hubRow)}
+                className="hidden lg:block"
+              />
             </div>
 
-            <div className="lg:pt-4">
-              <h2 className="text-xs font-black uppercase tracking-widest text-stitch-primary mb-4 font-headline">
-                Trip start date
-              </h2>
-              <p className="text-sm text-stitch-on-surface-variant mb-4 font-body">
-                Choose when your package starts (tomorrow through the next 6 months). Your trip window is{' '}
-                {pkg.duration_days} {pkg.duration_days === 1 ? 'day' : 'days'}.
-              </p>
-              <PackageStartDateCalendar selected={startDate} onSelect={setStartDate} />
-              {startDate && (
-                <p className="mt-4 text-sm text-stitch-on-surface-variant font-body">
-                  Selected: <strong className="text-stitch-on-background">{format(startDate, 'd MMM yyyy')}</strong>
-                </p>
-              )}
-              <button
-                type="button"
-                disabled={!canProceed || !hubRow}
-                onClick={handleProceed}
-                className="mt-8 w-full rounded-xl bg-stitch-primary py-4 font-headline font-bold text-sm uppercase tracking-widest text-stitch-on-primary hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                Proceed to pickup &amp; drop-off
-              </button>
-              {!hubRow && (
-                <p className="mt-3 text-xs text-amber-500/90 font-body">
-                  Hub location is unavailable; refresh the page or try again later.
-                </p>
-              )}
+            <div className="mt-10 lg:hidden">
+              <PackageBookingPanel
+                id={`${BOOKING_PANEL_ID}-mobile`}
+                pkg={pkg}
+                startDate={startDate}
+                onSelectDate={setStartDate}
+                onProceed={handleProceed}
+                canProceed={canProceed}
+                hubAvailable={Boolean(hubRow)}
+              />
             </div>
-          </div>
+
+            <PackageMobileBookBar pkg={pkg} onChooseDates={scrollToBooking} />
+          </>
         )}
       </div>
       <Footer />

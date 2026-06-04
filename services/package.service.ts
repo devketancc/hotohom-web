@@ -38,6 +38,11 @@ function mergePackagePages(responses: ApiResponse<PackagesPage>[]): PackagesPage
 }
 
 export const packageService = {
+  async getPackageById(id: string): Promise<ApiResponse<TravelPackage>> {
+    const { data } = await apiClient.get<ApiResponse<TravelPackage>>(`/packages/${id}/`);
+    return data;
+  },
+
   async listPackages(params: {
     hub: string;
     class?: string;
