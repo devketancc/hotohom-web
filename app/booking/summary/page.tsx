@@ -1,13 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { useBookingStore } from '@/store/bookingStore';
 import { useCart } from '@/hooks/useCart';
 import { useAddons } from '@/hooks/useAddons';
+import { isAuthed, requestAuthThenNavigate } from '@/lib/authNavigation';
+import {
+  buildPaymentStatusPath,
+  consumeResumePaymentFlag,
+  openPaymentUrl,
+  readPendingPayment,
+  savePendingPayment,
+  setResumePaymentFlag,
+} from '@/lib/pendingPayment';
 import { cartService } from '@/services/cart.service';
+import { paymentService } from '@/services/payment.service';
 import { formatBookingTravelWindow } from '@/utils/format';
 import { AddonList } from '@/components/booking/AddonList';
 import { MotohomLogo } from '@/components/brand/MotohomLogo';
@@ -146,11 +156,8 @@ export default function BookingSummaryPage() {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponApplying, setCouponApplying] = useState(false);
-  const [bypassLoading, setBypassLoading] = useState(false);
-  const [bypassError, setBypassError] = useState<string | null>(null);
-  const [bypassSuccess, setBypassSuccess] = useState<string | null>(null);
-  const [bypassModalOpen, setBypassModalOpen] = useState(false);
-  const [bypassTokenInput, setBypassTokenInput] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
   const [isPlanDetailsOpen, setIsPlanDetailsOpen] = useState(false);
   const [showInclusionDetails, setShowInclusionDetails] = useState(false);
@@ -225,27 +232,65 @@ export default function BookingSummaryPage() {
     }
   };
 
-  const handleBypassBooking = async () => {
-    if (!cartId) return;
-    const token = bypassTokenInput.trim();
-    if (!token) {
-      setBypassError('Paste the admin bypass token, then try again.');
+  const handleProceedToPayment = useCallback(
+    async (paymentTab: Window | null = null) => {
+      if (!cartId || !cart?.is_ready_for_checkout) return;
+
+      if (!isAuthed()) {
+        setResumePaymentFlag();
+        requestAuthThenNavigate('/booking/summary');
+        return;
+      }
+
+      setPaymentLoading(true);
+      setPaymentError(null);
+      try {
+        const result = await paymentService.createPaymentLink(cartId, 'advance');
+        savePendingPayment({
+          paymentId: result.payment_id,
+          cartId: result.cart_id,
+          paymentUrl: result.payment_url,
+        });
+
+        const statusPath = buildPaymentStatusPath(result.cart_id, result.payment_id);
+        const openedInNewTab = openPaymentUrl(result.payment_url, paymentTab);
+
+        if (openedInNewTab) {
+          router.push(statusPath);
+        } else {
+          // Popup blocked — full redirect to Zoho; user must return to status page after paying.
+          window.location.assign(result.payment_url);
+        }
+      } catch (err) {
+        paymentTab?.close();
+        setPaymentError(err instanceof Error ? err.message : 'Failed to start payment. Please try again.');
+        setPaymentLoading(false);
+      }
+    },
+    [cart?.is_ready_for_checkout, cartId, router]
+  );
+
+  useEffect(() => {
+    if (!cartHasHydrated || !cartId) return;
+    if (cart?.status === 'converted' && cart.converted_booking) {
+      clearCart();
+      router.replace(`/booking/${cart.converted_booking}`);
       return;
     }
-    setBypassLoading(true);
-    setBypassError(null);
-    setBypassSuccess(null);
-    try {
-      await cartService.convertCart(cartId, token);
-      setBypassSuccess('Temporary bypass triggered successfully.');
-      setBypassModalOpen(false);
-      setBypassTokenInput('');
-    } catch (err) {
-      setBypassError(err instanceof Error ? err.message : 'Temporary bypass failed.');
-    } finally {
-      setBypassLoading(false);
-    }
-  };
+    if (!cart?.is_ready_for_checkout) return;
+    if (!isAuthed() || !consumeResumePaymentFlag()) return;
+    const paymentTab = window.open('', '_blank', 'noopener,noreferrer');
+    void handleProceedToPayment(paymentTab);
+  }, [
+    cart?.converted_booking,
+    cart?.is_ready_for_checkout,
+    cart?.status,
+    cartHasHydrated,
+    cartId,
+    clearCart,
+    handleProceedToPayment,
+    router,
+  ]);
 
   useEffect(() => {
     if (!isPlanDetailsOpen) return;
@@ -256,14 +301,8 @@ export default function BookingSummaryPage() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isPlanDetailsOpen]);
 
-  useEffect(() => {
-    if (!bypassModalOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setBypassModalOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [bypassModalOpen]);
+  const pendingPayment = readPendingPayment();
+  const isCheckoutPending = cart?.status === 'checkout';
 
   if (!cartHasHydrated || cartLoading || addonsLoading || !caravanClass) {
     return (
@@ -620,41 +659,60 @@ export default function BookingSummaryPage() {
               </div>
             </div>
 
+            {isCheckoutPending ? (
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+                <p className="text-sm text-stitch-on-background font-medium">
+                  Payment in progress. Complete checkout to confirm your booking.
+                </p>
+                <div className="flex flex-wrap gap-3 text-xs">
+                  {pendingPayment?.paymentUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => window.location.assign(pendingPayment.paymentUrl)}
+                      className="font-semibold text-stitch-primary underline underline-offset-2 hover:text-stitch-primary-container"
+                    >
+                      Resume payment
+                    </button>
+                  ) : null}
+                  <Link
+                    href={
+                      cartId
+                        ? buildPaymentStatusPath(cartId, pendingPayment?.paymentId)
+                        : '/booking/payment/status'
+                    }
+                    className="font-semibold text-stitch-primary underline underline-offset-2 hover:text-stitch-primary-container"
+                  >
+                    Check payment status
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+
             <button
               className="w-full py-4 rounded-xl text-stitch-on-primary font-bold text-base shadow-lg shadow-stitch-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 mb-4 bg-gradient-to-br from-stitch-primary-container to-stitch-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => router.push('/booking/payment')}
-              disabled={cartLoading || !!loadingAddonId || couponApplying}
+              onClick={() => {
+                const paymentTab = window.open('', '_blank', 'noopener,noreferrer');
+                void handleProceedToPayment(paymentTab);
+              }}
+              disabled={
+                cartLoading ||
+                !!loadingAddonId ||
+                couponApplying ||
+                paymentLoading ||
+                !cart?.is_ready_for_checkout
+              }
             >
-              Proceed to Secure Payment
+              {paymentLoading ? 'Starting payment…' : 'Proceed to Secure Payment'}
               <ArrowRight size={20} />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setBypassError(null);
-                setBypassSuccess(null);
-                setBypassModalOpen(true);
-              }}
-              disabled={bypassLoading || !cartId}
-              className="relative w-full py-3 rounded-xl border border-border/30 bg-stitch-surface text-stitch-on-background text-sm font-semibold hover:border-stitch-primary/60 hover:text-stitch-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span
-                className="pointer-events-none absolute -right-1 -top-2 rounded-md border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 font-headline text-[9px] font-black uppercase tracking-widest text-amber-400"
-                aria-hidden
-              >
-                TEMP
-              </span>
-              {bypassLoading ? 'Bypassing...' : 'Temporary Bypass Booking'}
-            </button>
-            {bypassError ? (
-              <p className="mt-2 text-xs text-destructive">{bypassError}</p>
-            ) : null}
-            {bypassSuccess ? (
-              <p className="mt-2 text-xs text-stitch-primary">{bypassSuccess}</p>
+            {paymentError ? (
+              <p className="mb-4 text-xs text-destructive">{paymentError}</p>
             ) : null}
             <div className="flex items-center justify-center gap-2 opacity-60">
               <Lock className="fill-current" size={12} />
-              <span className="text-[10px] font-label tracking-wide uppercase">Powered by Razorpay • 100% secure</span>
+              <span className="text-[10px] font-label tracking-wide uppercase">
+                Secure payment via Zoho / Razorpay
+              </span>
             </div>
           </div>
         </aside>
@@ -749,69 +807,6 @@ export default function BookingSummaryPage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {bypassModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="bypass-token-title"
-          onClick={() => !bypassLoading && setBypassModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-border/20 bg-stitch-surface p-5 sm:p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <h4
-                id="bypass-token-title"
-                className="text-lg font-headline font-bold text-stitch-on-background"
-              >
-                Admin bypass token
-              </h4>
-              <button
-                type="button"
-                onClick={() => !bypassLoading && setBypassModalOpen(false)}
-                className="shrink-0 rounded-lg border border-border/30 p-2 text-muted-foreground hover:text-stitch-on-background hover:border-stitch-primary/50 transition-colors disabled:opacity-50"
-                aria-label="Close"
-                disabled={bypassLoading}
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-              The logged-in session token cannot call this endpoint. Paste the token you use for admin API access, then run the bypass.
-            </p>
-            <input
-              type="password"
-              autoComplete="off"
-              value={bypassTokenInput}
-              onChange={(e) => setBypassTokenInput(e.target.value)}
-              placeholder="Bearer token value"
-              disabled={bypassLoading}
-              className="w-full rounded-lg border border-border/30 bg-stitch-background/30 px-3 py-2.5 text-sm text-stitch-on-background placeholder:text-muted-foreground/70 outline-none focus:border-stitch-primary mb-4"
-            />
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
-              <button
-                type="button"
-                onClick={() => !bypassLoading && setBypassModalOpen(false)}
-                disabled={bypassLoading}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold border border-border/30 bg-stitch-surface text-stitch-on-background hover:border-stitch-primary/60 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleBypassBooking()}
-                disabled={bypassLoading || !cartId}
-                className="rounded-lg px-4 py-2.5 text-sm font-bold bg-stitch-primary text-stitch-on-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {bypassLoading ? 'Bypassing...' : 'Run bypass'}
-              </button>
-            </div>
           </div>
         </div>
       )}

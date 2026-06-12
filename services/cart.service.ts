@@ -69,11 +69,20 @@ function normalizeCartItems(raw: unknown): CartItem[] {
 
 function normalizeCart(data: Cart): Cart {
   const raw = data as unknown as Record<string, unknown>;
+  const status = pricingStr(raw.status);
+  const convertedBooking = raw.converted_booking;
   return {
     ...data,
+    status: (status as Cart['status']) || undefined,
     coupon: pricingStr(raw.coupon) || null,
     pricing_breakdown: normalizePricingBreakdown(data.pricing_breakdown),
     items: normalizeCartItems(raw.items),
+    converted_booking:
+      convertedBooking === null || convertedBooking === undefined
+        ? null
+        : pricingStr(convertedBooking) || null,
+    caravan_available:
+      typeof raw.caravan_available === 'boolean' ? raw.caravan_available : undefined,
   };
 }
 
@@ -113,29 +122,6 @@ export const cartService = {
       throw new Error(data.message || 'Failed to load cart');
     }
     return normalizeCart(data.data);
-  },
-
-  /** Temporary admin bypass to convert cart into booking from summary page. */
-  async convertCart(cartId: string, bearerToken: string): Promise<void> {
-    let trimmed = bearerToken.trim();
-    if (/^bearer\s+/i.test(trimmed)) {
-      trimmed = trimmed.replace(/^bearer\s+/i, '').trim();
-    }
-    if (!trimmed) {
-      throw new Error('Enter the bypass token before continuing.');
-    }
-    const { data } = await apiClient.post<{ success?: boolean; message?: string }>(
-      `/admin/carts/${cartId}/convert/`,
-      undefined,
-      {
-        headers: {
-          Authorization: `Bearer ${trimmed}`,
-        },
-      }
-    );
-    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
-      throw new Error(data.message || 'Failed to convert cart');
-    }
   },
 
   async addItem(cartId: string, addonId: string, quantity: number): Promise<void> {

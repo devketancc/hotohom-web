@@ -90,9 +90,12 @@ export type CartItem = {
   total: string;
 };
 
+export type CartStatus = 'active' | 'checkout' | 'converted' | 'abandoned';
+
 /** Snapshot returned from create cart (and future cart reads) */
 export type Cart = {
   id: string;
+  status?: CartStatus;
   coupon: string | null;
   pricing_mode: string;
   pricing_breakdown: CartPricingBreakdown;
@@ -101,6 +104,8 @@ export type Cart = {
   items: CartItem[];
   stops: unknown[];
   is_ready_for_checkout: boolean;
+  converted_booking?: string | null;
+  caravan_available?: boolean;
 };
 
 export type CreateCartApiResponse = {
