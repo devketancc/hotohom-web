@@ -15,6 +15,8 @@ interface PlacesAutocompleteInputProps {
   icon: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  /** 'underline' (default, legacy) or 'boxed' (rounded field used in the journey planner). */
+  variant?: 'underline' | 'boxed';
 }
 
 export function PlacesAutocompleteInput({
@@ -25,6 +27,7 @@ export function PlacesAutocompleteInput({
   icon,
   disabled,
   className,
+  variant = 'underline',
 }: PlacesAutocompleteInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -103,16 +106,21 @@ export function PlacesAutocompleteInput({
     el.value = location?.name ?? '';
   }, [location?.name, location?.place_id]);
 
+  const boxed = variant === 'boxed';
+
   return (
     <div className={cn('relative w-full', className)}>
       <div
         className={cn(
-          'relative flex items-center border-b-2 border-stitch-outline/30 focus-within:border-stitch-primary transition-all pb-2',
-          error && 'border-red-400',
+          'relative flex items-center transition-all',
+          boxed
+            ? 'gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 focus-within:border-stitch-primary/40 focus-within:bg-white/[0.05]'
+            : 'gap-0 border-b-2 border-stitch-outline/30 pb-2 focus-within:border-stitch-primary',
+          error && (boxed ? 'border-red-400/60' : 'border-red-400'),
           disabled && 'opacity-50 pointer-events-none'
         )}
       >
-        <span className={cn('mr-4 shrink-0 text-stitch-primary', error && 'text-red-400')}>
+        <span className={cn('shrink-0 text-stitch-primary', !boxed && 'mr-4', error && 'text-red-400')}>
           {icon}
         </span>
         <input
@@ -127,12 +135,15 @@ export function PlacesAutocompleteInput({
               onResolved(null);
             }
           }}
-          className="bg-transparent border-none focus:ring-0 w-full text-stitch-on-surface placeholder:text-stitch-surface-highest/60 font-medium"
+          className={cn(
+            'w-full border-none bg-transparent font-medium text-stitch-on-surface placeholder:text-stitch-surface-highest/60 focus:ring-0 focus:outline-none',
+            boxed && 'text-sm'
+          )}
         />
       </div>
 
       {error && (
-        <div className="absolute top-full left-10 mt-2 text-[10px] font-medium uppercase tracking-wider text-red-400 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className={cn('mt-1.5 text-[10px] font-medium uppercase tracking-wider text-red-400 animate-in fade-in slide-in-from-top-1 duration-200', !boxed && 'absolute top-full left-10')}>
           {error}
         </div>
       )}

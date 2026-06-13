@@ -27,11 +27,29 @@ function fullRouteKey(hub: HubMapPoint | null, stops: MapRouteStop[], stopTitles
   return `${h}>${stopsRouteKey(stops)}>${titles}`;
 }
 
+export interface RouteLeg {
+  distanceKm: number;
+  durationMin: number;
+}
+
+export interface RouteDetails {
+  /** Total round-trip distance (hub → stops → hub). */
+  distanceKm: number;
+  /** Total driving time in minutes. */
+  durationMin: number;
+  /** Per-leg breakdown in route order (leg 0 = hub → first stop). */
+  legs: RouteLeg[];
+}
+
 interface GoogleMapViewProps {
   stops: MapRouteStop[];
   hub: HubMapPoint | null;
   stopTitles?: string[];
   onRouteCalculated?: (distanceKm: number) => void;
+  /** Richer route data (total + per-leg) for custom summaries / route overview. */
+  onRouteDetails?: (details: RouteDetails) => void;
+  /** Hide the built-in floating summary card (when the parent renders its own). */
+  hideSummary?: boolean;
 }
 
 function toDirectionsLocation(s: MapRouteStop): google.maps.LatLngLiteral | string {
@@ -45,10 +63,19 @@ function toDirectionsLocation(s: MapRouteStop): google.maps.LatLngLiteral | stri
 
 const MAX_WAYPOINTS = 25;
 
-export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: GoogleMapViewProps) => {
+export const GoogleMapView = ({
+  stops,
+  hub,
+  stopTitles,
+  onRouteCalculated,
+  onRouteDetails,
+  hideSummary = false,
+}: GoogleMapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const onRouteCalculatedRef = useRef(onRouteCalculated);
   onRouteCalculatedRef.current = onRouteCalculated;
+  const onRouteDetailsRef = useRef(onRouteDetails);
+  onRouteDetailsRef.current = onRouteDetails;
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,9 +190,13 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
 
         let meters = 0;
         let seconds = 0;
+        const perLeg: RouteLeg[] = [];
         for (const leg of legs) {
-          if (leg.distance?.value) meters += leg.distance.value;
-          if (leg.duration?.value) seconds += leg.duration.value;
+          const m = leg.distance?.value ?? 0;
+          const s = leg.duration?.value ?? 0;
+          meters += m;
+          seconds += s;
+          perLeg.push({ distanceKm: m / 1000, durationMin: s / 60 });
         }
 
         const actualKm = meters / 1000;
@@ -184,6 +215,7 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
 
         if (meters > 0) {
           onRouteCalculatedRef.current?.(actualKm);
+          onRouteDetailsRef.current?.({ distanceKm: actualKm, durationMin: actualMin, legs: perLeg });
         }
 
         if (legs.length > 0 && legs[0].start_location) {
@@ -225,7 +257,7 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
   const missingHub = !hub;
 
   return (
-    <div className="relative w-full h-full min-h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-stitch-outline/20">
+    <div className="relative w-full h-full min-h-[320px] rounded-3xl overflow-hidden shadow-2xl border border-stitch-outline/20">
       {isLoading && (
         <div className="absolute inset-0 z-10 bg-stitch-background flex flex-col items-center justify-center gap-4">
           <Loader2 className="animate-spin text-stitch-primary" size={40} />
@@ -251,7 +283,7 @@ export const GoogleMapView = ({ stops, hub, stopTitles, onRouteCalculated }: Goo
 
       <div ref={mapRef} className="w-full h-full" />
 
-      {routeInfo && !error && !missingHub && (
+      {routeInfo && !error && !missingHub && !hideSummary && (
         <div className="absolute bottom-6 left-6 right-6 lg:left-auto lg:right-6 lg:w-80 glass-card rounded-2xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="space-y-4">
             <h4 className="text-xs font-black uppercase tracking-widest text-stitch-primary flex items-center gap-2">

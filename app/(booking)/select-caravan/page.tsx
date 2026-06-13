@@ -52,6 +52,13 @@ function inr(value: string | number): string {
   return Number.isFinite(n) ? n.toLocaleString('en-IN') : '—';
 }
 
+/** Per-person/day rate at full occupancy (day_rate ÷ full_capacity). */
+function perPersonRate(c: CaravanClass): number {
+  const rate = Number(c.day_rate) || 0;
+  const cap = Math.max(1, c.full_capacity || 1);
+  return Math.round(rate / cap);
+}
+
 const isCorporateClass = (c: CaravanClass) => c.code === 'U' || /urban/i.test(c.name);
 
 const GUEST_PILLS = [2, 4, 6, 8] as const;
@@ -326,7 +333,12 @@ export default function SelectCaravanPage() {
               </div>
             )}
 
-            <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <p className="mt-5 font-body text-[11px] leading-relaxed text-ink-faint">
+              *Per-person rate assumes full occupancy. The caravan is reserved as a whole unit; your
+              final total is confirmed at summary.
+            </p>
+
+            <div className="mt-4 flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center sm:flex-row sm:justify-between sm:text-left">
               <p className="font-body text-sm text-ink-muted">Can&apos;t find what you&apos;re looking for?</p>
               <button
                 onClick={() => router.push('/support')}
@@ -378,7 +390,9 @@ export default function SelectCaravanPage() {
                 <p className="font-headline text-[9px] uppercase tracking-[0.2em] text-ink-faint">Selected</p>
                 <p className="truncate font-headline text-sm font-semibold text-ink">
                   {selected.name}
-                  <span className="ml-2 text-xs font-normal text-stitch-primary">₹{inr(selected.day_rate)}/day</span>
+                  <span className="ml-2 text-xs font-normal text-stitch-primary">
+                    from ₹{inr(perPersonRate(selected))}/person/day
+                  </span>
                 </p>
               </div>
               <button
@@ -474,9 +488,9 @@ function CaravanRow({
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <p className="font-headline text-[10px] uppercase tracking-[0.14em] text-ink-faint">From</p>
-            <p className="font-headline text-xl font-semibold text-stitch-primary">₹{inr(caravan.day_rate)}</p>
-            <p className="font-headline text-[10px] uppercase tracking-[0.14em] text-ink-faint">/ day</p>
+            <p className="font-headline text-[10px] uppercase tracking-[0.14em] text-ink-faint">Starts from</p>
+            <p className="font-headline text-xl font-semibold text-stitch-primary">₹{inr(perPersonRate(caravan))}</p>
+            <p className="font-headline text-[10px] uppercase tracking-[0.14em] text-ink-faint">/ person / day*</p>
           </div>
         </div>
 
@@ -535,11 +549,6 @@ function JourneySummary({
       ? `${format(new Date(dates.start), 'd MMM')} – ${format(new Date(dates.end), 'd MMM')} (${days} ${days === 1 ? 'day' : 'days'})`
       : 'Not set';
 
-  const dayRate = selected ? Number(selected.day_rate) || 0 : 0;
-  const deposit = selected ? Number(selected.deposit_amount) || 0 : 0;
-  const subtotal = dayRate * days;
-  const total = subtotal + deposit;
-
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-stitch-surface/40 p-6">
       <div className="mb-5 flex items-center justify-between">
@@ -562,23 +571,6 @@ function JourneySummary({
           sub={selected ? `${selected.full_capacity} Guests` : 'Pick a caravan below'}
         />
       </dl>
-
-      {selected && (
-        <div className="mt-6 space-y-2.5 border-t border-white/[0.08] pt-5 font-body text-sm">
-          <div className="flex justify-between text-ink-muted">
-            <span>₹{inr(dayRate)} × {days} {days === 1 ? 'day' : 'days'}</span>
-            <span className="text-ink">₹{inr(subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-ink-muted">
-            <span>Security Deposit <span className="text-ink-faint">(Refundable)</span></span>
-            <span className="text-ink">₹{inr(deposit)}</span>
-          </div>
-          <div className="mt-2 flex justify-between border-t border-white/[0.08] pt-3">
-            <span className="font-headline font-semibold text-ink">Estimated Total</span>
-            <span className="font-headline text-lg font-semibold text-stitch-primary">₹{inr(total)}</span>
-          </div>
-        </div>
-      )}
 
       <button
         onClick={onContinue}
