@@ -1,13 +1,24 @@
 import type { TravelPackage } from '@/types/package';
 
+/** Shared marketing media returned on a caravan class (from /caravans/availability/). */
+export interface CaravanClassMedia {
+  id: string;
+  url: string;
+  media_type?: string;
+  order?: number;
+}
+
 export interface CaravanClass {
   id: string;
+  /** Class code: T | U | M | V. */
+  code?: string;
   name: string;
   description: string;
   full_capacity: number;
   capacity_pets: number;
   is_pet_friendly: boolean;
   amenities: string[];
+  media?: CaravanClassMedia[];
   day_rate: string;
   km_rate: string;
   deposit_amount: string;
