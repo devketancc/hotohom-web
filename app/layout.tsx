@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Manrope, Inter, Cormorant_Garamond } from 'next/font/google';
+import {
+  Geist,
+  Geist_Mono,
+  Manrope,
+  Inter,
+  Cormorant_Garamond,
+} from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/shared/Providers';
 import { LoginModalHost } from '@/components/auth/LoginModalHost';

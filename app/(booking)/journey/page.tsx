@@ -4,20 +4,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { JourneyPlannerForm } from '@/components/booking/JourneyPlannerForm';
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { useBookingStore } from '@/store/bookingStore';
-import { useCartStore } from '@/store/cartStore';
 import { useRouter } from 'next/navigation';
 import { isAuthed, requestAuthThenNavigate } from '@/lib/authNavigation';
 import { useAuth } from '@/hooks/useAuth';
-import { buildCartPayload } from '@/utils/buildCartPayload';
-import { cartService } from '@/services/cart.service';
 
 export default function JourneyDetailsPage() {
   const router = useRouter();
   const bookingState = useBookingStore();
   const { isAuthenticated, user } = useAuth();
   const [routePreviewShown, setRoutePreviewShown] = useState(false);
-  const [continueLoading, setContinueLoading] = useState(false);
-  const [continueError, setContinueError] = useState<string | null>(null);
 
   const sessionOk = isAuthenticated && !!user;
 
@@ -25,59 +20,57 @@ export default function JourneyDetailsPage() {
     if (!sessionOk) setRoutePreviewShown(false);
   }, [sessionOk]);
 
-  useEffect(() => {
-    setContinueError(null);
-  }, [routePreviewShown, bookingState.journey, bookingState.caravanClass, bookingState.hub]);
-
   const continueUnlocked = sessionOk && routePreviewShown;
 
   const continueLockedHint = useMemo(() => {
     if (!bookingState.caravanClass) return undefined;
-    if (!sessionOk) return 'Log in to continue to booking.';
-    if (!routePreviewShown) return 'Click Show route to preview your journey first.';
+    if (!sessionOk) return 'Log in to continue to travelers.';
+    if (!routePreviewShown) return 'Preview your route to continue.';
     return undefined;
   }, [bookingState.caravanClass, sessionOk, routePreviewShown]);
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!isAuthed()) {
-      requestAuthThenNavigate('/booking/summary');
+      requestAuthThenNavigate('/passenger');
       return;
     }
-    setContinueError(null);
-    setContinueLoading(true);
-    try {
-      const payload = buildCartPayload(bookingState);
-      const cart = await cartService.createCart(payload);
-      useCartStore.getState().setCart(cart);
-      router.push('/booking/summary');
-    } catch {
-      setContinueError('Failed to calculate trip cost');
-    } finally {
-      setContinueLoading(false);
-    }
+    router.push('/passenger');
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-6 md:py-8 lg:py-10 w-full grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_380px] gap-6 lg:gap-8 xl:gap-12 text-stitch-on-background">
-      <section className="space-y-6 md:space-y-8 lg:space-y-10">
-        <JourneyPlannerForm
-          routePreviewShown={routePreviewShown}
-          onRoutePreviewShownChange={setRoutePreviewShown}
-        />
-      </section>
+    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-8 md:py-10 lg:py-14 text-ink">
+      <header className="mb-8 lg:mb-12">
+        <span className="label-mono text-gold">Step 02 / The Route</span>
+        <h1
+          style={{ fontFamily: 'var(--font-display)' }}
+          className="mt-4 text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold leading-[1.02] tracking-[-0.02em] text-ink"
+        >
+          Shape the journey.
+        </h1>
+        <p className="mt-4 max-w-2xl font-body text-base leading-relaxed text-ink-muted">
+          Set where you begin and end, add the stops worth slowing down for, and preview the route.
+          We will handle the distances and the rest.
+        </p>
+      </header>
 
-      <aside className="relative">
-        <BookingSummary
-          booking={bookingState}
-          onContinue={handleContinue}
-          isLoading={continueLoading}
-          continueLoadingLabel="Calculating best price..."
-          continueError={continueError}
-          showCaravanPricing={false}
-          continueUnlocked={continueUnlocked}
-          continueLockedHint={continueLockedHint}
-        />
-      </aside>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:gap-8 xl:grid-cols-[1fr_380px] xl:gap-12">
+        <section className="space-y-6 md:space-y-8 lg:space-y-10">
+          <JourneyPlannerForm
+            routePreviewShown={routePreviewShown}
+            onRoutePreviewShownChange={setRoutePreviewShown}
+          />
+        </section>
+
+        <aside className="relative">
+          <BookingSummary
+            booking={bookingState}
+            onContinue={handleContinue}
+            showCaravanPricing={false}
+            continueUnlocked={continueUnlocked}
+            continueLockedHint={continueLockedHint}
+          />
+        </aside>
+      </div>
     </div>
   );
 }

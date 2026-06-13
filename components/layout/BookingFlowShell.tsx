@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { ContextBar } from '@/components/booking/ContextBar';
 import { HubLocationBackfill } from '@/components/booking/HubLocationBackfill';
+import { BookingProgress } from '@/components/booking/BookingProgress';
 import { Bell, HelpCircle } from 'lucide-react';
 import { MotohomLogo } from '@/components/brand/MotohomLogo';
 import { NavbarAuthCluster } from '@/components/layout/NavbarAuthCluster';
@@ -23,18 +24,22 @@ export function BookingFlowShell({ children, showContextBar = true }: BookingFlo
           </Link>
 
           <nav className="hidden md:flex gap-8 items-center">
-            <Link href="#" className="font-bold text-primary border-b-2 border-primary pb-1">
+            <Link href="/packages" className="font-bold text-muted-foreground hover:text-primary transition-colors">
               Explore
             </Link>
-            <Link href="#" className="font-bold text-muted-foreground hover:text-primary transition-colors">
+            <Link href="/journeys" className="font-bold text-muted-foreground hover:text-primary transition-colors">
               Bookings
-            </Link>
-            <Link href="#" className="font-bold text-muted-foreground hover:text-primary transition-colors">
-              Concierge
             </Link>
           </nav>
 
           <div className="flex items-center gap-4 md:gap-6">
+            <a
+              href="mailto:support@motohom.com"
+              className="text-muted-foreground hover:bg-secondary rounded-lg transition-all p-2"
+              aria-label="Help and support"
+            >
+              <HelpCircle size={20} />
+            </a>
             <button
               type="button"
               className="text-muted-foreground hover:bg-secondary rounded-lg transition-all p-2"
@@ -42,18 +47,12 @@ export function BookingFlowShell({ children, showContextBar = true }: BookingFlo
             >
               <Bell size={20} />
             </button>
-            <button
-              type="button"
-              className="text-muted-foreground hover:bg-secondary rounded-lg transition-all p-2"
-              aria-label="Help"
-            >
-              <HelpCircle size={20} />
-            </button>
             <NavbarAuthCluster loginButtonClassName="font-headline shrink-0 text-sm font-semibold uppercase tracking-tight text-muted-foreground transition-colors hover:text-primary" />
           </div>
         </div>
       </header>
 
+      {showContextBar ? <BookingProgress /> : null}
       {showContextBar ? <ContextBar /> : null}
 
       {children}

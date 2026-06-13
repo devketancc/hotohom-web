@@ -118,11 +118,13 @@ export function PackagesSection() {
   }, []);
 
   return (
-    <section id="packages" suppressHydrationWarning className="relative min-h-screen overflow-hidden bg-stitch-background py-32 md:py-48">
+    <section id="packages" suppressHydrationWarning className="section-ambient-warm relative min-h-screen overflow-hidden bg-stitch-background py-32 md:py-48">
       {!mounted ? null : (
         <>
           {/* Cinematic Top Blending */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-64 bg-gradient-to-b from-stitch-background via-stitch-background/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[30rem] bg-gradient-to-b from-stitch-background via-stitch-background/80 to-transparent" />
+          {/* Cinematic Bottom Blending */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-48 bg-gradient-to-t from-stitch-background to-transparent" />
           
           <div suppressHydrationWarning className="relative z-30 mx-auto max-w-[1920px] px-6 md:px-12">
             {/* Editorial Header & Filters Row */}

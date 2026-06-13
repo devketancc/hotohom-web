@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
@@ -16,7 +16,7 @@ const POLL_TIMEOUT_MS = 300000;
 
 type StatusPhase = 'confirming' | 'success' | 'timeout' | 'missing';
 
-export default function PaymentStatusPage() {
+function PaymentStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
@@ -257,5 +257,22 @@ export default function PaymentStatusPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function PaymentStatusFallback() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-6 text-stitch-on-surface-variant">
+      <Loader2 className="size-8 animate-spin text-stitch-primary" aria-hidden />
+      <span className="font-body text-sm">Loading payment status…</span>
+    </div>
+  );
+}
+
+export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={<PaymentStatusFallback />}>
+      <PaymentStatusContent />
+    </Suspense>
   );
 }

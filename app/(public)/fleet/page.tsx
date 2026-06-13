@@ -43,11 +43,11 @@ export default function FleetPage() {
               The MotoHom Fleet
             </span>
             <h1 className="mt-5 font-headline text-4xl font-semibold leading-[0.98] tracking-[-0.035em] text-stitch-on-background md:text-5xl lg:text-[3.35rem]">
-              Four silhouettes tuned like the home Fleet Experience.
+              Four ways the road becomes home.
             </h1>
             <p className="mt-8 max-w-xl font-body text-base leading-relaxed text-stitch-on-surface-variant/85 md:text-lg">
-              The same cinematic scroll choreography you see on our homepage — now anchored to Traveller,
-              Urbania, Monarch, and flagship Viceroy with live fleet photography.
+              From coastal loops to high-altitude circuits, each MotoHom class is built for a
+              different way to move through the world, and a different way to arrive.
             </p>
           </Reveal>
         </div>

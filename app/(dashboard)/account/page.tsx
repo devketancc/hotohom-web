@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { Calendar, ChevronRight, Loader2, MapPin, User } from 'lucide-react';
+import { ChevronRight, Loader2, MapPin, User } from 'lucide-react';
 import { requestAuthThenNavigate } from '@/lib/authNavigation';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchMe } from '@/services/user.service';
@@ -171,39 +171,18 @@ export default function AccountPage() {
             </div>
           </section>
 
-          <section>
-            <h2 className="mb-4 font-headline text-xs font-bold uppercase tracking-[0.2em] text-stitch-on-surface-variant">
-              Journeys
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="glass-card rounded-xl p-6 transition-shadow hover:shadow-xl">
-                <div className="mb-3 flex items-center gap-2 text-stitch-primary-container">
-                  <MapPin className="size-5" aria-hidden />
-                  <span className="font-headline text-sm font-bold uppercase tracking-wide text-stitch-on-background">
-                    Upcoming
-                  </span>
-                </div>
-                <p className="font-body text-sm leading-relaxed text-stitch-on-surface-variant">
-                  No upcoming trips yet. When you book, they will show up here.
-                </p>
-              </div>
-              <div className="glass-card rounded-xl p-6 transition-shadow hover:shadow-xl">
-                <div className="mb-3 flex items-center gap-2 text-stitch-primary-container">
-                  <Calendar className="size-5" aria-hidden />
-                  <span className="font-headline text-sm font-bold uppercase tracking-wide text-stitch-on-background">
-                    Past
-                  </span>
-                </div>
-                <p className="font-body text-sm leading-relaxed text-stitch-on-surface-variant">
-                  Completed trips will appear here soon.
-                </p>
-              </div>
+          <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-6">
+            <div className="flex items-center gap-3 text-stitch-on-surface-variant">
+              <MapPin className="size-5 text-stitch-primary-container" aria-hidden />
+              <p className="font-body text-sm">
+                All your trips, past and upcoming, live in one place.
+              </p>
             </div>
             <Link
               href="/journeys"
-              className="mt-4 inline-flex items-center gap-1 font-body text-sm font-semibold text-stitch-primary-container transition-colors hover:underline"
+              className="inline-flex items-center gap-1.5 rounded-full border border-stitch-primary/30 px-5 py-2.5 font-headline text-[11px] font-semibold uppercase tracking-[0.18em] text-stitch-primary-container transition-colors hover:bg-stitch-primary/10"
             >
-              View all journeys
+              View your journeys
               <ChevronRight className="size-4" aria-hidden />
             </Link>
           </section>

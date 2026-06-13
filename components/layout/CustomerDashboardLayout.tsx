@@ -3,14 +3,30 @@
 import { ReactNode, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Map, Menu, Settings, X } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Map, Menu, Settings, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { href: '/account', label: 'Overview', icon: LayoutDashboard },
   { href: '/journeys', label: 'Journeys', icon: Map },
   { href: '/account/settings', label: 'Settings', icon: Settings },
 ];
+
+function getInitials(name?: string | null): string {
+  if (!name) return 'MH';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function breadcrumbTrail(pathname: string): string[] {
+  if (pathname.startsWith('/booking/')) return ['Dashboard', 'Journeys', 'Booking'];
+  if (pathname.startsWith('/account/settings')) return ['Dashboard', 'Settings'];
+  if (pathname === '/account') return ['Dashboard', 'Overview'];
+  if (pathname.startsWith('/journeys')) return ['Dashboard', 'Journeys'];
+  return ['Dashboard'];
+}
 
 function navLinkActive(pathname: string, href: string): boolean {
   if (href === '/account') return pathname === '/account';
@@ -105,6 +121,8 @@ function CustomerDashboardMobileChrome() {
 
 export function CustomerDashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const trail = breadcrumbTrail(pathname ?? '');
 
   return (
     <div className="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -113,6 +131,23 @@ export function CustomerDashboardLayout({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden w-60 shrink-0 border-r border-border/10 bg-stitch-surface/30 md:block">
         <div className="sticky top-[73px] max-h-[calc(100vh-73px)] overflow-y-auto py-6">
+          {/* User identity */}
+          <div className="mb-6 flex items-center gap-3 px-5">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-stitch-primary/15 font-headline text-xs font-semibold text-stitch-primary-container">
+              {getInitials(user?.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-body text-sm font-semibold text-stitch-on-background">
+                {user?.name || 'Welcome'}
+              </p>
+              {user?.phone && (
+                <p className="truncate font-body text-xs text-stitch-on-surface-variant">
+                  {user.phone}
+                </p>
+              )}
+            </div>
+          </div>
+
           <p className="px-5 pb-3 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-stitch-on-surface-variant">
             Your space
           </p>
@@ -121,7 +156,23 @@ export function CustomerDashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-screen-2xl px-4 py-8 lg:px-8">{children}</div>
+        <div className="mx-auto max-w-screen-2xl px-4 py-8 lg:px-8">
+          {/* Breadcrumb */}
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-6 flex items-center gap-2 font-headline text-[10px] font-semibold uppercase tracking-[0.18em] text-stitch-on-surface-variant"
+          >
+            {trail.map((crumb, i) => (
+              <span key={crumb} className="flex items-center gap-2">
+                {i > 0 && <ChevronRight className="size-3 opacity-50" />}
+                <span className={i === trail.length - 1 ? 'text-stitch-primary-container' : ''}>
+                  {crumb}
+                </span>
+              </span>
+            ))}
+          </nav>
+          {children}
+        </div>
       </main>
     </div>
   );

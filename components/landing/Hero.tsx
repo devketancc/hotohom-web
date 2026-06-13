@@ -2,49 +2,40 @@
 
 import * as React from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { BookingControl } from './BookingControl'
-import { Reveal } from '@/components/shared/Reveal'
+import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { AmbientSpotlight } from '@/components/shared/AmbientSpotlight'
+
+const LUXURY_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 interface HeroClipDef {
   src: string
-  headline: React.ReactNode
+  hour: string
+  moment: string
+  line1: string
+  line2: React.ReactNode
 }
 
 const HERO_CLIP_DEFS: HeroClipDef[] = [
   {
     src: '/videos/hero-home.mp4',
-    headline: (
-      <>
-        <span className="block">Not Just Travel.</span>
-        <span className="block font-light italic text-stitch-primary-container/95">
-          A Lifestyle.
-        </span>
-      </>
-    ),
+    hour: '05:42',
+    moment: 'First Light',
+    line1: 'Not just travel.',
+    line2: <span className="text-gold">A way of living.</span>,
   },
   {
     src: '/videos/hero-scene-2.mp4',
-    headline: (
-      <>
-        <span className="block">Wake Up</span>
-        <span className="block font-light italic text-stitch-primary-container/95">
-          Somewhere New
-        </span>
-      </>
-    ),
+    hour: '07:18',
+    moment: 'Morning Drive',
+    line1: 'Wake up',
+    line2: <span className="text-gold">somewhere new.</span>,
   },
   {
     src: '/videos/hero-scene-3.mp4',
-    headline: (
-      <>
-        <span className="block">The Road</span>
-        <span className="block">
-          Becomes{' '}
-          <span className="font-light italic text-stitch-primary-container/95">Home</span>
-        </span>
-      </>
-    ),
+    hour: '19:04',
+    moment: 'Last Light',
+    line1: 'The road',
+    line2: <span className="text-gold">becomes home.</span>,
   },
 ]
 
@@ -79,7 +70,7 @@ function HeroBackgroundVideos({
     if (playlist.length === 0) return
     const clip = playlist[clipIndex]
     if (clip) onActiveClip(clip)
-    setVideoReady(false) // Reset for next clip
+    setVideoReady(false)
   }, [clipIndex, playlist, onActiveClip])
 
   const handleEnded = React.useCallback(() => {
@@ -93,15 +84,12 @@ function HeroBackgroundVideos({
     })
   }, [playlist.length])
 
-  const handleCanPlay = React.useCallback(() => {
-    setVideoReady(true)
-  }, [])
-
+  const handleCanPlay = React.useCallback(() => setVideoReady(true), [])
   const src = playlist[clipIndex]?.src ?? playlist[0]?.src
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {/* Permanent Poster / Fallback Layer */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         alt=""
         src={poster}
@@ -109,7 +97,6 @@ function HeroBackgroundVideos({
           videoReady ? 'opacity-0' : 'opacity-100'
         }`}
       />
-      
       {playlist.length > 0 && (
         <video
           key={`${clipIndex}-${src}`}
@@ -134,94 +121,134 @@ function HeroBackgroundVideos({
   )
 }
 
+function scrollToConcierge() {
+  const el = document.getElementById('concierge')
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 export const Hero = () => {
-  const reducedMotion = useReducedMotion()
+  const reduced = useReducedMotion()
   const [mounted, setMounted] = React.useState(false)
-  const [activeHeadline, setActiveHeadline] = React.useState<React.ReactNode>(
-    HERO_CLIP_DEFS[0].headline
-  )
-  const [activeClipSrc, setActiveClipSrc] = React.useState(HERO_CLIP_DEFS[0].src)
+  const [clip, setClip] = React.useState<HeroClipDef>(HERO_CLIP_DEFS[0])
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const onActiveClip = React.useCallback((clip: HeroClipDef) => {
-    setActiveHeadline(clip.headline)
-    setActiveClipSrc(clip.src)
-  }, [])
+  React.useEffect(() => setMounted(true), [])
+  const onActiveClip = React.useCallback((c: HeroClipDef) => setClip(c), [])
 
   return (
-    <section className="hero-grain hero-ambient-shift hero-ambient-counter relative min-h-[100svh] lg:h-[100svh] lg:min-h-0 w-full overflow-hidden">
-      {/* Background: shuffled hero clips (no repeat until all three play); static image if reduced motion or server-rendering */}
+    <section
+      id="top"
+      className="relative min-h-[100dvh] w-full overflow-hidden bg-surface-0"
+    >
+      {/* Background film */}
       <div className="absolute inset-0 z-0">
-        {!mounted || reducedMotion ? (
+        {!mounted || reduced ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
-            alt="Cinematic luxury caravan driving through scenic mountains at sunset"
-            className="hero-kenburns h-full w-full object-cover object-[60%_35%]"
+            alt="Cinematic luxury caravan travelling through scenic landscape at dawn"
+            className="h-full w-full object-cover object-[60%_35%]"
             src={HERO_POSTER_SRC}
           />
         ) : (
           <HeroBackgroundVideos poster={HERO_POSTER_SRC} onActiveClip={onActiveClip} />
         )}
-        {/* Layered atmosphere */}
-        <div className="hero-vignette absolute inset-0" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_72%_18%,rgba(255,208,120,0.2),transparent_54%)] opacity-80 blur-3xl" />
-        {/* Cursor-following warm spotlight (above background, below copy) */}
+        {/* Cinematic grade: warm black floor + top fade */}
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/35 to-surface-0/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_115%,rgba(210,168,95,0.16),transparent_58%)]" />
         <AmbientSpotlight />
       </div>
 
-      {/* Editorial 12-col grid */}
-      <div className="relative z-10 mx-auto grid min-h-[100svh] lg:h-full lg:min-h-0 max-w-screen-2xl grid-cols-12 lg:grid-rows-[auto_1fr_auto] gap-x-6 px-10 pb-12 lg:pb-16 pt-36 md:pt-40 lg:pt-44">
-        {/* Top-right eyebrow */}
-        <Reveal
-          as="div"
-          duration={1.1}
-          y={0}
-          className="col-span-12 md:col-start-9 md:col-span-4 flex items-start justify-end lg:row-start-1"
-        >
-          <div className="hero-eyebrow-rule font-headline text-[10px] font-medium uppercase tracking-[0.4em] text-stitch-primary-container/90">
-            Est. 2024 — Curated Caravan Travel
-          </div>
-        </Reveal>
+      {/* Journey line — left edge motif */}
+      <div className="pointer-events-none absolute left-6 top-0 z-10 hidden h-full md:left-10 md:block">
+        <div className="journey-line h-full">
+          {!reduced && (
+            <motion.span
+              className="absolute left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_12px_rgba(210,168,95,0.8)]"
+              initial={{ top: '8%' }}
+              animate={{ top: ['8%', '82%', '8%'] }}
+              transition={{ duration: 9, ease: 'easeInOut', repeat: Infinity }}
+            />
+          )}
+        </div>
+      </div>
 
-        {/* Spacer pushes content toward lower portion for editorial weight */}
-        <div className="col-span-12 grow lg:hidden" />
+      {/* Foreground */}
+      <div className="relative z-20 mx-auto flex min-h-[100dvh] max-w-screen-2xl flex-col justify-between px-6 pb-12 pt-32 md:px-16 md:pb-16 md:pt-36">
+        {/* Top: hour + moment ticker */}
+        <div className="flex items-start justify-between">
+          <span className="label-mono text-ink-muted/80">
+            Curated Caravan Travel
+          </span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={clip.hour}
+              initial={reduced ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduced ? undefined : { opacity: 0, y: -6 }}
+              transition={{ duration: 0.5, ease: LUXURY_EASE }}
+              className="flex items-center gap-3 text-right"
+            >
+              <span className="label-mono text-gold">{clip.hour}</span>
+              <span className="hidden h-3 w-px bg-line-strong sm:block" />
+              <span className="label-mono hidden text-ink-muted/70 sm:inline">
+                {clip.moment}
+              </span>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-        {/* Headline block */}
-        <div className="col-span-12 md:col-span-8 lg:row-start-2 lg:self-end mt-auto pt-10 md:pt-16 lg:pt-0">
-          <div className="relative min-h-[10rem] md:min-h-[12rem] lg:min-h-[10rem] xl:min-h-[14rem] 2xl:min-h-[16rem]">
-            <AnimatePresence initial={false} mode="wait">
+        {/* Bottom: kinetic headline + actions */}
+        <div className="max-w-5xl">
+          <div className="relative min-h-[8.5rem] sm:min-h-[12rem] md:min-h-[16rem] lg:min-h-[20rem]">
+            <AnimatePresence mode="wait" initial={false}>
               <motion.h1
-                key={reducedMotion ? 'static-h1' : activeClipSrc}
-                initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-                animate={reducedMotion ? undefined : { opacity: 1, y: 0 }}
-                exit={reducedMotion ? undefined : { opacity: 0, y: -12 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="font-headline font-semibold text-stitch-on-background leading-[0.95] tracking-[-0.04em] text-5xl md:text-7xl lg:text-[5.5rem] xl:text-[7.5rem] 2xl:text-[9.5rem]"
+                key={reduced ? 'static' : clip.src}
+                initial={reduced ? false : { opacity: 0, y: 24, filter: 'blur(14px)' }}
+                animate={reduced ? undefined : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={reduced ? undefined : { opacity: 0, y: -18, filter: 'blur(10px)' }}
+                transition={{ duration: 0.8, ease: LUXURY_EASE }}
+                className="display-hero text-[clamp(3rem,11vw,11rem)] text-ink"
               >
-                {activeHeadline}
+                <span className="block">{clip.line1}</span>
+                <span className="block">{clip.line2}</span>
               </motion.h1>
             </AnimatePresence>
           </div>
 
-          <Reveal as="p" delay={0.18} y={14} className="mt-6 md:mt-8 max-w-xl font-body text-sm md:text-base lg:text-lg leading-relaxed text-stitch-on-surface-variant/80">
-            Curated caravan journeys and immersive travel experiences designed for modern explorers.
-          </Reveal>
-        </div>
+          <motion.p
+            initial={reduced ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: LUXURY_EASE, delay: 0.3 }}
+            className="mt-6 max-w-xl font-body text-base leading-relaxed text-ink-muted md:text-lg"
+          >
+            Where the journey is the destination. Private caravans, curated routes, and a life
+            lived outside the ordinary.
+          </motion.p>
 
-        {/* Booking widget — integrated floating concierge panel */}
-        <Reveal
-          as="div"
-          delay={0.5}
-          y={18}
-          duration={1.1}
-          className="col-span-12 lg:row-start-3 mt-8 lg:mt-10 flex justify-center w-full"
-        >
-          <div className="w-full md:max-w-2xl lg:max-w-4xl xl:max-w-5xl motion-safe:hover:-translate-y-0.5 transition-transform">
-            <BookingControl />
-          </div>
-        </Reveal>
+          <motion.div
+            initial={reduced ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: LUXURY_EASE, delay: 0.45 }}
+            className="mt-10 flex flex-wrap items-center gap-5"
+          >
+            <button
+              type="button"
+              onClick={scrollToConcierge}
+              className="gradient-cta group inline-flex items-center gap-2 rounded-full py-4 pl-7 pr-4 font-heading text-[12px] font-semibold uppercase tracking-[0.18em] text-stitch-on-primary-container transition-[transform,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:brightness-[1.06]"
+            >
+              Plan Your Journey
+              <span className="flex size-7 items-center justify-center rounded-full bg-gold-ink/25">
+                <ArrowDown className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0.5" />
+              </span>
+            </button>
+            <a
+              href="/fleet"
+              className="group inline-flex items-center gap-2 font-heading text-[12px] font-semibold uppercase tracking-[0.18em] text-ink transition-colors hover:text-gold"
+            >
+              View the Fleet
+              <ArrowUpRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
+          </motion.div>
+        </div>
       </div>
     </section>
   )

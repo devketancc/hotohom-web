@@ -90,6 +90,7 @@
   /* === FONTS === */
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-manrope);
   --font-heading: var(--font-manrope);
   --font-headline: var(--font-manrope);
   --font-body: var(--font-inter);
@@ -267,6 +268,44 @@
 
 @utility gradient-cta {
   background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-soft) 100%);
+}
+
+/* === Roaming Hours signature utilities === */
+
+/* Vertical journey line with a travelling node (left-edge motif). */
+@utility journey-line {
+  position: relative;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-line-strong) 12%,
+    var(--color-line-strong) 88%,
+    transparent
+  );
+}
+
+/* Oversized cinematic display lockup. */
+@utility display-hero {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+}
+
+/* Technical label (eyebrows, captions). */
+@utility label-mono {
+  font-family: var(--font-headline);
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* Warm gold glow used behind hero + section transitions. */
+@utility dawn-glow {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(229, 185, 92, 0.16), transparent 60%);
 }
 
 @utility booking-control-focus {

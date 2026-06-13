@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, Quote } from 'lucide-react'
+import { Star } from 'lucide-react'
 
 interface TestimonialCardProps {
   name: string
@@ -12,29 +12,34 @@ interface TestimonialCardProps {
 
 export const TestimonialCard = ({ name, location, quote, image, stats }: TestimonialCardProps) => {
   return (
-    <div className="card-lift bg-stitch-surface-highest/30 p-16 rounded-[40px] relative border border-white/5 hover:border-stitch-primary/20 transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group h-full">
-      <Quote className="text-stitch-primary/10 size-24 absolute top-8 right-12 transition-colors duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:text-stitch-primary/20" />
-      <div className="flex items-center gap-6 mb-12 relative z-10">
-        <img
-          alt={name}
-          className="w-20 h-20 rounded-full object-cover border-2 border-stitch-primary/20"
-          src={image}
-        />
-        <div>
-          <h4 className="text-xl font-extrabold mb-1 font-headline">{name}</h4>
-          <div className="flex gap-0.5 text-stitch-primary mb-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="size-3 fill-current" />
-            ))}
+    // Double-Bezel: outer shell
+    <div className="card-lift group h-full rounded-[2.5rem] bg-white/[0.02] p-1 ring-1 ring-white/[0.05] transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:ring-stitch-primary/20">
+      {/* Inner core */}
+      <div className="relative h-full overflow-hidden rounded-[calc(2.5rem-0.25rem)] bg-surface-1 p-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:p-12">
+        <p className="relative z-10 font-body text-lg italic leading-[1.8] text-stitch-on-surface-variant md:text-xl">
+          &ldquo;{quote}&rdquo;
+        </p>
+
+        <div className="relative z-10 mt-8 flex items-center gap-5 border-t border-stitch-primary/20 pt-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={name}
+            className="h-16 w-16 rounded-full border border-stitch-primary/20 object-cover"
+            src={image}
+          />
+          <div>
+            <h4 className="font-headline text-lg font-semibold tracking-tight text-ink">{name}</h4>
+            <div className="my-1 flex gap-0.5 text-stitch-primary">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="size-3 fill-current" />
+              ))}
+            </div>
+            <p className="font-headline text-[10px] font-semibold uppercase tracking-[0.28em] text-stitch-primary/80">
+              {stats} · {location}
+            </p>
           </div>
-          <p className="text-xs text-stitch-primary/80 tracking-[0.2em] font-black uppercase font-headline">
-            {stats} • {location}
-          </p>
         </div>
       </div>
-      <p className="text-stitch-on-surface-variant text-xl italic leading-[1.8] font-body relative z-10">
-        &ldquo;{quote}&rdquo;
-      </p>
     </div>
   )
 }
