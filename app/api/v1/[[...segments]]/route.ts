@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Always run as a server function (never statically optimized) so it proxies on Netlify too.
+export const dynamic = 'force-dynamic';
+
 const backendOrigin = () => (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
 
+/**
+ * Same-origin API proxy. Runs in dev AND production so the browser never makes a
+ * cross-origin (CORS) request — it always calls /api/v1/* on this origin and we
+ * forward server-side to the backend. Opt out with NEXT_PUBLIC_API_DEV_PROXY=false.
+ */
 function shouldProxy(): boolean {
   return (
-    process.env.NODE_ENV === 'development' &&
     process.env.NEXT_PUBLIC_API_DEV_PROXY !== 'false' &&
     backendOrigin().startsWith('http')
   );
