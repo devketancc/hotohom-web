@@ -59,6 +59,7 @@ export type CrewActivityFeedItem =
       title: string;
       subtitle?: string;
       eventType: string;
+      images: string[];
     }
   | {
       kind: 'expense';
@@ -68,6 +69,7 @@ export type CrewActivityFeedItem =
       subtitle?: string;
       recordedBy: string;
       itemCount: number;
+      images: string[];
     };
 
 function eventTitle(eventType: string): string {
@@ -89,6 +91,7 @@ export function mergeCrewActivityFeed(
       eventType: ev.event_type,
       title: eventTitle(ev.event_type),
       subtitle: ev.notes?.trim() || undefined,
+      images: [...(ev.images ?? []), ...(ev.bill_url ? [ev.bill_url] : [])],
     });
   }
 
@@ -110,6 +113,7 @@ export function mergeCrewActivityFeed(
           : log.notes?.trim() || undefined,
       recordedBy: log.recorded_by_name,
       itemCount: log.items.length,
+      images: log.images ?? [],
     });
   }
 
@@ -143,12 +147,14 @@ export type FlatExpenseRow = {
   description: string;
   occurredAt: string;
   recordedBy: string;
+  /** Attachments are stored per log — populated on the first row of each log only. */
+  images: string[];
 };
 
 export function flattenExpenseLogs(logs: CrewTripExpenseLog[]): FlatExpenseRow[] {
   const rows: FlatExpenseRow[] = [];
   for (const log of logs) {
-    for (const item of log.items) {
+    log.items.forEach((item, i) => {
       rows.push({
         id: item.id || `${log.id}-${item.expense_type}`,
         logId: log.id,
@@ -158,8 +164,9 @@ export function flattenExpenseLogs(logs: CrewTripExpenseLog[]): FlatExpenseRow[]
         description: item.description?.trim() || log.notes?.trim() || '—',
         occurredAt: log.occurred_at,
         recordedBy: log.recorded_by_name || '—',
+        images: i === 0 ? log.images ?? [] : [],
       });
-    }
+    });
   }
   return rows.sort(
     (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()

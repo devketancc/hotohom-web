@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { expenseTotalsChips, summaryHasAnyCharges } from '@/lib/crewExpenseUi';
 import { flattenExpenseLogs, formatExpenseRowWhen } from '@/lib/crewBookingUi';
 import { CrewCollapsibleSection } from '@/components/crew/trip/CrewCollapsibleSection';
+import { AttachmentThumbnails } from '@/components/crew/trip/AttachmentThumbnails';
 import type { CrewTripEOTSummary, CrewTripExpenseLog } from '@/types/crew';
 
 const EXPENSE_CHIP_COLORS: Record<string, string> = {
@@ -97,6 +98,9 @@ export function CrewLoggedExpensesSection({
                 {row.description !== '—' ? (
                   <p className="mt-1 text-xs text-muted-foreground break-words">{row.description}</p>
                 ) : null}
+                {row.images.length > 0 ? (
+                  <AttachmentThumbnails urls={row.images} className="mt-2" size={44} />
+                ) : null}
                 <p className="mt-1 text-[10px] text-muted-foreground">{row.recordedBy}</p>
               </li>
             ))}
@@ -109,6 +113,7 @@ export function CrewLoggedExpensesSection({
                   <th className="pb-2 pr-3 font-semibold">Type</th>
                   <th className="pb-2 pr-3 font-semibold">When</th>
                   <th className="pb-2 pr-3 font-semibold">Note</th>
+                  <th className="pb-2 pr-3 font-semibold">Receipt</th>
                   <th className="pb-2 pr-3 font-semibold">Amount</th>
                   <th className="pb-2 font-semibold">Logged by</th>
                 </tr>
@@ -121,6 +126,13 @@ export function CrewLoggedExpensesSection({
                       {formatExpenseRowWhen(row.occurredAt)}
                     </td>
                     <td className="max-w-[200px] truncate py-2.5 pr-3 text-muted-foreground">{row.description}</td>
+                    <td className="py-2.5 pr-3">
+                      {row.images.length > 0 ? (
+                        <AttachmentThumbnails urls={row.images} size={36} />
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="py-2.5 pr-3 font-semibold text-violet-300">{row.display}</td>
                     <td className="py-2.5 text-muted-foreground">{row.recordedBy}</td>
                   </tr>

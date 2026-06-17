@@ -6,6 +6,7 @@ import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { sortedStops, statusPillClass } from '@/lib/customerBookingUi';
 import { cn } from '@/lib/utils';
 import { DetailRow, formatIsoDateTime, MoneyLine } from '@/components/booking/BookingDetailAtoms';
+import { AttachmentThumbnails } from '@/components/crew/trip/AttachmentThumbnails';
 import type { BookingPricingBreakdown, BookingTripEvent } from '@/types/bookingDetail';
 import type { AdminBookingDetail } from '@/types/admin';
 import type { CustomerBookingDetail } from '@/types/customerBooking';
@@ -549,6 +550,9 @@ export function BookingDetailFullView({
                         View bill
                         <ExternalLink className="size-3" aria-hidden />
                       </a>
+                    ) : null}
+                    {ev.images.length > 0 ? (
+                      <AttachmentThumbnails urls={ev.images} className="mt-2" size={56} />
                     ) : null}
                   </li>
                 ))}

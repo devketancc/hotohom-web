@@ -62,6 +62,7 @@ export interface BookingTripEvent {
   recorded_by_name: string;
   metadata: Record<string, unknown>;
   bill_url: string | null;
+  images: string[];
   notes: string;
   created_at: string;
 }

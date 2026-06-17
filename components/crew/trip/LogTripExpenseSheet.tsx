@@ -25,12 +25,14 @@ import { cn } from '@/lib/utils';
 import {
   CREW_EXPENSE_PRESETS,
   expensePresetFor,
+  expenseRequiresAttachment,
   expenseTypeLabel,
   formatExpenseValue,
   LOG_EXPENSE_STEPS,
   recentExpenseLines,
   type LogExpenseStepId,
 } from '@/lib/crewExpenseUi';
+import { AttachmentUploader } from '@/components/crew/trip/AttachmentUploader';
 import type {
   CrewExpenseType,
   CrewTripExpenseLog,
@@ -38,7 +40,7 @@ import type {
   CrewTripExpenseWritePayload,
 } from '@/types/crew';
 
-type QueuedItem = CrewTripExpenseWriteItem & { key: string };
+type QueuedItem = CrewTripExpenseWriteItem & { key: string; images: string[] };
 
 const STEP_IDS = LOG_EXPENSE_STEPS.map((s) => s.id);
 
@@ -161,18 +163,21 @@ export function LogTripExpenseSheet({
   onOpenChange,
   onSubmit,
   pending,
+  tripId,
   recentLogs = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (payload: CrewTripExpenseWritePayload) => Promise<void>;
   pending: boolean;
+  tripId: string;
   recentLogs?: CrewTripExpenseLog[];
 }) {
   const [step, setStep] = useState<LogExpenseStepId>('type');
   const [expenseType, setExpenseType] = useState<CrewExpenseType>('toll_charge');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
   const [occurredAt, setOccurredAt] = useState(() => toDatetimeLocalValue(new Date()));
   const [queue, setQueue] = useState<QueuedItem[]>([]);
@@ -197,6 +202,7 @@ export function LogTripExpenseSheet({
     setExpenseType('toll_charge');
     setAmount('');
     setDescription('');
+    setImages([]);
     setSessionNotes('');
     setOccurredAt(toDatetimeLocalValue(new Date()));
     setQueue([]);
@@ -233,6 +239,10 @@ export function LogTripExpenseSheet({
       return;
     }
     if (step === 'details') {
+      if (preset.requiresAttachment && images.length === 0) {
+        setError(`${preset.label} needs a photo of the receipt.`);
+        return;
+      }
       setStep('review');
     }
   };
@@ -250,6 +260,10 @@ export function LogTripExpenseSheet({
     setError(null);
     const value = parseAmount();
     if (value === null) return;
+    if (preset.requiresAttachment && images.length === 0) {
+      setError(`${preset.label} needs a photo of the receipt.`);
+      return;
+    }
     setQueue((q) => [
       ...q,
       {
@@ -257,11 +271,13 @@ export function LogTripExpenseSheet({
         expense_type: expenseType,
         value,
         description: description.trim() || undefined,
+        images,
       },
     ]);
     setExpenseType('toll_charge');
     setAmount('');
     setDescription('');
+    setImages([]);
     setStep('type');
   };
 
@@ -275,6 +291,18 @@ export function LogTripExpenseSheet({
     return items;
   };
 
+  /** Backend stores attachments at the log level — flatten + dedupe across items. */
+  const allImages = (): string[] => {
+    const urls = new Set<string>();
+    for (const item of queue) {
+      for (const url of item.images) urls.add(url);
+    }
+    if (currentDraft) {
+      for (const url of images) urls.add(url);
+    }
+    return [...urls];
+  };
+
   const handleSave = async () => {
     setError(null);
     const items = allItems();
@@ -282,11 +310,16 @@ export function LogTripExpenseSheet({
       setError('Add at least one expense before saving.');
       return;
     }
+    if (currentDraft && preset.requiresAttachment && images.length === 0) {
+      setError(`${preset.label} needs a photo of the receipt.`);
+      return;
+    }
     const at = new Date(occurredAt);
     if (Number.isNaN(at.getTime())) {
       setError('Invalid date.');
       return;
     }
+    const imgs = allImages();
     const geo = await readGeolocation();
     try {
       await onSubmit({
@@ -294,6 +327,7 @@ export function LogTripExpenseSheet({
         lat: geo?.lat ?? null,
         lng: geo?.lng ?? null,
         notes: sessionNotes.trim() || undefined,
+        images: imgs.length > 0 ? imgs : undefined,
         items,
       });
       onOpenChange(false);
@@ -364,6 +398,8 @@ export function LogTripExpenseSheet({
                             setExpenseType(p.type);
                             setAmount('');
                             setDescription('');
+                            setImages([]);
+                            setError(null);
                           }}
                           className={cn(
                             'relative flex gap-3 rounded-xl border p-4 text-left transition-colors',
@@ -472,6 +508,18 @@ export function LogTripExpenseSheet({
                       placeholder={preset.notePlaceholder}
                     />
                   </div>
+                  <AttachmentUploader
+                    value={images}
+                    onChange={(urls) => {
+                      setImages(urls);
+                      setError(null);
+                    }}
+                    entityType="trip_expense"
+                    entityId={tripId}
+                    required={preset.requiresAttachment}
+                    disabled={pending}
+                    label={`${preset.label} receipt`}
+                  />
                   {queue.length === 0 ? (
                     <div className="space-y-2">
                       <Label htmlFor="crew-expense-session">Trip note (optional)</Label>

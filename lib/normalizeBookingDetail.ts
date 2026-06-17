@@ -125,6 +125,7 @@ export function normalizeBookingTripEvent(raw: unknown): BookingTripEvent | null
     recorded_by_name: r.recorded_by_name != null ? String(r.recorded_by_name) : '',
     metadata: r.metadata && typeof r.metadata === 'object' ? (r.metadata as Record<string, unknown>) : {},
     bill_url: r.bill_url != null ? String(r.bill_url) : null,
+    images: Array.isArray(r.images) ? r.images.map(String) : [],
     notes: r.notes != null ? String(r.notes) : '',
     created_at: r.created_at != null ? String(r.created_at) : '',
   };

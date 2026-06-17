@@ -18,6 +18,8 @@ export type CrewExpensePreset = {
   quickAmounts: number[];
   amountPlaceholder: string;
   notePlaceholder: string;
+  /** Disputable charges that must be backed by a receipt/photo. */
+  requiresAttachment: boolean;
 };
 
 /** Order matches crew UX: toll & parking first, then hours-based charges. */
@@ -31,6 +33,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [50, 100, 200, 500],
     amountPlaceholder: '85',
     notePlaceholder: 'e.g. Mumbai–Pune expressway',
+    requiresAttachment: true,
   },
   {
     type: 'parking_charge',
@@ -41,6 +44,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [50, 100, 200, 500],
     amountPlaceholder: '100',
     notePlaceholder: 'e.g. Mall parking, overnight',
+    requiresAttachment: true,
   },
   {
     type: 'ac_hours',
@@ -51,6 +55,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [0.5, 1, 2, 3],
     amountPlaceholder: '2',
     notePlaceholder: 'e.g. Customer requested AC at rest stop',
+    requiresAttachment: false,
   },
   {
     type: 'gen_hours',
@@ -61,6 +66,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [0.5, 1, 2, 3],
     amountPlaceholder: '1',
     notePlaceholder: 'e.g. Backup power at campsite',
+    requiresAttachment: false,
   },
   {
     type: 'damage_charge',
@@ -71,6 +77,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [500, 1000, 2000, 5000],
     amountPlaceholder: '500',
     notePlaceholder: 'Describe the damage briefly',
+    requiresAttachment: true,
   },
   {
     type: 'other_charge',
@@ -81,6 +88,7 @@ export const CREW_EXPENSE_PRESETS: CrewExpensePreset[] = [
     quickAmounts: [100, 250, 500, 1000],
     amountPlaceholder: '250',
     notePlaceholder: 'What was this charge for?',
+    requiresAttachment: false,
   },
 ];
 
@@ -109,6 +117,10 @@ export function formatExpenseValue(type: CrewExpenseType, value: string | number
 
 export function expenseTypeLabel(type: CrewExpenseType): string {
   return expensePresetFor(type)?.label ?? type.replace(/_/g, ' ');
+}
+
+export function expenseRequiresAttachment(type: CrewExpenseType): boolean {
+  return expensePresetFor(type)?.requiresAttachment ?? false;
 }
 
 const ZERO_SUMMARY: CrewTripEOTSummary = {

@@ -248,6 +248,7 @@ export function CrewTripHero({
         open={expenseSheetOpen}
         onOpenChange={setExpenseSheetOpen}
         pending={isLoggingExpense}
+        tripId={tripId}
         recentLogs={recentExpenseLogs}
         onSubmit={async (payload) => {
           await logExpense(payload);
@@ -258,6 +259,7 @@ export function CrewTripHero({
         open={logOpen}
         onOpenChange={setLogOpen}
         pending={isLoggingEvent}
+        tripId={tripId}
         onSubmit={async (payload) => {
           await logEvent(payload);
         }}

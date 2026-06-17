@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { flattenExpenseLogs, formatExpenseRowWhen } from '@/lib/crewBookingUi';
 import { expenseTotalsChips } from '@/lib/crewExpenseUi';
+import { AttachmentThumbnails } from '@/components/crew/trip/AttachmentThumbnails';
 import type { CrewTripEOTSummary, CrewTripExpenseLog } from '@/types/crew';
 
 const EXPENSE_CHIP_COLORS: Record<string, string> = {
@@ -74,6 +75,9 @@ export function AdminTripExpenseReview({
               </p>
               {row.description !== '—' ? (
                 <p className="mt-0.5 text-xs text-muted-foreground">{row.description}</p>
+              ) : null}
+              {row.images.length > 0 ? (
+                <AttachmentThumbnails urls={row.images} className="mt-1.5" size={40} showLabel />
               ) : null}
             </li>
           ))}

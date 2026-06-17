@@ -35,6 +35,8 @@ export type CrewTripEventWritePayload = {
   event_type: CrewTripEventType;
   occurred_at: string;
   notes?: string;
+  images?: string[];
+  bill_url?: string;
 };
 
 export type CrewExpenseType =
@@ -59,6 +61,7 @@ export type CrewTripExpenseLog = {
   lng: string | null;
   notes: string;
   recorded_by_name: string;
+  images: string[];
   items: CrewTripExpenseItem[];
   created_at: string;
 };
@@ -74,6 +77,7 @@ export type CrewTripExpenseWritePayload = {
   lat?: number | null;
   lng?: number | null;
   notes?: string;
+  images?: string[];
   items: CrewTripExpenseWriteItem[];
 };
 

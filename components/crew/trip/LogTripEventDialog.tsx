@@ -15,7 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { CREW_TRIP_EVENT_PRESETS } from '@/lib/crewTripUi';
-import type { CrewTripEventType } from '@/types/crew';
+import { AttachmentUploader } from '@/components/crew/trip/AttachmentUploader';
+import type { CrewTripEventType, CrewTripEventWritePayload } from '@/types/crew';
 
 function toDatetimeLocalValue(d: Date): string {
   return format(d, "yyyy-MM-dd'T'HH:mm");
@@ -26,20 +27,28 @@ export function LogTripEventDialog({
   onOpenChange,
   onSubmit,
   pending,
+  tripId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (payload: { event_type: CrewTripEventType; occurred_at: string; notes?: string }) => Promise<void>;
+  onSubmit: (payload: CrewTripEventWritePayload) => Promise<void>;
   pending: boolean;
+  tripId: string;
 }) {
   const [eventType, setEventType] = useState<CrewTripEventType>('refueling');
   const [occurredAt, setOccurredAt] = useState(() => toDatetimeLocalValue(new Date()));
   const [notes, setNotes] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const attachmentRequired = eventType === 'refueling';
 
   useEffect(() => {
     if (open) {
       setOccurredAt(toDatetimeLocalValue(new Date()));
+      setEventType('refueling');
+      setNotes('');
+      setImages([]);
       setError(null);
     }
   }, [open]);
@@ -50,14 +59,20 @@ export function LogTripEventDialog({
       setError('Enter a valid date and time.');
       return;
     }
+    if (attachmentRequired && images.length === 0) {
+      setError('Add a fuel bill / photo to log a refueling event.');
+      return;
+    }
     setError(null);
     try {
       await onSubmit({
         event_type: eventType,
         occurred_at: at.toISOString(),
         notes: notes.trim() || undefined,
+        images: images.length > 0 ? images : undefined,
       });
       setNotes('');
+      setImages([]);
       onOpenChange(false);
     } catch {
       // toast from mutation
@@ -80,7 +95,10 @@ export function LogTripEventDialog({
                 <button
                   key={preset.type}
                   type="button"
-                  onClick={() => setEventType(preset.type)}
+                  onClick={() => {
+                    setEventType(preset.type);
+                    setError(null);
+                  }}
                   className={cn(
                     'rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors',
                     eventType === preset.type
@@ -116,6 +134,16 @@ export function LogTripEventDialog({
             />
           </div>
 
+          <AttachmentUploader
+            value={images}
+            onChange={setImages}
+            entityType="trip_event"
+            entityId={tripId}
+            required={attachmentRequired}
+            disabled={pending}
+            label={attachmentRequired ? 'Attach fuel bill' : 'Attach photo'}
+          />
+
           {error ? (
             <p className="text-xs font-medium text-destructive" role="alert">
               {error}
@@ -127,7 +155,11 @@ export function LogTripEventDialog({
           <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button type="button" disabled={pending} onClick={() => void handleSubmit()}>
+          <Button
+            type="button"
+            disabled={pending || (attachmentRequired && images.length === 0)}
+            onClick={() => void handleSubmit()}
+          >
             {pending ? 'Saving…' : 'Save event'}
           </Button>
         </DialogFooter>

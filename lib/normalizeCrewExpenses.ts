@@ -48,6 +48,7 @@ export function normalizeCrewExpenseLog(raw: unknown): CrewTripExpenseLog | null
     lng: r.lng != null ? String(r.lng) : null,
     notes: r.notes != null ? String(r.notes) : '',
     recorded_by_name: r.recorded_by_name != null ? String(r.recorded_by_name) : '',
+    images: Array.isArray(r.images) ? r.images.map(String) : [],
     items,
     created_at: r.created_at != null ? String(r.created_at) : '',
   };

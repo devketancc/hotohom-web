@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatFeedWhen, mergeCrewActivityFeed, type CrewActivityFeedItem } from '@/lib/crewBookingUi';
 import { CrewCollapsibleSection } from '@/components/crew/trip/CrewCollapsibleSection';
+import { AttachmentThumbnails } from '@/components/crew/trip/AttachmentThumbnails';
 import type { BookingTripEvent } from '@/types/bookingDetail';
 import type { CrewTripExpenseLog } from '@/types/crew';
 
@@ -91,6 +92,9 @@ export function CrewActivityTimeline({
                       ) : null}
                       {item.kind === 'expense' && item.recordedBy ? (
                         <p className="mt-0.5 text-[10px] text-muted-foreground">{item.recordedBy}</p>
+                      ) : null}
+                      {item.images.length > 0 ? (
+                        <AttachmentThumbnails urls={item.images} className="mt-2" size={44} />
                       ) : null}
                     </div>
                   </div>
