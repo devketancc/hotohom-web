@@ -2,16 +2,28 @@ import apiClient from './apiClient';
 import type { ApiResponse } from '@/types/api';
 import type { PackagesPage, TravelPackage } from '@/types/package';
 
-async function fetchPackages(params: {
-  hub: string;
+/** Optional filters accepted by GET /packages/ alongside the required hub. */
+export type PackageFilters = {
   class?: string;
   page?: number;
-}): Promise<ApiResponse<PackagesPage>> {
+  minDays?: number;
+  maxDays?: number;
+  minPrice?: number;
+  maxPrice?: number;
+};
+
+async function fetchPackages(
+  params: { hub: string } & PackageFilters
+): Promise<ApiResponse<PackagesPage>> {
   const { data } = await apiClient.get<ApiResponse<PackagesPage>>('/packages/', {
     params: {
       hub: params.hub,
       ...(params.class ? { class: params.class } : {}),
       ...(params.page != null ? { page: params.page } : {}),
+      ...(params.minDays != null ? { min_days: params.minDays } : {}),
+      ...(params.maxDays != null ? { max_days: params.maxDays } : {}),
+      ...(params.minPrice != null ? { min_price: params.minPrice } : {}),
+      ...(params.maxPrice != null ? { max_price: params.maxPrice } : {}),
     },
   });
   return data;
@@ -43,18 +55,16 @@ export const packageService = {
     return data;
   },
 
-  async listPackages(params: {
-    hub: string;
-    class?: string;
-    page?: number;
-  }): Promise<ApiResponse<PackagesPage>> {
+  async listPackages(
+    params: { hub: string } & PackageFilters
+  ): Promise<ApiResponse<PackagesPage>> {
     return fetchPackages(params);
   },
 
   /** One request per hub; merges and de-duplicates by package id (default “All hubs” UI). */
   async listPackagesAcrossHubs(
     hubIds: string[],
-    options?: { class?: string }
+    options?: PackageFilters
   ): Promise<ApiResponse<PackagesPage>> {
     if (hubIds.length === 0) {
       return {
@@ -63,7 +73,7 @@ export const packageService = {
       };
     }
     const settled = await Promise.allSettled(
-      hubIds.map((hub) => fetchPackages({ hub, class: options?.class }))
+      hubIds.map((hub) => fetchPackages({ hub, ...options }))
     );
     const rejected = settled.filter((s): s is PromiseRejectedResult => s.status === 'rejected');
     if (rejected.length === settled.length) {

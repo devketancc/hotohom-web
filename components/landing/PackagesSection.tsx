@@ -9,7 +9,7 @@ import {
 } from '@/components/landing/PackageShowcaseCard';
 import { Reveal } from '@/components/shared/Reveal';
 import { locationService } from '@/services/location.service';
-import { packageService } from '@/services/package.service';
+import { packageService, type PackageFilters } from '@/services/package.service';
 import { formatCurrency } from '@/utils/format';
 
 const FALLBACK_PACKAGE_IMAGE =
@@ -17,10 +17,28 @@ const FALLBACK_PACKAGE_IMAGE =
 
 const ALL_HUBS = '';
 
+const DURATION_RANGES = [
+  { value: '', label: 'Any Duration' },
+  { value: '1-3', label: '1 to 3 Days', minDays: 1, maxDays: 3 },
+  { value: '4-7', label: '4 to 7 Days', minDays: 4, maxDays: 7 },
+  { value: '8-14', label: '8 to 14 Days', minDays: 8, maxDays: 14 },
+  { value: '15+', label: '15+ Days', minDays: 15 },
+] as const;
+
+const PRICE_RANGES = [
+  { value: '', label: 'Any Price' },
+  { value: 'u25', label: 'Under 25K', maxPrice: 25000 },
+  { value: '25-50', label: '25K to 50K', minPrice: 25000, maxPrice: 50000 },
+  { value: '50-100', label: '50K to 1L', minPrice: 50000, maxPrice: 100000 },
+  { value: '100+', label: '1L+', minPrice: 100000 },
+] as const;
+
 
 export function PackagesSection() {
   const [selectedHubId, setSelectedHubId] = useState<string>(ALL_HUBS);
   const [selectedClassCode, setSelectedClassCode] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState('');
+  const [selectedPrice, setSelectedPrice] = useState('');
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -43,6 +61,20 @@ export function PackagesSection() {
   const allHubsMode = selectedHubId === ALL_HUBS;
   const packagesEnabled = !allHubsMode ? !!selectedHubId : hubIds.length > 0;
 
+  const activeFilters = useMemo<PackageFilters>(() => {
+    const duration = DURATION_RANGES.find((r) => r.value === selectedDuration);
+    const price = PRICE_RANGES.find((r) => r.value === selectedPrice);
+    return {
+      ...(selectedClassCode ? { class: selectedClassCode } : {}),
+      ...(duration && 'minDays' in duration ? { minDays: duration.minDays } : {}),
+      ...(duration && 'maxDays' in duration ? { maxDays: duration.maxDays } : {}),
+      ...(price && 'minPrice' in price ? { minPrice: price.minPrice } : {}),
+      ...(price && 'maxPrice' in price ? { maxPrice: price.maxPrice } : {}),
+    };
+  }, [selectedClassCode, selectedDuration, selectedPrice]);
+
+  const hasActiveFilters = Object.keys(activeFilters).length > 0;
+
   const allHubsQueryKey = ['packages', 'all', 'list', hubIds.join(',')] as const;
 
   const { data: allForHub, isLoading: allLoading, isError: allError, refetch: refetchAll } = useQuery({
@@ -61,13 +93,13 @@ export function PackagesSection() {
     refetch: refetchFiltered,
   } = useQuery({
     queryKey: allHubsMode
-      ? (['packages', 'all', selectedClassCode, hubIds.join(',')] as const)
-      : (['packages', selectedHubId, selectedClassCode] as const),
+      ? (['packages', 'all', 'filtered', hubIds.join(','), activeFilters] as const)
+      : (['packages', selectedHubId, 'filtered', activeFilters] as const),
     queryFn: () =>
       allHubsMode
-        ? packageService.listPackagesAcrossHubs(hubIds, { class: selectedClassCode })
-        : packageService.listPackages({ hub: selectedHubId, class: selectedClassCode }),
-    enabled: packagesEnabled && !!selectedClassCode && !hubsLoading && !!hubs?.length,
+        ? packageService.listPackagesAcrossHubs(hubIds, activeFilters)
+        : packageService.listPackages({ hub: selectedHubId, ...activeFilters }),
+    enabled: packagesEnabled && hasActiveFilters && !hubsLoading && !!hubs?.length,
   });
 
   const classOptions = useMemo(() => {
@@ -81,14 +113,14 @@ export function PackagesSection() {
 
   const displayPackages = useMemo(() => {
     if (!packagesEnabled) return [];
-    if (selectedClassCode) return filtered?.data?.results ?? [];
+    if (hasActiveFilters) return filtered?.data?.results ?? [];
     return allForHub?.data?.results ?? [];
-  }, [packagesEnabled, selectedClassCode, filtered, allForHub]);
+  }, [packagesEnabled, hasActiveFilters, filtered, allForHub]);
 
   const listLoading =
-    packagesEnabled && (selectedClassCode ? filteredLoading : allLoading);
-  const listError = selectedClassCode ? filteredError : allError;
-  const refetchList = selectedClassCode ? refetchFiltered : refetchAll;
+    packagesEnabled && (hasActiveFilters ? filteredLoading : allLoading);
+  const listError = hasActiveFilters ? filteredError : allError;
+  const refetchList = hasActiveFilters ? refetchFiltered : refetchAll;
 
   const updateScrollProgress = useCallback(() => {
     const el = scrollerRef.current;
@@ -149,6 +181,8 @@ export function PackagesSection() {
                 onChange={(e) => {
                   setSelectedHubId(e.target.value);
                   setSelectedClassCode('');
+                  setSelectedDuration('');
+                  setSelectedPrice('');
                 }}
                 className="appearance-none rounded-2xl border border-white/5 bg-white/[0.03] px-6 py-4 pr-12 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 outline-none backdrop-blur-3xl transition-all duration-700 hover:border-white/10 hover:bg-white/[0.06] hover:text-white/70 focus:border-stitch-primary-container/30 focus:text-white"
               >
@@ -174,6 +208,40 @@ export function PackagesSection() {
                 {classOptions.map((code) => (
                   <option key={code} value={code} className="bg-stitch-background">
                     Class {code}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-hover:text-white/40">
+                <svg className="size-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <select
+                value={selectedDuration}
+                onChange={(e) => setSelectedDuration(e.target.value)}
+                className="appearance-none rounded-2xl border border-white/5 bg-white/[0.03] px-6 py-4 pr-12 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 outline-none backdrop-blur-3xl transition-all duration-700 hover:border-white/10 hover:bg-white/[0.06] hover:text-white/70 focus:border-stitch-primary-container/30 focus:text-white"
+              >
+                {DURATION_RANGES.map((r) => (
+                  <option key={r.value} value={r.value} className="bg-stitch-background">
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-white/20 transition-colors group-hover:text-white/40">
+                <svg className="size-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </div>
+            </div>
+
+            <div className="relative group">
+              <select
+                value={selectedPrice}
+                onChange={(e) => setSelectedPrice(e.target.value)}
+                className="appearance-none rounded-2xl border border-white/5 bg-white/[0.03] px-6 py-4 pr-12 font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 outline-none backdrop-blur-3xl transition-all duration-700 hover:border-white/10 hover:bg-white/[0.06] hover:text-white/70 focus:border-stitch-primary-container/30 focus:text-white"
+              >
+                {PRICE_RANGES.map((r) => (
+                  <option key={r.value} value={r.value} className="bg-stitch-background">
+                    {r.label}
                   </option>
                 ))}
               </select>
