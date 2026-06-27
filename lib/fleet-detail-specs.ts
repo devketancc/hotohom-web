@@ -11,7 +11,12 @@ export interface FleetDetailSpecRow {
   value: string;
 }
 
-const EDITORIAL_BY_CODE: Record<FleetClassCode, FleetDetailSpecRow[]> = {
+/**
+ * PLACEHOLDER editorial spec figures — NOT API-backed and NOT confirmed.
+ * Exported so detail pages can render them under a clearly-labelled
+ * "To confirm" group. Replace with real data (or new API fields) before launch.
+ */
+export const EDITORIAL_BY_CODE: Record<FleetClassCode, FleetDetailSpecRow[]> = {
   T: [
     { label: 'Berths (configured)', value: '2 berth + convertible lounge' },
     { label: 'Overall length (approx.)', value: '6.8 m · road-legal agile' },

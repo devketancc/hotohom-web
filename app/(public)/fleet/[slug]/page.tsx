@@ -6,33 +6,34 @@ import { useParams } from 'next/navigation';
 import {
   AlertCircle,
   ArrowLeft,
-  ArrowRight,
-  ArrowUpRight,
   Loader2,
+  Lock,
   RefreshCw,
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/landing/Footer';
 import { Reveal } from '@/components/shared/Reveal';
-import {
-  FleetDetailGalleryMosaic,
-  FleetDetailHero,
-  FleetDetailIntro,
-  FleetDetailSpecifications,
-  FleetStoryScroll,
-  FleetUnitsPresence,
-} from '@/components/fleet';
 import { MagneticButton } from '@/components/shared/MagneticButton';
-import type { FleetClassCode } from '@/config/fleet-experience';
-import { AMENITY_SMART_KEYS, getFleetExperience } from '@/config/fleet-experience';
-import { buildFleetDetailSpecRows } from '@/lib/fleet-detail-specs';
-import { buildFleetDetailScenes } from '@/lib/fleet-story-scenes';
-import { buildFleetImagePlan } from '@/lib/fleet-media';
+import { FleetDetailCover } from '@/components/fleet/redesign/FleetDetailCover';
+import { FleetDetailGallery } from '@/components/fleet/redesign/FleetDetailGallery';
+import { FleetDetailSpecs, type SpecRow } from '@/components/fleet/redesign/FleetDetailSpecs';
+import { FleetViceroyExperience } from '@/components/fleet/redesign/FleetViceroyExperience';
+import { getFleetClassContent } from '@/config/fleet-classes';
+import { EDITORIAL_BY_CODE } from '@/lib/fleet-detail-specs';
+import { getFleetImageList } from '@/lib/fleet-media';
 import { useFleetCatalog } from '@/hooks/useFleetCatalog';
 import { useFleetClass } from '@/hooks/useFleetClass';
+import { cn } from '@/lib/utils';
 
-const FALLBACK_HERO =
-  'https://images.unsplash.com/photo-1496950866446-3253e1470e8e?q=80&w=2400&auto=format&fit=crop';
+// Local stand-in frames used when a class has no marketing media yet. Real
+// MotoHom photography — clearly surfaced as placeholders by <MediaSlot>.
+const FALLBACK_IMAGES = [
+  '/exp-case/mh1.png',
+  '/exp-case/mh2.png',
+  '/exp-case/mh3.png',
+  '/exp-case/mh4.png',
+  '/exp-case/mh5.png',
+];
 
 export default function FleetClassDetailPage() {
   const params = useParams();
@@ -43,55 +44,61 @@ export default function FleetClassDetailPage() {
     slug || undefined
   );
 
-  const experience = useMemo(
-    () => (summary ? getFleetExperience(summary.klass.code) : null),
+  const content = useMemo(
+    () => (summary ? getFleetClassContent(summary.klass.code) : null),
     [summary]
   );
 
-  const images = useMemo(() => {
-    if (!summary) return null;
-    return buildFleetImagePlan(summary, FALLBACK_HERO);
-  }, [summary]);
+  const media = useMemo(() => {
+    if (!summary || !content) return null;
+    const realImages = getFleetImageList(summary);
+    const imagesArePlaceholder = realImages.length === 0;
+    const images = imagesArePlaceholder
+      ? [content.fallbackImage, ...FALLBACK_IMAGES.filter((f) => f !== content.fallbackImage)]
+      : realImages;
+    const video =
+      summary.klass.media.find((m) => m.media_type === 'video' && m.url)?.url ?? null;
+    const tour360 =
+      summary.klass.media.find((m) => m.media_type === 'tour360' && m.url)?.url ?? null;
+    return { images, video, tour360, imagesArePlaceholder };
+  }, [summary, content]);
 
-  const smartHighlights = useMemo(() => {
-    if (!summary) return [];
-    return summary.klass.amenities
-      .filter((a) => AMENITY_SMART_KEYS.test(a))
-      .slice(0, 5);
-  }, [summary]);
+  const specGroups = useMemo(() => {
+    if (!summary || !content) return null;
+    const { klass, units } = summary;
+    const hubs = [...new Set(units.map((u) => u.home_hub_name).filter(Boolean))].sort();
+    const hubLine =
+      hubs.length === 0
+        ? 'MotoHom network'
+        : hubs.length <= 3
+          ? hubs.join(' · ')
+          : `${hubs.slice(0, 2).join(' · ')} · +${hubs.length - 2} more`;
 
-  const scenes = useMemo(() => {
-    if (!summary || !experience || !images) return [];
-    return buildFleetDetailScenes({
-      summary,
-      exp: experience,
-      hero: images.hero,
-      interior: images.interior,
-      technology: images.technology,
-      living: images.living,
-      smartHighlights,
-    });
-  }, [summary, experience, images, smartHighlights]);
+    const confirmed: SpecRow[] = [
+      { label: 'Class', value: `${content.classLabel} · ${content.name}` },
+      { label: 'Guest capacity', value: `Up to ${klass.full_capacity} guests` },
+      {
+        label: 'Pet policy',
+        value: klass.is_pet_friendly
+          ? `Up to ${klass.capacity_pets} pet${klass.capacity_pets === 1 ? '' : 's'}`
+          : 'Not on this class',
+      },
+      { label: 'Hub presence', value: hubLine },
+    ];
 
-  const specRows = useMemo(() => {
-    if (!summary || !experience) return [];
-    return buildFleetDetailSpecRows(summary, experience.code as FleetClassCode);
-  }, [summary, experience]);
+    const toConfirm: SpecRow[] = EDITORIAL_BY_CODE[content.code] ?? [];
+    return { confirmed, toConfirm };
+  }, [summary, content]);
 
-  const specSideImages = useMemo((): [string, string] | null => {
-    if (!images) return null;
-    const g = images.gallery;
-    if (g.length >= 2) return [g[1], g[0]];
-    return [images.technology, images.hero];
-  }, [images]);
+  const ready = summary && content && media && specGroups;
 
   return (
-    <main className="bg-stitch-background text-stitch-on-background min-h-screen">
+    <main className="min-h-screen bg-surface-0 text-ink">
       <Navbar />
 
       {isLoading && (
         <div className="flex min-h-[80vh] items-center justify-center pt-28">
-          <Loader2 className="size-10 animate-spin text-stitch-primary" />
+          <Loader2 className="size-10 animate-spin text-gold" />
         </div>
       )}
 
@@ -99,181 +106,147 @@ export default function FleetClassDetailPage() {
         <div className="flex min-h-[60vh] items-center justify-center px-6 pt-32">
           <div className="flex max-w-xl flex-col items-center gap-4 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-24 text-center">
             <AlertCircle className="size-10 text-red-400" />
-            <p className="font-body text-stitch-on-surface-variant">
-              Could not load this class right now.
-            </p>
+            <p className="font-body text-ink-muted">Could not load this class right now.</p>
             <button
               type="button"
               onClick={() => refetch()}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors hover:border-stitch-primary hover:text-stitch-primary"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-bold uppercase tracking-wider transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
-              <RefreshCw className="size-4" />
-              Retry
+              <RefreshCw className="size-4" /> Retry
             </button>
           </div>
         </div>
       )}
 
-      {!isLoading && !isError && classes.length === 0 && (
+      {!isLoading && !isError && (notFound || (classes.length > 0 && !ready)) && (
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-6 pt-28 text-center">
-          <h1 className="font-headline text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
-            Fleet coming soon
+          <h1 className="font-heading text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
+            Fleet class not found
           </h1>
-          <p className="max-w-md font-body text-stitch-on-surface-variant">
-            No fleet classes are available yet. Please check back shortly.
+          <p className="max-w-md font-body text-ink-muted">
+            We couldn&apos;t match{' '}
+            <span className="font-semibold text-ink">&ldquo;{slug}&rdquo;</span> to an
+            active MotoHom class.
           </p>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 font-headline text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors hover:border-stitch-primary hover:text-stitch-primary"
+            href="/fleet"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 font-heading text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
-            <ArrowLeft className="size-4" />
-            Home
+            <ArrowLeft className="size-4" /> Back to fleet
           </Link>
         </div>
       )}
 
-      {!isLoading &&
-        !isError &&
-        classes.length > 0 &&
-        (notFound || !summary || !experience || !images) && (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-6 pt-28 text-center">
-            <h1 className="font-headline text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
-              Fleet experience not found
-            </h1>
-            <p className="max-w-md font-body text-stitch-on-surface-variant">
-              We couldn&apos;t match{' '}
-              <span className="font-semibold text-stitch-on-background">&ldquo;{slug}&rdquo;</span> to
-              an active MotoHom silhouette.
-            </p>
-            <Link
-              href="/fleet"
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-2.5 font-headline text-[11px] font-semibold uppercase tracking-[0.22em] transition-colors hover:border-stitch-primary hover:text-stitch-primary"
-            >
-              <ArrowLeft className="size-4" />
-              Back to fleet
-            </Link>
-          </div>
-        )}
+      {/* Flagship gets its own ultra-luxury, media-led experience. */}
+      {ready && content.code === 'V' && (
+        <FleetViceroyExperience
+          content={content}
+          summary={summary}
+          media={media}
+          specGroups={specGroups}
+        />
+      )}
 
-      {summary && experience && images && scenes.length > 0 && specSideImages && (
+      {ready && content.code !== 'V' && (
         <>
-          <FleetDetailHero
-            imageUrl={images.hero}
-            imageAlt={`${experience.headline} — fleet hero`}
-            title={experience.headline}
-            seriesLabel={experience.seriesLabel}
-            slug={experience.slug}
-          />
-
-          <FleetDetailIntro
+          <FleetDetailCover
+            content={content}
             summary={summary}
-            displayName={experience.headline}
-            tagline={experience.sections.heroTagline}
-            heroSecondaryUrl={images.interior}
-            heroSecondaryAlt={`${experience.headline} — exterior and living volume`}
+            heroImage={summary.coverImage ?? content.fallbackImage}
+            heroVideo={media.video}
           />
 
-          <section className="border-b border-[var(--color-line)] bg-stitch-background/90">
-            <div className="mx-auto flex max-w-screen-xl flex-wrap gap-3 px-6 py-8 md:gap-4 md:px-10">
-              <MagneticButton strength={0.32}>
-                <Link
-                  href={`/packages?class=${summary.klass.code}`}
-                  className="group inline-flex items-center gap-3 rounded-full border border-stitch-primary-container/35 bg-stitch-primary-container px-6 py-3 font-headline text-[11px] font-semibold uppercase tracking-[0.18em] text-stitch-on-primary-container shadow-[0_12px_36px_-16px_rgba(229,185,92,0.55)] transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:brightness-[1.06]"
-                >
-                  Plan a journey
-                  <ArrowRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5" />
-                </Link>
-              </MagneticButton>
-              <Link
-                href="/select-caravan"
-                className="group inline-flex items-center gap-3 rounded-full border border-white/15 px-6 py-3 font-headline text-[11px] font-semibold uppercase tracking-[0.18em] text-stitch-on-background/90 transition-[transform,border-color,background-color,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/[0.04]"
-              >
-                Availability
-                <ArrowUpRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </Link>
+          {/* Why this class */}
+          <section className="relative border-t border-[var(--color-line)] bg-surface-0 py-20 md:py-28">
+            <div className="mx-auto grid max-w-screen-2xl gap-12 px-6 md:px-12 lg:grid-cols-[1.5fr_1fr] lg:gap-20">
+              <Reveal as="div">
+                <span className="label-mono text-gold">Why {content.name}</span>
+                <div className="mt-5 space-y-5">
+                  {content.positioning.map((para) => (
+                    <p
+                      key={para}
+                      className="max-w-2xl font-body text-[clamp(1.05rem,1.8vw,1.35rem)] leading-relaxed text-ink-muted"
+                    >
+                      {para}
+                    </p>
+                  ))}
+                  <p className="max-w-2xl border-l-2 border-gold/50 pl-4 font-body text-[clamp(1.05rem,1.8vw,1.35rem)] leading-relaxed text-ink">
+                    {content.differentiator}
+                  </p>
+                </div>
+              </Reveal>
+              <Reveal as="div" delay={0.1}>
+                <div className="rounded-2xl border border-[var(--color-line)] bg-surface-1 p-7">
+                  <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-faint">
+                    What this tier adds
+                  </h3>
+                  <ul className="mt-5 flex flex-col divide-y divide-[var(--color-line)]">
+                    {content.signatures.map((s, i) => (
+                      <li key={s} className="flex items-start gap-3 py-3.5">
+                        <span className="mt-0.5 font-mono text-[11px] text-gold">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="font-body text-[14px] leading-snug text-ink">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
             </div>
           </section>
 
-          <FleetStoryScroll
-            scenes={scenes}
-            topEyebrow={experience.seriesLabel}
-            staticEyebrow={experience.seriesLabel}
-            staticTitle={`The ${experience.headline} story`}
-            scrollIntroRibbon={false}
-            staticShowHeader={false}
+          <FleetDetailGallery media={media} name={content.name} />
+
+          <FleetDetailSpecs
+            confirmed={specGroups.confirmed}
+            toConfirm={specGroups.toConfirm}
+            amenities={summary.klass.amenities}
+            sideImage={media.images[1] ?? media.images[0]}
+            sideIsPlaceholder={media.imagesArePlaceholder}
+            name={content.name}
           />
 
-          <FleetDetailGalleryMosaic
-            id="fleet-gallery"
-            eyebrow="Gallery"
-            title="Interior architecture, road presence, and the quiet details that define this class."
-            images={images.gallery}
-            imageBaseAlt={experience.headline}
-          />
-
-          <FleetDetailSpecifications
-            rows={specRows}
-            sideImages={specSideImages}
-            imageAltBase={experience.headline}
-          />
-
-          <section className="relative border-y border-[var(--color-line)] bg-stitch-background py-14 md:py-16">
-            <div className="mx-auto flex max-w-screen-xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between md:px-10">
-              <div className="max-w-xl">
-                <h3 className="font-headline text-lg font-semibold tracking-[-0.02em] text-stitch-on-background md:text-xl">
-                  Hubs & journey coverage
-                </h3>
-                <p className="mt-2 font-body text-sm leading-relaxed text-stitch-on-surface-variant/85 md:text-[0.9375rem]">
-                  Explore how this silhouette rotates through MotoHom depots and the routes we stage
-                  for multi-day charters.
-                </p>
-              </div>
-              <Link
-                href="/journey/map"
-                className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-white/15 px-6 py-3 font-headline text-[11px] font-semibold uppercase tracking-[0.2em] text-stitch-on-background/92 transition-colors hover:border-stitch-primary-container/35 hover:text-stitch-primary-container"
-              >
-                Open journey map
-                <ArrowUpRight className="size-4" />
-              </Link>
-            </div>
-          </section>
-
-          <FleetUnitsPresence
-            unitNames={summary.units.map((u) => u.name)}
-            count={summary.unitCount}
-          />
-
+          {/* Closing CTA — tier-correct (V = request) */}
           <section className="section-ambient-warm relative border-t border-[var(--color-line)] py-24 md:py-28">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(229,185,92,0.08),transparent_55%)]" />
-            <div className="relative mx-auto flex max-w-screen-xl flex-col items-center gap-10 px-6 text-center md:px-10">
+            <div className="relative mx-auto flex max-w-screen-xl flex-col items-center gap-9 px-6 text-center md:px-12">
               <Reveal as="div" className="max-w-2xl">
-                <span className="font-headline text-[10px] font-semibold uppercase tracking-[0.32em] text-stitch-primary-container/90">
-                  {experience.sections.ctaEyebrow}
+                <span className="label-mono text-gold">
+                  {content.ctaKind === 'enquiry' ? 'By invitation' : 'Plan your trip'}
                 </span>
-                <h2 className="mt-5 font-headline text-3xl font-semibold leading-[1.05] tracking-[-0.025em] text-stitch-on-background md:text-4xl">
-                  {experience.sections.ctaTitle}
+                <h2 className="mt-5 font-heading text-[clamp(1.9rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-0.025em] text-ink">
+                  {content.ctaKind === 'enquiry'
+                    ? `Enquire about the ${content.name}.`
+                    : `Take the ${content.name} on your next journey.`}
                 </h2>
-                <p className="mt-5 font-body text-base leading-relaxed text-stitch-on-surface-variant/80">
-                  {experience.sections.ctaBody}
+                <p className="mt-5 font-body text-base leading-relaxed text-ink-muted">
+                  {content.ctaKind === 'enquiry'
+                    ? 'Received by request, on terms set around privacy. A single private point of contact will be in touch.'
+                    : 'Pair this class with a curated route, or check live availability across hubs.'}
                 </p>
               </Reveal>
               <Reveal as="div" delay={0.08} className="flex flex-wrap items-center justify-center gap-4">
                 <MagneticButton strength={0.32}>
                   <Link
-                    href={`/packages?class=${summary.klass.code}`}
-                    className="group inline-flex items-center gap-3 rounded-full border border-stitch-primary-container/35 bg-stitch-primary-container px-7 py-3.5 font-headline text-[12px] font-semibold uppercase tracking-[0.18em] text-stitch-on-primary-container shadow-[0_12px_36px_-16px_rgba(229,185,92,0.55)] transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:brightness-[1.06]"
+                    href={content.ctaHref}
+                    className={cn(
+                      'group inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-heading text-[12px] font-semibold uppercase tracking-[0.18em] transition-[transform,filter,background-color,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0',
+                      content.ctaKind === 'enquiry'
+                        ? 'border border-[var(--color-line-gold)] bg-white/[0.03] text-ink hover:border-gold/60 hover:bg-white/[0.06]'
+                        : 'bg-gold text-gold-ink shadow-glow-gold hover:brightness-[1.05]'
+                    )}
                   >
-                    Curated journeys
-                    <ArrowRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5" />
+                    {content.ctaKind === 'enquiry' && <Lock className="size-3.5" aria-hidden />}
+                    {content.ctaLabel}
                   </Link>
                 </MagneticButton>
-                <Link
-                  href="/select-caravan"
-                  className="group inline-flex items-center gap-3 rounded-full border border-white/15 px-7 py-3.5 font-headline text-[12px] font-semibold uppercase tracking-[0.18em] text-stitch-on-background/90 transition-[transform,border-color,background-color,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/[0.04]"
-                >
-                  Check availability
-                  <ArrowUpRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </Link>
+                {content.ctaKind !== 'enquiry' && (
+                  <Link
+                    href="/packages"
+                    className="inline-flex items-center gap-2 font-heading text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-muted transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-4 focus-visible:ring-offset-surface-0"
+                  >
+                    Explore journeys
+                  </Link>
+                )}
               </Reveal>
             </div>
           </section>
