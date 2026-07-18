@@ -11,7 +11,11 @@ export function ConciergeBand() {
   return (
     <section
       id="concierge"
-      className="dawn-glow relative overflow-hidden border-y border-line bg-surface-0 py-[clamp(4rem,8vw,8rem)]"
+      // No overflow-hidden here: the booking control's date + hub popovers open
+      // upward (absolute bottom-full) and must escape the section bounds.
+      // z-30 lifts this section above the hero's z-20 foreground (so the popovers
+      // aren't painted behind it) while staying below the z-50 navbar.
+      className="dawn-glow relative isolate z-30 border-y border-line bg-surface-0 py-[clamp(4rem,8vw,8rem)]"
     >
       <div className="mx-auto max-w-screen-2xl px-6 md:px-16">
         <motion.div

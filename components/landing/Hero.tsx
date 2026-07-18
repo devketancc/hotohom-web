@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from 'react'
+import Link from 'next/link'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowDown, ArrowUpRight } from 'lucide-react'
 import { AmbientSpotlight } from '@/components/shared/AmbientSpotlight'
@@ -197,8 +198,8 @@ export const Hero = () => {
         </div>
 
         {/* Bottom: kinetic headline + actions */}
-        <div className="max-w-5xl">
-          <div className="relative min-h-[8.5rem] sm:min-h-[12rem] md:min-h-[16rem] lg:min-h-[20rem]">
+        <div className="max-w-6xl">
+          <div className="relative min-h-[7rem] sm:min-h-[10rem] md:min-h-[12rem] lg:min-h-[15rem]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.h1
                 key={reduced ? 'static' : clip.src}
@@ -206,7 +207,7 @@ export const Hero = () => {
                 animate={reduced ? undefined : { opacity: 1, y: 0, filter: 'blur(0px)' }}
                 exit={reduced ? undefined : { opacity: 0, y: -18, filter: 'blur(10px)' }}
                 transition={{ duration: 0.8, ease: LUXURY_EASE }}
-                className="display-hero text-[clamp(3rem,11vw,11rem)] text-ink"
+                className="display-hero text-[clamp(2.5rem,8vw,8rem)] text-ink"
               >
                 <span className="block">{clip.line1}</span>
                 <span className="block">{clip.line2}</span>
@@ -240,13 +241,13 @@ export const Hero = () => {
                 <ArrowDown className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0.5" />
               </span>
             </button>
-            <a
+            <Link
               href="/fleet"
               className="group inline-flex items-center gap-2 font-heading text-[12px] font-semibold uppercase tracking-[0.18em] text-ink transition-colors hover:text-gold"
             >
               View the Fleet
               <ArrowUpRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </a>
+            </Link>
           </motion.div>
         </div>
       </div>

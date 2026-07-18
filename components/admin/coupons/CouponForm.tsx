@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { applyDrfErrorsToForm, extractDrfFieldErrors } from '@/lib/coupons/drfErrors';
@@ -181,7 +180,11 @@ export function CouponForm({
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6 pb-8">
+    <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+      {/* Scrollable fields region. Block flow (space-y) so cards keep their
+          natural height and overflow into scroll instead of flex-shrinking.
+          The footer below lives outside this so it never overlaps the fields. */}
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-4">
       {errors.root?.message ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {errors.root.message}
@@ -549,9 +552,11 @@ export function CouponForm({
         </CardContent>
       </Card>
 
-      <Separator />
+      </div>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      {/* Fixed footer, outside the scroll region: always visible, never
+          overlaps the fields. */}
+      <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-popover px-5 py-3 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={pending} className="min-w-[8rem]">
           {pending ? 'Saving…' : mode === 'create' ? 'Create coupon' : 'Save changes'}
         </Button>

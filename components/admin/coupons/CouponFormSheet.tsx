@@ -37,11 +37,13 @@ export function CouponFormSheet({
         side="right"
         showCloseButton
         className={cn(
-          'w-full gap-0 overflow-y-auto border-l border-border bg-popover p-0 sm:max-w-xl md:max-w-2xl',
+          // The popup itself clips; a single inner region scrolls. This keeps
+          // the header + close button fixed and makes the long form scrollable.
+          'flex w-full flex-col gap-0 overflow-hidden border-l border-border bg-popover p-0 sm:max-w-xl md:max-w-2xl',
           'data-[side=right]:sm:max-w-xl'
         )}
       >
-        <SheetHeader className="border-b border-border/80 bg-muted/20 px-5 py-4">
+        <SheetHeader className="shrink-0 border-b border-border/80 bg-muted/20 px-5 py-4">
           <SheetTitle className="font-heading text-lg">
             {mode === 'create' ? 'Create coupon' : `Edit ${coupon?.code ?? 'coupon'}`}
           </SheetTitle>
@@ -51,16 +53,15 @@ export function CouponFormSheet({
               : 'Update rules and limits. Changes apply to new checkouts immediately.'}
           </SheetDescription>
         </SheetHeader>
-        <div className="px-5 py-4">
-          <CouponForm
-            mode={mode}
-            couponId={coupon?.id}
-            coupon={coupon}
-            createMutation={createMutation}
-            updateMutation={updateMutation}
-            onSuccess={() => onOpenChange(false)}
-          />
-        </div>
+        {/* CouponForm is itself a flex column: scrollable fields + fixed footer. */}
+        <CouponForm
+          mode={mode}
+          couponId={coupon?.id}
+          coupon={coupon}
+          createMutation={createMutation}
+          updateMutation={updateMutation}
+          onSuccess={() => onOpenChange(false)}
+        />
       </SheetContent>
     </Sheet>
   );
