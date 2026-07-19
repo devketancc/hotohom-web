@@ -239,8 +239,8 @@ export function CrewTripHero({
         open={startOpen}
         onOpenChange={setStartOpen}
         pending={isStarting}
-        onConfirm={async (odometer_start) => {
-          await startTrip({ odometer_start });
+        onConfirm={async (odometer_start, imageFile) => {
+          await startTrip({ odometer_start, imageFile });
         }}
       />
 

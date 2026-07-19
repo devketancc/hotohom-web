@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { listAdminAddons } from '@/services/addonAdmin.service';
-import type { AdminAddonListQuery } from '@/types/adminAddon';
+import type { AdminAddonCategory, AdminAddonListQuery } from '@/types/adminAddon';
 
 export const addonQueryKeys = {
   list: (params: AdminAddonListQuery) => ['admin', 'addons', 'list', params] as const,
@@ -10,18 +10,22 @@ export const addonQueryKeys = {
 
 export type UseAdminAddonsInput = {
   isActiveFilter: boolean;
+  category?: AdminAddonCategory | '';
+  caravanClass?: string;
   page: number;
   pageSize: number;
 };
 
-export function useAdminAddons({ isActiveFilter, page, pageSize }: UseAdminAddonsInput) {
+export function useAdminAddons({ isActiveFilter, category, caravanClass, page, pageSize }: UseAdminAddonsInput) {
   const queryParams = useMemo(
     (): AdminAddonListQuery => ({
       page,
       page_size: pageSize,
       is_active: isActiveFilter,
+      ...(category ? { category } : {}),
+      ...(caravanClass ? { caravan_class: caravanClass } : {}),
     }),
-    [isActiveFilter, page, pageSize]
+    [isActiveFilter, category, caravanClass, page, pageSize]
   );
 
   return useQuery({

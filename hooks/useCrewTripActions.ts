@@ -43,7 +43,8 @@ export function useCrewTripActions(booking: CrewBookingDetail | undefined) {
   };
 
   const startMutation = useMutation({
-    mutationFn: (payload: CrewTripStartPayload) => startCrewTrip(tripId, payload),
+    mutationFn: ({ imageFile, ...payload }: CrewTripStartPayload & { imageFile?: File | null }) =>
+      startCrewTrip(tripId, payload, imageFile),
     onSuccess: async () => {
       toast.success('Trip started');
       await invalidateBooking();

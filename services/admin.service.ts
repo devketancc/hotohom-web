@@ -32,6 +32,12 @@ import type {
   AdminRosterCaravan,
   AdminRosterPartyMember,
   AdminUpdateStaffPayload,
+  AdminAssignStaffPayload,
+  AdminBalanceLinkResult,
+  AdminRefundPayload,
+  AdminSettlementRefundBreakdown,
+  AdminSettlementVerdict,
+  AdminTripSettlement,
 } from '@/types/admin';
 
 export const adminQueryKeys = {
@@ -49,6 +55,7 @@ export const adminQueryKeys = {
     ['admin', 'calendar', 'roster', params.date ?? '', params.start ?? '', params.end ?? '', params.hub ?? '', params.hasAlerts ?? false] as const,
   bookingDetail: (id: string) => ['admin', 'bookings', 'detail', id] as const,
   tripExpenses: (tripId: string) => ['admin', 'trips', tripId, 'expenses'] as const,
+  tripSettlement: (tripId: string) => ['admin', 'trips', tripId, 'settlement'] as const,
 };
 
 function readCoordinates(raw: Record<string, unknown>): { lat: number; lng: number } | null {
@@ -606,6 +613,100 @@ export async function submitAdminTripEnd(
 
 export async function approveAdminTripEOT(tripId: string): Promise<void> {
   await apiClient.post(`/admin/trips/${encodeURIComponent(tripId)}/approve-eot/`);
+}
+
+export async function assignAdminBookingStaff(
+  bookingId: string,
+  payload: AdminAssignStaffPayload
+): Promise<AdminBookingDetail> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/admin/bookings/${encodeURIComponent(bookingId)}/assign-staff/`,
+    payload
+  );
+  const row = normalizeAdminBookingDetail(data?.data);
+  if (!row) throw new Error('Failed to assign staff');
+  return row;
+}
+
+function normalizeAdminSettlementRefundBreakdown(raw: unknown): AdminSettlementRefundBreakdown | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  return {
+    deposit_refund: r.deposit_refund != null ? String(r.deposit_refund) : '0.00',
+    advance_refund: r.advance_refund != null ? String(r.advance_refund) : '0.00',
+    total_refund: r.total_refund != null ? String(r.total_refund) : '0.00',
+  };
+}
+
+function normalizeAdminTripSettlement(raw: unknown): AdminTripSettlement | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  if (r.trip_id == null) return null;
+  const settlement = String(r.settlement ?? '');
+  if (settlement !== 'balance_due' && settlement !== 'refund' && settlement !== 'settled') return null;
+  return {
+    trip_id: String(r.trip_id),
+    booking_id: r.booking_id != null ? String(r.booking_id) : '',
+    pricing_mode: r.pricing_mode != null ? String(r.pricing_mode) : '',
+    buffered_km: Number(r.buffered_km) || 0,
+    actual_km: Number(r.actual_km) || 0,
+    km_rate: r.km_rate != null ? String(r.km_rate) : '0',
+    km_credit: r.km_credit != null ? String(r.km_credit) : '0.00',
+    eot_extras: r.eot_extras != null ? String(r.eot_extras) : '0.00',
+    net_charges: r.net_charges != null ? String(r.net_charges) : '0.00',
+    deposit_held: r.deposit_held != null ? String(r.deposit_held) : '0.00',
+    deposit_id: r.deposit_id != null ? String(r.deposit_id) : null,
+    final_net: r.final_net != null ? String(r.final_net) : '0.00',
+    settlement: settlement as AdminSettlementVerdict,
+    balance_due: r.balance_due != null ? String(r.balance_due) : null,
+    refund_breakdown: normalizeAdminSettlementRefundBreakdown(r.refund_breakdown),
+    advance_payment_id: r.advance_payment_id != null ? String(r.advance_payment_id) : null,
+    next_step: r.next_step != null ? String(r.next_step) : null,
+    next_steps: Array.isArray(r.next_steps) ? r.next_steps.map((s) => String(s)) : [],
+  };
+}
+
+export async function getAdminTripSettlement(tripId: string): Promise<AdminTripSettlement> {
+  const { data } = await apiClient.get<ApiResponse<unknown>>(
+    `/admin/trips/${encodeURIComponent(tripId)}/settlement/`
+  );
+  const row = normalizeAdminTripSettlement(data?.data);
+  if (!row) throw new Error('Failed to load settlement');
+  return row;
+}
+
+function normalizeAdminBalanceLinkResult(raw: unknown): AdminBalanceLinkResult {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return {
+    linkNeeded: r.payment_link_needed !== false,
+    paymentId: r.payment_id != null ? String(r.payment_id) : null,
+    paymentUrl: r.payment_url != null ? String(r.payment_url) : null,
+    razorpayPaymentLinkId: r.razorpay_payment_link_id != null ? String(r.razorpay_payment_link_id) : null,
+    amount: r.amount != null ? String(r.amount) : null,
+    alreadyExists: Boolean(r.already_exists),
+    message: r.message != null ? String(r.message) : null,
+  };
+}
+
+export async function createAdminTripBalanceLink(tripId: string): Promise<AdminBalanceLinkResult> {
+  const { data } = await apiClient.post<ApiResponse<unknown>>(
+    `/admin/trips/${encodeURIComponent(tripId)}/balance-link/`,
+    undefined,
+    { timeout: 30000 }
+  );
+  return normalizeAdminBalanceLinkResult(data?.data);
+}
+
+export async function refundAdminPayment(paymentId: string, payload: AdminRefundPayload): Promise<void> {
+  await apiClient.post(`/admin/payments/${encodeURIComponent(paymentId)}/refund/`, payload, {
+    timeout: 30000,
+  });
+}
+
+export async function refundAdminDeposit(bookingId: string, payload: AdminRefundPayload): Promise<void> {
+  await apiClient.post(`/admin/bookings/${encodeURIComponent(bookingId)}/deposit/refund/`, payload, {
+    timeout: 30000,
+  });
 }
 
 export async function listAdminStaff(params?: { role?: string; hub?: string }): Promise<AdminStaffProfile[]> {

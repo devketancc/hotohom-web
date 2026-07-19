@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { AdminEOTApprovalPanel } from '@/components/admin/booking/AdminEOTApprovalPanel';
+import { AdminSettlementPanel } from '@/components/admin/booking/AdminSettlementPanel';
 import { BookingDetailFullView } from '@/components/booking/BookingDetailFullView';
 import { getBookingAssignmentDisplay } from '@/lib/bookingAssignment';
 import { adminQueryKeys, getAdminBookingById } from '@/services/admin.service';
@@ -96,6 +97,7 @@ export default function AdminBookingDetailPage() {
         </div>
       ) : null}
       {data.trip ? <AdminEOTApprovalPanel booking={data} userRole={userRole} /> : null}
+      {data.trip ? <AdminSettlementPanel booking={data} userRole={userRole} /> : null}
       <BookingDetailFullView
         booking={data}
         backHref="/admin/roster"

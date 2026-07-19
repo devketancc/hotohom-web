@@ -258,7 +258,7 @@ export default function BookingSummaryPage() {
         if (openedInNewTab) {
           router.push(statusPath);
         } else {
-          // Popup blocked — full redirect to Zoho; user must return to status page after paying.
+          // Popup blocked — full redirect to Razorpay; user must return to status page after paying.
           window.location.assign(result.payment_url);
         }
       } catch (err) {
@@ -629,10 +629,18 @@ export default function BookingSummaryPage() {
               </div>
 
               {pb.deposit_amount > 0 && (
-                <div className="flex justify-between gap-3 text-sm pt-2">
-                  <span className="text-muted-foreground">Refundable deposit</span>
-                  <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.deposit_amount)}</span>
-                </div>
+                <>
+                  <div className="flex justify-between gap-3 text-sm pt-2">
+                    <span className="text-muted-foreground">Refundable deposit (collected now)</span>
+                    <span className="font-medium tabular-nums shrink-0">₹{formatInr(pb.deposit_amount)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm pt-2 mt-2 border-t border-border/20">
+                    <span className="font-bold text-stitch-on-background">Payable now</span>
+                    <span className="font-bold tabular-nums shrink-0 text-stitch-primary">
+                      ₹{formatInr(pb.grand_total + pb.deposit_amount)}
+                    </span>
+                  </div>
+                </>
               )}
             </div>
 
@@ -711,7 +719,7 @@ export default function BookingSummaryPage() {
             <div className="flex items-center justify-center gap-2 opacity-60">
               <Lock className="fill-current" size={12} />
               <span className="text-[10px] font-label tracking-wide uppercase">
-                Secure payment via Zoho / Razorpay
+                Secure payment via Razorpay
               </span>
             </div>
           </div>

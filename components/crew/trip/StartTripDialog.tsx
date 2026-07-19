@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { Camera, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CREW_TRIP_CONFIRM_COPY } from '@/lib/crewTripUi';
+import { validateImageFile } from '@/services/media.service';
 
 export function StartTripDialog({
   open,
@@ -22,12 +25,28 @@ export function StartTripDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (odometerStart: number) => Promise<void>;
+  onConfirm: (odometerStart: number, imageFile: File | null) => Promise<void>;
   pending: boolean;
 }) {
   const [odometer, setOdometer] = useState('');
   const [confirmStep, setConfirmStep] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const clearImage = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setImageFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const reset = () => {
     setConfirmStep(false);
@@ -37,9 +56,23 @@ export function StartTripDialog({
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setOdometer('');
+      clearImage();
       reset();
     }
     onOpenChange(next);
+  };
+
+  const handleFileChange = (file: File | null) => {
+    if (!file) return;
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
   };
 
   const parsed = Number.parseInt(odometer, 10);
@@ -56,8 +89,9 @@ export function StartTripDialog({
       return;
     }
     try {
-      await onConfirm(parsed);
+      await onConfirm(parsed, imageFile);
       setOdometer('');
+      clearImage();
       reset();
       onOpenChange(false);
     } catch {
@@ -76,18 +110,55 @@ export function StartTripDialog({
         </DialogHeader>
 
         {!confirmStep ? (
-          <div className="space-y-2">
-            <Label htmlFor="crew-odometer-start">Odometer start (km)</Label>
-            <Input
-              id="crew-odometer-start"
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={odometer}
-              onChange={(e) => setOdometer(e.target.value)}
-              placeholder="e.g. 45230"
-              className="h-11"
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="crew-odometer-start">Odometer start (km)</Label>
+              <Input
+                id="crew-odometer-start"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={odometer}
+                onChange={(e) => setOdometer(e.target.value)}
+                placeholder="e.g. 45230"
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Odometer photo (optional)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+              />
+              {previewUrl ? (
+                <div className="group relative size-20 overflow-hidden rounded-lg border border-border bg-muted/20">
+                  <Image src={previewUrl} alt="Odometer photo" fill className="object-cover" unoptimized />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-opacity hover:bg-background"
+                    aria-label="Remove photo"
+                  >
+                    <X className="size-3" aria-hidden />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="size-4" aria-hidden />
+                  Add photo
+                </Button>
+              )}
+            </div>
+
             {error ? (
               <p className="text-xs font-medium text-destructive" role="alert">
                 {error}
@@ -97,6 +168,12 @@ export function StartTripDialog({
         ) : (
           <p className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
             Odometer start: <span className="font-semibold text-foreground">{parsed} km</span>
+            {imageFile ? (
+              <>
+                <br />
+                Photo attached: <span className="font-semibold text-foreground">{imageFile.name}</span>
+              </>
+            ) : null}
           </p>
         )}
 

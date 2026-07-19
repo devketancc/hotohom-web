@@ -46,7 +46,7 @@ export function buildPaymentStatusPath(cartId: string, paymentId?: string): stri
   return `/booking/payment/status?${params.toString()}`;
 }
 
-/** Open Zoho payment in a new tab when possible; returns whether a separate tab was used. */
+/** Open the Razorpay payment page in a new tab when possible; returns whether a separate tab was used. */
 export function openPaymentUrl(paymentUrl: string, paymentTab: Window | null): boolean {
   if (paymentTab && !paymentTab.closed) {
     paymentTab.location.href = paymentUrl;

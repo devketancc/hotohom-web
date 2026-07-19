@@ -11,12 +11,14 @@ import { AddonsList } from '@/components/admin/addons/AddonsList';
 import { useAddonMutations } from '@/hooks/useAddonMutations';
 import { useAdminAddons } from '@/hooks/useAdminAddons';
 import { adminQueryKeys, listAdminCaravanClasses } from '@/services/admin.service';
-import type { AdminAddon } from '@/types/adminAddon';
+import type { AdminAddon, AdminAddonCategory } from '@/types/adminAddon';
 
 const PAGE_SIZE = 20;
 
 export default function AdminAddonsPage() {
   const [activeFilter, setActiveFilter] = useState<AddonActiveFilter>('active');
+  const [category, setCategory] = useState<AdminAddonCategory | ''>('');
+  const [caravanClass, setCaravanClass] = useState('');
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -28,6 +30,8 @@ export default function AdminAddonsPage() {
 
   const listQuery = useAdminAddons({
     isActiveFilter,
+    category,
+    caravanClass,
     page,
     pageSize: PAGE_SIZE,
   });
@@ -88,6 +92,17 @@ export default function AdminAddonsPage() {
           setActiveFilter(v);
           setPage(1);
         }}
+        category={category}
+        onCategoryChange={(v) => {
+          setCategory(v);
+          setPage(1);
+        }}
+        caravanClass={caravanClass}
+        onCaravanClassChange={(v) => {
+          setCaravanClass(v);
+          setPage(1);
+        }}
+        classOptions={classes.map((c) => ({ code: c.code, name: c.name }))}
         total={total}
         isFetching={isFetching && !showSkeleton}
         className="mb-6"

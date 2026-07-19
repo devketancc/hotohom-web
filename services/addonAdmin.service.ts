@@ -73,6 +73,8 @@ export async function listAdminAddons(query: AdminAddonListQuery): Promise<Admin
   if (query.is_active !== undefined) {
     params.is_active = query.is_active ? 'true' : 'false';
   }
+  if (query.category) params.category = query.category;
+  if (query.caravan_class) params.caravan_class = query.caravan_class;
 
   const { data } = await apiClient.get<ApiResponse<AdminPaginated<unknown>>>('/admin/addons/', { params });
   return unwrapPaginatedAddons(data);

@@ -8,7 +8,7 @@ export type CreatePaymentLinkBody = {
 export type CreatePaymentLinkResult = {
   payment_id: string;
   payment_url: string;
-  zoho_invoice_id: string;
+  razorpay_payment_link_id: string;
   amount: string;
   cart_id: string;
 };

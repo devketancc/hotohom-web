@@ -295,3 +295,62 @@ export interface AdminBookingDetail extends BookingDetailExtensions {
   created_at: string;
   updated_at: string;
 }
+
+/** `POST /admin/bookings/{id}/assign-staff/` — ids are StaffProfile ids. */
+export interface AdminAssignStaffPayload {
+  driver_id?: string;
+  helper_id?: string;
+  override?: boolean;
+}
+
+/** One soft conflict from a 409 ASSIGNMENT_CONFLICTS response. */
+export interface AssignmentConflictIssue {
+  code: string;
+  message: string;
+}
+
+export type AdminSettlementVerdict = 'balance_due' | 'refund' | 'settled';
+
+export interface AdminSettlementRefundBreakdown {
+  deposit_refund: string;
+  advance_refund: string;
+  total_refund: string;
+}
+
+/** `GET /admin/trips/{id}/settlement/` — flat shape; branch fields are null when not applicable. */
+export interface AdminTripSettlement {
+  trip_id: string;
+  booking_id: string;
+  pricing_mode: string;
+  buffered_km: number;
+  actual_km: number;
+  km_rate: string;
+  km_credit: string;
+  eot_extras: string;
+  net_charges: string;
+  deposit_held: string;
+  deposit_id: string | null;
+  final_net: string;
+  settlement: AdminSettlementVerdict;
+  balance_due: string | null;
+  refund_breakdown: AdminSettlementRefundBreakdown | null;
+  advance_payment_id: string | null;
+  next_step: string | null;
+  next_steps: string[];
+}
+
+/** `POST /admin/trips/{id}/balance-link/` — normalized union of the link / no-link-needed shapes. */
+export interface AdminBalanceLinkResult {
+  linkNeeded: boolean;
+  paymentId: string | null;
+  paymentUrl: string | null;
+  razorpayPaymentLinkId: string | null;
+  amount: string | null;
+  alreadyExists: boolean;
+  message: string | null;
+}
+
+export interface AdminRefundPayload {
+  refund_amount: string;
+  refund_reason: string;
+}

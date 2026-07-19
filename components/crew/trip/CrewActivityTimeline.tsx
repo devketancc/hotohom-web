@@ -1,6 +1,6 @@
 'use client';
 
-import { Fuel, Plus, Receipt } from 'lucide-react';
+import { Fuel, MapPin, Plus, Receipt, UserMinus, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatFeedWhen, mergeCrewActivityFeed, type CrewActivityFeedItem } from '@/lib/crewBookingUi';
@@ -12,6 +12,9 @@ import type { CrewTripExpenseLog } from '@/types/crew';
 function feedIcon(item: CrewActivityFeedItem) {
   if (item.kind === 'expense') return Receipt;
   const t = item.eventType;
+  if (t === 'arrived_at_pickup') return MapPin;
+  if (t === 'passenger_pickup') return UserPlus;
+  if (t === 'passenger_drop') return UserMinus;
   if (t === 'refueling') return Fuel;
   return Fuel;
 }
@@ -19,6 +22,9 @@ function feedIcon(item: CrewActivityFeedItem) {
 function feedAccent(item: CrewActivityFeedItem): string {
   if (item.kind === 'expense') return 'border-l-emerald-500';
   if (item.eventType === 'trip_started') return 'border-l-emerald-500';
+  if (item.eventType === 'arrived_at_pickup') return 'border-l-teal-500';
+  if (item.eventType === 'passenger_pickup') return 'border-l-sky-500';
+  if (item.eventType === 'passenger_drop') return 'border-l-indigo-500';
   if (item.eventType === 'refueling') return 'border-l-blue-500';
   if (item.eventType === 'rest_stop') return 'border-l-violet-500';
   if (item.eventType === 'breakdown') return 'border-l-red-500';

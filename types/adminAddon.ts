@@ -32,6 +32,8 @@ export interface AdminAddonWritePayload {
 
 export interface AdminAddonListQuery {
   is_active?: boolean;
+  category?: AdminAddonCategory;
+  caravan_class?: string;
   page?: number;
   page_size?: number;
 }

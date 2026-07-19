@@ -181,7 +181,7 @@ function PaymentStatusContent() {
           Still confirming payment
         </h1>
         <p className="mt-2 font-body text-sm text-muted-foreground leading-relaxed">
-          If you completed payment on Zoho, confirmation can take a minute. Use the button below to
+          If you completed payment, confirmation can take a minute. Use the button below to
           check again, or open My Journeys — your booking may already be there.
         </p>
         <div className="mt-6 flex flex-col items-center gap-3">
@@ -229,7 +229,7 @@ function PaymentStatusContent() {
       <p className="mt-2 font-body text-sm text-muted-foreground leading-relaxed">
         {phase === 'success' && bookingId
           ? 'Redirecting to your booking…'
-          : 'Complete payment in the Zoho tab that opened. This page will automatically redirect you to your booking once payment is confirmed.'}
+          : 'Complete payment in the payment tab that opened. This page will automatically redirect you to your booking once payment is confirmed.'}
       </p>
       {phase === 'confirming' ? (
         <div className="mt-6 space-y-3">
@@ -244,7 +244,7 @@ function PaymentStatusContent() {
             </button>
           ) : null}
           <p className="font-body text-xs text-muted-foreground">
-            Already paid on Zoho?{' '}
+            Already paid?{' '}
             <button
               type="button"
               onClick={handleCheckNow}

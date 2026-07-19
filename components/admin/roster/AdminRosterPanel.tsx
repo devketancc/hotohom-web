@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { addDays, format, parseISO, startOfToday } from 'date-fns';
 import { CalendarOff } from 'lucide-react';
+import { AssignStaffSheet } from '@/components/admin/roster/AssignStaffSheet';
 import { RosterDateGroup } from '@/components/admin/roster/RosterDateGroup';
 import { RosterFilterBar } from '@/components/admin/roster/RosterFilterBar';
 import { adminQueryKeys, listAdminHubs } from '@/services/admin.service';
@@ -92,7 +93,8 @@ export function AdminRosterPanel() {
   const [hubId, setHubId] = useState('');
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [compactMode, setCompactMode] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState<AdminRosterBooking | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const { data: hubs = [], isPending: hubsLoading } = useQuery({
     queryKey: adminQueryKeys.hubs,
@@ -139,6 +141,12 @@ export function AdminRosterPanel() {
 
   const grouped = useMemo(() => groupBookingsByLocalDay(data ?? []), [data]);
   const now = new Date();
+
+  // Derived from fresh roster data so the aside reflects reassignments after refetch.
+  const selectedBooking = useMemo(
+    () => data?.find((b) => b.booking_id === selectedBookingId) ?? null,
+    [data, selectedBookingId]
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -199,7 +207,7 @@ export function AdminRosterPanel() {
               now={now}
               compact={compactMode}
               onSelectBooking={(booking) => {
-                setSelectedBooking(booking);
+                setSelectedBookingId(booking.booking_id);
               }}
             />
           ))}
@@ -218,7 +226,7 @@ export function AdminRosterPanel() {
             <button
               type="button"
               onClick={() => {
-                setSelectedBooking(null);
+                setSelectedBookingId(null);
               }}
               className="rounded-md border border-border/60 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
             >
@@ -253,9 +261,10 @@ export function AdminRosterPanel() {
           <div className="mt-4 flex gap-2">
             <button
               type="button"
+              onClick={() => setAssignOpen(true)}
               className="rounded-md border border-border/60 bg-background/80 px-3 py-1.5 text-xs text-foreground hover:bg-background"
             >
-              Assign Driver
+              Assign staff
             </button>
             <Link
               href={`/admin/bookings/${encodeURIComponent(selectedBooking.booking_id)}`}
@@ -265,6 +274,10 @@ export function AdminRosterPanel() {
             </Link>
           </div>
         </aside>
+      ) : null}
+
+      {selectedBooking ? (
+        <AssignStaffSheet open={assignOpen} onOpenChange={setAssignOpen} booking={selectedBooking} />
       ) : null}
     </div>
   );

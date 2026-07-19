@@ -29,7 +29,14 @@ export type CrewTripEndPayload = {
   driver_notes?: string;
 };
 
-export type CrewTripEventType = 'refueling' | 'rest_stop' | 'breakdown' | 'custom';
+export type CrewTripEventType =
+  | 'arrived_at_pickup'
+  | 'passenger_pickup'
+  | 'passenger_drop'
+  | 'refueling'
+  | 'rest_stop'
+  | 'breakdown'
+  | 'custom';
 
 export type CrewTripEventWritePayload = {
   event_type: CrewTripEventType;

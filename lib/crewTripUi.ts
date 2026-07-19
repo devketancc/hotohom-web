@@ -57,6 +57,9 @@ export function crewTripActions(status: CrewTripStatus): CrewTripUiActions {
 }
 
 export const CREW_TRIP_EVENT_PRESETS: { type: import('@/types/crew').CrewTripEventType; label: string }[] = [
+  { type: 'arrived_at_pickup', label: 'Arrived at pickup' },
+  { type: 'passenger_pickup', label: 'Passenger pickup' },
+  { type: 'passenger_drop', label: 'Passenger drop' },
   { type: 'refueling', label: 'Refueling' },
   { type: 'rest_stop', label: 'Rest stop' },
   { type: 'breakdown', label: 'Breakdown' },

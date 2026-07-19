@@ -83,11 +83,27 @@ export async function getCrewTrip(tripId: string): Promise<CrewTrip> {
   return row;
 }
 
-export async function startCrewTrip(tripId: string, body: CrewTripStartPayload): Promise<CrewTrip> {
-  const { data } = await apiClient.post<ApiResponse<unknown>>(
-    `/crew/trips/${encodeURIComponent(tripId)}/start/`,
-    body
-  );
+export async function startCrewTrip(
+  tripId: string,
+  body: CrewTripStartPayload,
+  imageFile?: File | null
+): Promise<CrewTrip> {
+  let data: ApiResponse<unknown>;
+  if (imageFile) {
+    const form = new FormData();
+    form.append('odometer_start', String(body.odometer_start));
+    form.append('odometer_image', imageFile);
+    ({ data } = await apiClient.post<ApiResponse<unknown>>(
+      `/crew/trips/${encodeURIComponent(tripId)}/start/`,
+      form,
+      { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
+    ));
+  } else {
+    ({ data } = await apiClient.post<ApiResponse<unknown>>(
+      `/crew/trips/${encodeURIComponent(tripId)}/start/`,
+      body
+    ));
+  }
   const row = normalizeBookingTrip(data?.data);
   if (!row) throw new Error('Failed to start trip');
   return row;
